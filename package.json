@@ -1,0 +1,27 @@
+{
+  "name": "air-monitor",
+  "version": "0.0.1",
+  "description": "Utilities for working with air quality monitoring data.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MazamaScience/air-monitor.git"
+  },
+  "keywords": [
+    "air-quality"
+  ],
+  "author": "Jonathan Callahan",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/MazamaScience/air-monitor/issues"
+  },
+  "homepage": "https://github.com/MazamaScience/air-monitor#readme",
+  "dependencies": {
+    "arquero": "^5.1.0",
+    "moment-timezone": "^0.5.40"
+  }
+}
