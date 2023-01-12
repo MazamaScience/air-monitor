@@ -263,11 +263,11 @@ export default class Monitor {
 
   /**
    * Calculates daily averages for the time series identified by id after the
-   * time series has been trimmed to local time day boundaries. The starting
+   * time series has been trimmed to local-time day boundaries. The starting
    * hour of each local time day and the daily average PM2.5 value associated
    * with that day are returned in an object with 'datetime' and 'avg_pm25' properties.
    * @param {*} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'datetime' and 'pm25' arrays.
+   * @returns {Object} Object with 'datetime' and 'avg_pm25' arrays.
    */
   getDailyAverageObject(id) {
     let index = this.getIDs().indexOf(id);
@@ -301,6 +301,41 @@ export default class Monitor {
     let daily_pm25 = avg_indices.map((x) => avg_24hr[x]);
 
     return { datetime: daily_datetime, avg_pm25: daily_pm25 };
+  }
+
+  /**
+   * Calculates hour-of-day averages for the time series identified by id after
+   * the time series has been trimmed to local-time day boundaries. The starting
+   * hour of each local time day and the daily average PM2.5 value associated
+   * with that day are returned in an object with 'hour' and 'avg_pm25' properties.
+   * @param {*} id deviceDeploymentID of the time series to select.
+   * @returns {Object} Object with 'hour' and 'avg_pm25' arrays.
+   */
+  getDiurnalAverageObject(id) {
+    let index = this.getIDs().indexOf(id);
+    let timezone = this.meta.array("timezone")[index];
+
+    // Create the average by local_hour data table
+    // NOTE:  Start by trimming to full days in the local timezone
+    const dt_mean = monitor
+      .trimDate(timezone)
+      .data // full days only
+      .slice(-(7 * 24)) // last 7 full days
+      .select(["datetime", id])
+      .rename(aq.names("datetime", "pm25"))
+      .derive({
+        local_hour: aq.escape((d) => moment.tz(d.datetime, timezone).hours()),
+      })
+      .groupby("local_hour")
+      .rollup({ hour_mean: aq.op.mean("pm25") });
+
+    // NOTE:  Highcharts will error out if any values are undefined. But null is OK.
+    const hour = dt_mean.array("local_hour");
+    const hour_mean = dt_mean
+      .array("hour_mean")
+      .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
+
+    return { local_hour: hour, avg_pm25: hour_mean };
   }
 
   /**
