@@ -317,10 +317,8 @@ export default class Monitor {
 
     // Create the average by local_hour data table
     // NOTE:  Start by trimming to full days in the local timezone
-    const dt_mean = monitor
-      .trimDate(timezone)
-      .data // full days only
-      .slice(-(7 * 24)) // last 7 full days
+    const dt_mean = this.trimDate(timezone) // full days only
+      .data.slice(-(7 * 24)) // last 7 full days
       .select(["datetime", id])
       .rename(aq.names("datetime", "pm25"))
       .derive({
