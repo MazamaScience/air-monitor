@@ -2,6 +2,8 @@
 import * as aq from "arquero";
 // First: npm install moment-timezone --save
 import * as moment from "moment-timezone";
+// npm install github:MazamaScience/air-monitor-algorithms
+import { pm_nowcast } from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields & methods
@@ -229,7 +231,7 @@ export default class Monitor {
   }
 
   /**
-   * Returns an array of NowCast values derived from the time series identified by id.
+   * Returns an array of PM2.5 values derived from the time series identified by id.
    * @param {String} id deviceDeploymentID of the time series to select.
    * @returns  {...Number}
    */
@@ -250,14 +252,8 @@ export default class Monitor {
    * @returns {...Number} Array of NowCast values.
    */
   getNowcast(id) {
-    // See:  https://observablehq.com/@openaq/epa-pm-nowcast
     let pm25 = this.data.array(id);
-    let nowcast = Array(pm25.length);
-    for (let i = 0; i < pm25.length; i++) {
-      let end = i + 1;
-      let start = end < 12 ? 0 : end - 12;
-      nowcast[i] = this.#nowcastPM(pm25.slice(start, end));
-    }
+    let nowcast = pm_nowcast(pm25); // from "air-monitor-algorithms"
     return nowcast;
   }
 
@@ -451,74 +447,5 @@ export default class Monitor {
 
     // Return the modified data table
     return dt.derive(values1).derive(values2);
-  }
-
-  // ---------------------------------------------------------------------------
-  // ----- Nowcast function from https://observablehq.com/@openaq/epa-pm-nowcast
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Convert an array of up to 12 PM2.5 concentrations in chronological order
-   * into a single NowCast value.
-   * @param {...Number} x Array of 12 values in chronological order.
-   * @returns {Number} NowCast value.
-   */
-  #nowcastPM(x) {
-    // NOTE:  We don't insist on 12 hours of data. Convert single values into arrays.
-    if (typeof x === "number") x = [x];
-
-    // NOTE:  map/reduce syntax: a: accumulator; o: object; i: index
-
-    // NOTE:  The algorithm below assumes reverse chronological order.
-    // NOTE:  WARNING:  In javascript `null * 1 = 0` which messes up things in
-    // NOTE:  our mapping functions. So we convert all null to NaN
-    // NOTE:  and then back to null upon return.
-    x = x.reverse().map((o) => (o === null ? NaN : o));
-
-    // Check for recent values;
-    let recentValidCount = x
-      .slice(0, 3)
-      .reduce((a, o) => (Number.isNaN(o) ? a : a + 1), 0);
-    if (recentValidCount < 2) return null;
-
-    let validIndices = x.reduce(
-      (a, o, i) => (Number.isNaN(o) ? a : a.concat(i)),
-      []
-    );
-
-    // NOTE:  max and min calculations need to be tolerant of missing values
-    let max = x
-      .filter((o) => !Number.isNaN(o))
-      .reduce((a, o) => (o > a ? o : a));
-    let min = x
-      .filter((o) => !Number.isNaN(o))
-      .reduce((a, o) => (o < a ? o : a));
-    let scaledRateOfChange = (max - min) / max;
-    let weightFactor =
-      1 - scaledRateOfChange < 0.5 ? 0.5 : 1 - scaledRateOfChange;
-
-    // TODO:  Check for any valid values before attempting to reduce.
-    // TODO:  If all NaN, then simple return null.
-
-    let weightedValues = x
-      .map((o, i) => o * Math.pow(weightFactor, i)) // maps onto an array including NaN
-      .filter((x) => !Number.isNaN(x)); // remove NaN before calculating sum
-
-    let weightedSum = null;
-    if (weightedValues.length == 0) {
-      return null;
-    } else {
-      weightedSum = weightedValues.reduce((a, o) => a + o);
-    }
-
-    let weightFactorSum = validIndices
-      .map((o) => Math.pow(weightFactor, o))
-      .reduce((a, o) => a + o);
-
-    let returnVal = parseFloat((weightedSum / weightFactorSum).toFixed(1));
-
-    // Convert NaN back to null for Highcharts
-    returnVal = Number.isNaN(returnVal) ? null : returnVal;
-    return returnVal;
   }
 }

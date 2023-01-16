@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/MazamaScience/air-monitor#readme",
   "dependencies": {
+    "air-monitor-algorithms": "github:MazamaScience/air-monitor-algorithms",
     "arquero": "^5.1.0",
     "moment-timezone": "^0.5.40"
   }
