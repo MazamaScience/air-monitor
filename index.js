@@ -1,9 +1,9 @@
 // First: npm install arquero --save
 import * as aq from "arquero";
 // First: npm install moment-timezone --save
-import * as moment from "moment-timezone";
+import moment from "moment-timezone";
 // npm install github:MazamaScience/air-monitor-algorithms
-import { pm_nowcast } from "air-monitor-algorithms";
+import { dailyAverage, pm_nowcast } from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields & methods
@@ -273,30 +273,31 @@ export default class Monitor {
     // NOTE:  Start by trimming to full days in the local timezone
     let dt = this.trimDate(timezone)
       .data.select(["datetime", id])
-      .rename(aq.names("datetime", "pm25"))
-      .derive({ avg_24hr: aq.rolling((d) => op.average(d.pm25), [-23, 0]) });
+      .rename(aq.names("datetime", "pm25"));
+    //   .derive({ avg_24hr: aq.rolling((d) => op.average(d.pm25), [-23, 0]) });
 
     // NOTE:  Highcharts will error out if any values are undefined. But null is OK.
     let datetime = dt.array("datetime");
-    let pm25 = dt
-      .array("pm25")
-      .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
-    let avg_24hr = dt
-      .array("avg_24hr")
-      .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
+    let pm25 = dt.array("pm25");
+    // .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
+    // let avg_24hr = dt
+    //   .array("avg_24hr")
+    //   .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
 
-    let dayCount = avg_24hr.length / 24;
-    let time_indices = [];
-    let avg_indices = [];
-    for (let i = 0; i < dayCount; i++) {
-      time_indices[i] = 24 * i; // avg assigned to beginning of day
-      avg_indices[i] = 24 * i + 23; // avg calculated at end of day
-    }
+    // let dayCount = avg_24hr.length / 24;
+    // let time_indices = [];
+    // let avg_indices = [];
+    // for (let i = 0; i < dayCount; i++) {
+    //   time_indices[i] = 24 * i; // avg assigned to beginning of day
+    //   avg_indices[i] = 24 * i + 23; // avg calculated at end of day
+    // }
 
-    let daily_datetime = time_indices.map((x) => datetime[x]);
-    let daily_pm25 = avg_indices.map((x) => avg_24hr[x]);
+    // let daily_datetime = time_indices.map((x) => datetime[x]);
+    // let daily_pm25 = avg_indices.map((x) => avg_24hr[x]);
 
-    return { datetime: daily_datetime, avg_pm25: daily_pm25 };
+    let daily = dailyAverage(datetime, pm25, timezone);
+
+    return { datetime: daily.datetime, avg_pm25: daily.avg };
   }
 
   /**
