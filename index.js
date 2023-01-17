@@ -3,7 +3,11 @@ import * as aq from "arquero";
 // First: npm install moment-timezone --save
 import moment from "moment-timezone";
 // npm install github:MazamaScience/air-monitor-algorithms
-import { dailyAverage, pm_nowcast } from "air-monitor-algorithms";
+import {
+  dailyAverage,
+  diurnalAverage,
+  pm_nowcast,
+} from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields & methods
@@ -238,10 +242,10 @@ export default class Monitor {
   getPM25(id) {
     let pm25 = this.data
       .array(id)
-      .map((x) =>
-        x === undefined || x === null || isNaN(x)
+      .map((o) =>
+        o === null || o === undefined || isNaN(o)
           ? null
-          : Math.round(10 * x) / 10
+          : Math.round(10 * o) / 10
       );
     return pm25;
   }
@@ -253,7 +257,8 @@ export default class Monitor {
    */
   getNowcast(id) {
     let pm25 = this.data.array(id);
-    let nowcast = pm_nowcast(pm25); // from "air-monitor-algorithms"
+    // pm_nowcast() comes from "air-monitor-algorithms"
+    let nowcast = pm_nowcast(pm25);
     return nowcast;
   }
 
@@ -265,39 +270,13 @@ export default class Monitor {
    * @param {*} id deviceDeploymentID of the time series to select.
    * @returns {Object} Object with 'datetime' and 'avg_pm25' arrays.
    */
-  getDailyAverageObject(id) {
-    let index = this.getIDs().indexOf(id);
-    let timezone = this.meta.array("timezone")[index];
-
-    // Create a new table with 24-rolling average values for this monitor
-    // NOTE:  Start by trimming to full days in the local timezone
-    let dt = this.trimDate(timezone)
-      .data.select(["datetime", id])
-      .rename(aq.names("datetime", "pm25"));
-    //   .derive({ avg_24hr: aq.rolling((d) => op.average(d.pm25), [-23, 0]) });
-
-    // NOTE:  Highcharts will error out if any values are undefined. But null is OK.
-    let datetime = dt.array("datetime");
-    let pm25 = dt.array("pm25");
-    // .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
-    // let avg_24hr = dt
-    //   .array("avg_24hr")
-    //   .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
-
-    // let dayCount = avg_24hr.length / 24;
-    // let time_indices = [];
-    // let avg_indices = [];
-    // for (let i = 0; i < dayCount; i++) {
-    //   time_indices[i] = 24 * i; // avg assigned to beginning of day
-    //   avg_indices[i] = 24 * i + 23; // avg calculated at end of day
-    // }
-
-    // let daily_datetime = time_indices.map((x) => datetime[x]);
-    // let daily_pm25 = avg_indices.map((x) => avg_24hr[x]);
-
+  getDailyAverage(id) {
+    let datetime = this.getDatetime();
+    let pm25 = this.getPM25(id);
+    let timezone = this.getMetadata(id, "timezone");
+    // dailyAverage comes from "air-monitor-algorithms"
     let daily = dailyAverage(datetime, pm25, timezone);
-
-    return { datetime: daily.datetime, avg_pm25: daily.avg };
+    return { datetime: daily.datetime, avg: daily.avg };
   }
 
   /**
@@ -308,29 +287,13 @@ export default class Monitor {
    * @param {*} id deviceDeploymentID of the time series to select.
    * @returns {Object} Object with 'hour' and 'avg_pm25' arrays.
    */
-  getDiurnalAverageObject(id) {
-    let index = this.getIDs().indexOf(id);
-    let timezone = this.meta.array("timezone")[index];
-
-    // Create the average by local_hour data table
-    // NOTE:  Start by trimming to full days in the local timezone
-    const dt_mean = this.trimDate(timezone) // full days only
-      .data.slice(-(7 * 24)) // last 7 full days
-      .select(["datetime", id])
-      .rename(aq.names("datetime", "pm25"))
-      .derive({
-        local_hour: aq.escape((d) => moment.tz(d.datetime, timezone).hours()),
-      })
-      .groupby("local_hour")
-      .rollup({ hour_mean: aq.op.mean("pm25") });
-
-    // NOTE:  Highcharts will error out if any values are undefined. But null is OK.
-    const hour = dt_mean.array("local_hour");
-    const hour_mean = dt_mean
-      .array("hour_mean")
-      .map((x) => (x === undefined ? null : Math.round(10 * x) / 10));
-
-    return { local_hour: hour, avg_pm25: hour_mean };
+  getDiurnalAverage(id) {
+    let datetime = this.getDatetime();
+    let pm25 = this.getPM25(id);
+    let timezone = this.getMetadata(id, "timezone");
+    // diurnalAverage comes from "air-monitor-algorithms"
+    let diurnal = diurnalAverage(datetime, pm25, timezone, 7);
+    return { hour: diurnal.hour, avg: diurnal.avg };
   }
 
   /**
