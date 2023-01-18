@@ -266,9 +266,9 @@ export default class Monitor {
    * Calculates daily averages for the time series identified by id after the
    * time series has been trimmed to local-time day boundaries. The starting
    * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'datetime' and 'avg_pm25' properties.
+   * with that day are returned in an object with 'datetime' and 'average_pm25' properties.
    * @param {*} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'datetime' and 'avg_pm25' arrays.
+   * @returns {Object} Object with 'datetime' and 'average_pm25' arrays.
    */
   getDailyAverage(id) {
     let datetime = this.getDatetime();
@@ -276,16 +276,16 @@ export default class Monitor {
     let timezone = this.getMetadata(id, "timezone");
     // dailyAverage comes from "air-monitor-algorithms"
     let daily = dailyAverage(datetime, pm25, timezone);
-    return { datetime: daily.datetime, avg: daily.avg };
+    return { datetime: daily.datetime, average: daily.average };
   }
 
   /**
    * Calculates hour-of-day averages for the time series identified by id after
    * the time series has been trimmed to local-time day boundaries. The starting
    * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'hour' and 'avg_pm25' properties.
+   * with that day are returned in an object with 'hour' and 'average_pm25' properties.
    * @param {*} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'hour' and 'avg_pm25' arrays.
+   * @returns {Object} Object with 'hour' and 'average_pm25' arrays.
    */
   getDiurnalAverage(id) {
     let datetime = this.getDatetime();
@@ -293,7 +293,7 @@ export default class Monitor {
     let timezone = this.getMetadata(id, "timezone");
     // diurnalAverage comes from "air-monitor-algorithms"
     let diurnal = diurnalAverage(datetime, pm25, timezone, 7);
-    return { hour: diurnal.hour, avg: diurnal.avg };
+    return { hour: diurnal.hour, average: diurnal.average };
   }
 
   /**
