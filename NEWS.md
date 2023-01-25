@@ -2,9 +2,9 @@
 
 Added functions to help with generating interactive maps:
 
-* `getCurrentStatus()` -- Returns the `meta` dataframe updated with the
-most recent time and pm25 value for each monitor.
-* `createGeoJSON()` -- Creates a.geojson version of the current status information.
+- `getCurrentStatus()` -- Returns the `meta` dataframe updated with the
+  most recent time and pm25 value for each monitor.
+- `createGeoJSON()` -- Creates a.geojson version of the current status information.
 
 # air-monitor 1.0.1
 

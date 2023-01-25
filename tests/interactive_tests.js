@@ -1,4 +1,4 @@
-import Monitor from "../index.js";
+import Monitor from "../src/index.js";
 
 const monitor = new Monitor();
 

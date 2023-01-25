@@ -52,8 +52,9 @@ export default class Monitor {
    *
    * This function replaces the 'meta' and 'data' properties of the
    * 'monitorObj' with the latest available data. Data are updated every few minutes.
-   * @param {String} provider One of "airnow|airsis|wrcc".
-   * @param {String} archiveBaseUrl URL for monitoring v2 data files.
+   *
+   * @param {string} provider One of "airnow|airsis|wrcc".
+   * @param {string} archiveBaseUrl URL for monitoring v2 data files.
    */
   async loadLatest(
     provider = "airnow",
@@ -126,8 +127,9 @@ export default class Monitor {
    * A new Monitor object is returned containing all time series and metadata from
    * 'this' Monitor as well as the passed in 'monitor'. This allows for chaining to
    * combine multiple Monitor objects.
-   * @param {Monitor} monitor A monitor object.
-   * @returns {Monitor} A combined monitor object.
+   *
+   * @param {Object} monitor A monitor object.
+   * @returns {Object} A combined monitor object.
    */
   combine(monitor) {
     let meta = this.meta.concat(monitor.meta);
@@ -140,8 +142,9 @@ export default class Monitor {
 
   /**
    * Subset and reorder time series within a monitor object.
-   * @param {...String} ids deviceDeploymentIDs of the time series to select.
-   * @returns {Monitor} A reordered (subset) of the incoming monitor object.
+   *
+   * @param {Array.<string>} ids deviceDeploymentIDs of the time series to select.
+   * @returns {Object} A reordered (subset) of the incoming monitor object.
    */
   select(ids) {
     let meta = this.meta
@@ -157,7 +160,8 @@ export default class Monitor {
 
   /**
    * Drop monitor object time series with all missing data.
-   * @returns {Monitor} A subset of the incoming monitor object.
+   *
+   * @returns {Object} A subset of the incoming monitor object.
    */
   dropEmpty() {
     let validCount = function (dt) {
@@ -198,9 +202,10 @@ export default class Monitor {
   /**
    * Returns a modified Monitor object with the records trimmed to full
    * local time days. Any partial days are discarded.
+   *
    * @note This function requires moment.js.
-   * @param {String} timezone Olsen timezone for the time series
-   * @returns {Monitor} A subset of the incoming Monitor object.
+   * @param {string} timezone Olsen timezone for the time series
+   * @returns {Object} A subset of the incoming Monitor object.
    */
   trimDate(timezone) {
     // Calculate local time hours and start/end
@@ -228,7 +233,8 @@ export default class Monitor {
 
   /**
    * Returns the array of date objects that define this Monitor object's time axis.
-   * @returns {...Date} Array of Date objects.
+   *
+   * @returns {Array.<Date>} Array of Date objects.
    */
   getDatetime(id) {
     return this.data.array("datetime");
@@ -236,8 +242,9 @@ export default class Monitor {
 
   /**
    * Returns an array of PM2.5 values derived from the time series identified by id.
+   *
    * @param {String} id deviceDeploymentID of the time series to select.
-   * @returns  {...Number}
+   * @returns  {Array.<number>}
    */
   getPM25(id) {
     let pm25 = this.data
@@ -251,9 +258,11 @@ export default class Monitor {
   }
 
   /**
-   * Returns an array of NowCast values derived from the time series identified by id.
-   * @param {*} id deviceDeploymentID of the time series to select.
-   * @returns {...Number} Array of NowCast values.
+   * Returns an array of NowCast values derived from the time series identified
+   * by id.
+   *
+   * @param {string} id deviceDeploymentID of the time series to select.
+   * @returns {Array.<number>} Array of NowCast values.
    */
   getNowcast(id) {
     let pm25 = this.data.array(id);
@@ -266,8 +275,10 @@ export default class Monitor {
    * Calculates daily averages for the time series identified by id after the
    * time series has been trimmed to local-time day boundaries. The starting
    * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'datetime' and 'average_pm25' properties.
-   * @param {*} id deviceDeploymentID of the time series to select.
+   * with that day are returned in an object with 'datetime' and 'average_pm25'
+   * properties.
+   *
+   * @param {string} id deviceDeploymentID of the time series to select.
    * @returns {Object} Object with 'datetime' and 'average_pm25' arrays.
    */
   getDailyAverage(id) {
@@ -283,8 +294,10 @@ export default class Monitor {
    * Calculates hour-of-day averages for the time series identified by id after
    * the time series has been trimmed to local-time day boundaries. The starting
    * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'hour' and 'average_pm25' properties.
-   * @param {*} id deviceDeploymentID of the time series to select.
+   * with that day are returned in an object with 'hour' and 'average_pm25'
+   * properties.
+   *
+   * @param {string} id deviceDeploymentID of the time series to select.
    * @returns {Object} Object with 'hour' and 'average_pm25' arrays.
    */
   getDiurnalAverage(id) {
@@ -298,7 +311,7 @@ export default class Monitor {
 
   /**
    * Returns the named metadata field for the time series identified by id.
-   * @param {*} id deviceDeploymentID of the time series to select.
+   * @param {string} id deviceDeploymentID of the time series to select.
    * @returns {Object} Object with 'datetime' and 'pm25' arrays.
    */
   getMetadata(id, fieldName) {
@@ -309,7 +322,9 @@ export default class Monitor {
   // ----- Special methods------------------------------------------------------
 
   /**
-   * Augment monitor.meta with current status information derived from monitor.data
+   * Augment monitor.meta with current status information derived from monitor
+   * data.
+   *
    * @param {Monitor} monitor Monitor object with 'meta' and 'data'.
    * @returns {Table} An enhanced version of monitor.meta.
    */
@@ -424,8 +439,10 @@ export default class Monitor {
   // ----- Utility methods -----------------------------------------------------
 
   /**
-   * Returns an array of unique identifiers (deviceDeploymentIDs) found in a Monitor object
-   * @returns {...String} An array of deviceDeploymentIDs.
+   * Returns an array of unique identifiers (deviceDeploymentIDs) found in a
+   * Monitor object
+   *
+   * @returns {Array.<string>} An array of deviceDeploymentIDs.
    */
   getIDs() {
     return this.meta.array("deviceDeploymentID");
@@ -433,7 +450,8 @@ export default class Monitor {
 
   /**
    * Returns the number of individual time series found in a Monitor object
-   * @returns {Number} Count of individual time series.
+   *
+   * @returns {number} Count of individual time series.
    */
   count() {
     return this.meta.numRows();
@@ -468,6 +486,8 @@ export default class Monitor {
    * Automatic parsing works quite well. We help out with:
    *   1. replace 'NA' with null
    *   2. only retain core metadata columns
+   *
+   * @private
    * @param dt Arquero table.
    */
   #parseMeta(dt) {
@@ -497,6 +517,8 @@ export default class Monitor {
    * parsed as text strings. We fix things by:
    *   1. replace 'NA' with null and convert to numeric
    *   2. lift any negative values to zero (matching the default R code behavior)
+   *
+   * @private
    * @param dt Arquero table.
    */
   #parseData(dt) {
