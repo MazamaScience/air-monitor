@@ -208,7 +208,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line134">line 134</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line130">line 130</a>
     </li></ul></dd>
     
 
@@ -318,7 +318,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line456">line 456</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line465">line 465</a>
     </li></ul></dd>
     
 
@@ -428,7 +428,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line166">line 166</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line162">line 162</a>
     </li></ul></dd>
     
 
@@ -588,7 +588,7 @@ data.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line331">line 331</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line340">line 340</a>
     </li></ul></dd>
     
 
@@ -646,7 +646,7 @@ data.</p>
     
 
     
-    <h4 class="name" id="getDailyAverage"><span class="type-signature"></span>getDailyAverage<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="getDailyStats"><span class="type-signature"></span>getDailyStats<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -654,10 +654,10 @@ data.</p>
 
 
 <div class="description">
-    <p>Calculates daily averages for the time series identified by id after the
+    <p>Calculates daily statistics for the time series identified by id after the
 time series has been trimmed to local-time day boundaries. The starting
-hour of each local time day and the daily average PM2.5 value associated
-with that day are returned in an object with 'datetime' and 'average_pm25'
+hour of each local time day and statistics derived from that day's data
+are returned in an object with <code>datetime</code>, <code>count</code>, <code>min</code>, <code>mean</code> and <code>max</code>
 properties.</p>
 </div>
 
@@ -751,7 +751,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line284">line 284</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line280">line 280</a>
     </li></ul></dd>
     
 
@@ -780,7 +780,7 @@ properties.</p>
 
         
 <div class="param-desc">
-    <p>Object with 'datetime' and 'average_pm25' arrays.</p>
+    <p>Object with <code>datetime</code>, <code>count</code>, <code>min</code>, <code>mean</code> and <code>max</code></p>
 </div>
 
 
@@ -861,7 +861,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line239">line 239</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line235">line 235</a>
     </li></ul></dd>
     
 
@@ -919,7 +919,7 @@ properties.</p>
     
 
     
-    <h4 class="name" id="getDiurnalAverage"><span class="type-signature"></span>getDiurnalAverage<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="getDiurnalStats"><span class="type-signature"></span>getDiurnalStats<span class="signature">(id, dayCount)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -927,10 +927,10 @@ properties.</p>
 
 
 <div class="description">
-    <p>Calculates hour-of-day averages for the time series identified by id after
-the time series has been trimmed to local-time day boundaries. The starting
-hour of each local time day and the daily average PM2.5 value associated
-with that day are returned in an object with 'hour' and 'average_pm25'
+    <p>Calculates hour-of-day statistics for the time series identified by id after
+the time series has been trimmed to local-time day boundaries. An array of
+local time hours and hour-of-day statistics derived from recent data
+are returned in an object with <code>hour</code>, <code>count</code>, <code>min</code>, <code>mean</code> and <code>max</code>
 properties.</p>
 </div>
 
@@ -957,6 +957,8 @@ properties.</p>
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -982,8 +984,41 @@ properties.</p>
             
 
             
+                <td class="default">
+                
+                </td>
+            
 
             <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dayCount</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    7
+                
+                </td>
+            
+
+            <td class="description last"><p>Number of most recent days to use.</p></td>
         </tr>
 
     
@@ -1024,7 +1059,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line303">line 303</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line306">line 306</a>
     </li></ul></dd>
     
 
@@ -1053,7 +1088,7 @@ properties.</p>
 
         
 <div class="param-desc">
-    <p>Object with 'hour' and 'average_pm25' arrays.</p>
+    <p>Object with <code>hour</code>, <code>count</code>, <code>min</code>, <code>mean</code> and <code>max</code> properties.</p>
 </div>
 
 
@@ -1135,7 +1170,7 @@ Monitor object</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line447">line 447</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line456">line 456</a>
     </li></ul></dd>
     
 
@@ -1294,7 +1329,7 @@ Monitor object</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line317">line 317</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line326">line 326</a>
     </li></ul></dd>
     
 
@@ -1454,7 +1489,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line267">line 267</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line263">line 263</a>
     </li></ul></dd>
     
 
@@ -1613,7 +1648,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line249">line 249</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line245">line 245</a>
     </li></ul></dd>
     
 
@@ -1808,7 +1843,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line59">line 59</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line55">line 55</a>
     </li></ul></dd>
     
 
@@ -1945,7 +1980,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line149">line 149</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line145">line 145</a>
     </li></ul></dd>
     
 
@@ -2105,7 +2140,7 @@ local time days. Any partial days are discarded.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line210">line 210</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line206">line 206</a>
     </li></ul></dd>
     
 
@@ -2173,13 +2208,13 @@ local time days. Any partial days are discarded.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyAverage">getDailyAverage</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalAverage">getDiurnalAverage</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Tue Jan 24 2023 16:43:53 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Wed Jan 25 2023 16:17:39 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

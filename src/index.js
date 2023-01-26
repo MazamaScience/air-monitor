@@ -3,11 +3,7 @@ import * as aq from "arquero";
 // First: npm install moment-timezone --save
 import moment from "moment-timezone";
 // npm install github:MazamaScience/air-monitor-algorithms
-import {
-  dailyAverage,
-  diurnalAverage,
-  pm_nowcast,
-} from "air-monitor-algorithms";
+import { dailyStats, diurnalStats, pm_nowcast } from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields & methods
@@ -272,41 +268,54 @@ export default class Monitor {
   }
 
   /**
-   * Calculates daily averages for the time series identified by id after the
+   * Calculates daily statistics for the time series identified by id after the
    * time series has been trimmed to local-time day boundaries. The starting
-   * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'datetime' and 'average_pm25'
+   * hour of each local time day and statistics derived from that day's data
+   * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
    * properties.
    *
    * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'datetime' and 'average_pm25' arrays.
+   * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max`
    */
-  getDailyAverage(id) {
+  getDailyStats(id) {
     let datetime = this.getDatetime();
     let pm25 = this.getPM25(id);
     let timezone = this.getMetadata(id, "timezone");
-    // dailyAverage comes from "air-monitor-algorithms"
-    let daily = dailyAverage(datetime, pm25, timezone);
-    return { datetime: daily.datetime, average: daily.average };
+    // dailyStats comes from "air-monitor-algorithms"
+    let daily = dailyStats(datetime, pm25, timezone);
+    return {
+      datetime: daily.datetime,
+      count: daily.count,
+      min: daily.min,
+      mean: daily.mean,
+      max: daily.max,
+    };
   }
 
   /**
-   * Calculates hour-of-day averages for the time series identified by id after
-   * the time series has been trimmed to local-time day boundaries. The starting
-   * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'hour' and 'average_pm25'
+   * Calculates hour-of-day statistics for the time series identified by id after
+   * the time series has been trimmed to local-time day boundaries. An array of
+   * local time hours and hour-of-day statistics derived from recent data
+   * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
    * properties.
    *
    * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'hour' and 'average_pm25' arrays.
+   * @param {number} dayCount Number of most recent days to use.
+   * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
    */
-  getDiurnalAverage(id) {
+  getDiurnalStats(id, dayCount = 7) {
     let datetime = this.getDatetime();
     let pm25 = this.getPM25(id);
     let timezone = this.getMetadata(id, "timezone");
-    // diurnalAverage comes from "air-monitor-algorithms"
-    let diurnal = diurnalAverage(datetime, pm25, timezone, 7);
-    return { hour: diurnal.hour, average: diurnal.average };
+    // diurnalStats comes from "air-monitor-algorithms"
+    let diurnal = diurnalStats(datetime, pm25, timezone, dayCount);
+    return {
+      hour: diurnal.hour,
+      count: diurnal.count,
+      min: diurnal.min,
+      mean: diurnal.mean,
+      max: diurnal.max,
+    };
   }
 
   /**

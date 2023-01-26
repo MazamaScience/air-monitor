@@ -31,11 +31,7 @@ import * as aq from "arquero";
 // First: npm install moment-timezone --save
 import moment from "moment-timezone";
 // npm install github:MazamaScience/air-monitor-algorithms
-import {
-  dailyAverage,
-  diurnalAverage,
-  pm_nowcast,
-} from "air-monitor-algorithms";
+import { dailyStats, diurnalStats, pm_nowcast } from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields &amp; methods
@@ -300,41 +296,54 @@ export default class Monitor {
   }
 
   /**
-   * Calculates daily averages for the time series identified by id after the
+   * Calculates daily statistics for the time series identified by id after the
    * time series has been trimmed to local-time day boundaries. The starting
-   * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'datetime' and 'average_pm25'
+   * hour of each local time day and statistics derived from that day's data
+   * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
    * properties.
    *
    * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'datetime' and 'average_pm25' arrays.
+   * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max`
    */
-  getDailyAverage(id) {
+  getDailyStats(id) {
     let datetime = this.getDatetime();
     let pm25 = this.getPM25(id);
     let timezone = this.getMetadata(id, "timezone");
-    // dailyAverage comes from "air-monitor-algorithms"
-    let daily = dailyAverage(datetime, pm25, timezone);
-    return { datetime: daily.datetime, average: daily.average };
+    // dailyStats comes from "air-monitor-algorithms"
+    let daily = dailyStats(datetime, pm25, timezone);
+    return {
+      datetime: daily.datetime,
+      count: daily.count,
+      min: daily.min,
+      mean: daily.mean,
+      max: daily.max,
+    };
   }
 
   /**
-   * Calculates hour-of-day averages for the time series identified by id after
-   * the time series has been trimmed to local-time day boundaries. The starting
-   * hour of each local time day and the daily average PM2.5 value associated
-   * with that day are returned in an object with 'hour' and 'average_pm25'
+   * Calculates hour-of-day statistics for the time series identified by id after
+   * the time series has been trimmed to local-time day boundaries. An array of
+   * local time hours and hour-of-day statistics derived from recent data
+   * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
    * properties.
    *
    * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'hour' and 'average_pm25' arrays.
+   * @param {number} dayCount Number of most recent days to use.
+   * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
    */
-  getDiurnalAverage(id) {
+  getDiurnalStats(id, dayCount = 7) {
     let datetime = this.getDatetime();
     let pm25 = this.getPM25(id);
     let timezone = this.getMetadata(id, "timezone");
-    // diurnalAverage comes from "air-monitor-algorithms"
-    let diurnal = diurnalAverage(datetime, pm25, timezone, 7);
-    return { hour: diurnal.hour, average: diurnal.average };
+    // diurnalStats comes from "air-monitor-algorithms"
+    let diurnal = diurnalStats(datetime, pm25, timezone, dayCount);
+    return {
+      hour: diurnal.hour,
+      count: diurnal.count,
+      min: diurnal.min,
+      mean: diurnal.mean,
+      max: diurnal.max,
+    };
   }
 
   /**
@@ -588,13 +597,13 @@ export default class Monitor {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyAverage">getDailyAverage</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalAverage">getDiurnalAverage</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Tue Jan 24 2023 16:43:53 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Wed Jan 25 2023 16:17:39 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
