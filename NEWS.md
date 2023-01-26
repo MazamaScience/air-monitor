@@ -1,3 +1,7 @@
+# air-monitor 1.0.4
+
+Added `getMetaObject()` to return an object with all metadata.
+
 # air-monitor 1.0.3
 
 Replaced `dailyAverage()` and `diurnalAverage()` methods with `dailyStats()`
