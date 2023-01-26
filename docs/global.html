@@ -318,7 +318,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line465">line 465</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line476">line 476</a>
     </li></ul></dd>
     
 
@@ -588,7 +588,7 @@ data.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line340">line 340</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line351">line 351</a>
     </li></ul></dd>
     
 
@@ -1170,7 +1170,7 @@ Monitor object</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line456">line 456</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line467">line 467</a>
     </li></ul></dd>
     
 
@@ -1228,7 +1228,167 @@ Monitor object</p>
     
 
     
-    <h4 class="name" id="getMetadata"><span class="type-signature"></span>getMetadata<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="getMetaObject"><span class="type-signature"></span>getMetaObject<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Returns an object with all metadata properties for the time series
+identified by id.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line337">line 337</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Object with all metadata properties.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getMetadata"><span class="type-signature"></span>getMetadata<span class="signature">(id)</span><span class="type-signature"> &rarr; {string|number}</span></h4>
     
 
     
@@ -1358,7 +1518,7 @@ Monitor object</p>
 
         
 <div class="param-desc">
-    <p>Object with 'datetime' and 'pm25' arrays.</p>
+    <p>The named metadata field for a time series.</p>
 </div>
 
 
@@ -1369,7 +1529,10 @@ Monitor object</p>
     </dt>
     <dd>
         
-<span class="param-type">Object</span>
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
 
 
     </dd>
@@ -2208,13 +2371,13 @@ local time days. Any partial days are discarded.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Wed Jan 25 2023 16:18:26 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Thu Jan 26 2023 14:40:43 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

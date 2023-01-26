@@ -321,11 +321,21 @@ export default class Monitor {
   /**
    * Returns the named metadata field for the time series identified by id.
    * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with 'datetime' and 'pm25' arrays.
+   * @returns {string|number} The named metadata field for a time series.
    */
   getMetadata(id, fieldName) {
     const index = this.getIDs().indexOf(id);
     return this.meta.array(fieldName)[index];
+  }
+
+  /**
+   * Returns an object with all metadata properties for the time series
+   * identified by id.
+   * @param {string} id deviceDeploymentID of the time series to select.
+   * @returns {Object} Object with all metadata properties.
+   */
+  getMetaObject(id) {
+    return this.select(id).meta.object();
   }
 
   // ----- Special methods------------------------------------------------------
