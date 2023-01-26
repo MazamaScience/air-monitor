@@ -43,11 +43,12 @@ export default class Monitor {
   // ----- Data load -------------------------------------------------------------
 
   /**
-   * Load latest Monitor objects from USFS AirFire repositories for 'airnow',
+   * Load 'latest' Monitor objects from USFS AirFire repositories for 'airnow',
    * 'airsis' and 'wrcc' data.
    *
-   * This function replaces the 'meta' and 'data' properties of the
-   * 'monitorObj' with the latest available data. Data are updated every few minutes.
+   * This function replaces the 'meta' and 'data' properties of 'this' monitor
+   * object with the latest available data. Data cover the most recent 10 days
+   * and are updated every few minutes.
    *
    * @param {string} provider One of "airnow|airsis|wrcc".
    * @param {string} archiveBaseUrl URL for monitoring v2 data files.
@@ -63,6 +64,17 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Load 'daily' Monitor objects from USFS AirFire repositories for 'airnow',
+   * 'airsis' and 'wrcc' data.
+   *
+   * This function replaces the 'meta' and 'data' properties of 'this' monitor
+   * object with the latest available data. Data cover the most recent 45 days
+   * and are updated once per day around 10:00 UTC (2am US Pacific Time).
+   *
+   * @param {string} provider One of "airnow|airsis|wrcc".
+   * @param {string} archiveBaseUrl URL for monitoring v2 data files.
+   */
   async loadDaily(
     provider = "airnow",
     archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
@@ -110,6 +122,54 @@ export default class Monitor {
       provider +
       "_PM2.5_" +
       timespan +
+      "_data.csv";
+    dt = await aq.loadCSV(url);
+    this.data = this.#parseData(dt);
+  }
+
+  // TODO:  AirNow, AIRSIS and WRCC annual files should be combined and placed
+  // TODO:  in an 'annual/' directory. This should be performed on the server.
+
+  // TODO:  Annual files should be copied to S3.
+  async loadAnnual(
+    year = "2022",
+    archiveBaseUrl = "http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow"
+  ) {
+    try {
+      await this.#provider_loadAnnual(year, archiveBaseUrl);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async #provider_loadAnnual(
+    year = "2022",
+    archiveBaseUrl = "http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow"
+  ) {
+    // TODO: support additional arguments
+    const QC_negativeValues = "zero";
+    const QC_removeSuspectData = true;
+
+    // * Load meta -----
+    let url =
+      archiveBaseUrl +
+      "/" +
+      year +
+      "/data/" +
+      "airnow_PM2.5_" +
+      year +
+      "_meta.csv";
+    let dt = await aq.loadCSV(url);
+    this.meta = this.#parseMeta(dt);
+
+    // * Load data -----
+    url =
+      archiveBaseUrl +
+      "/" +
+      year +
+      "/data/" +
+      "airnow_PM2.5_" +
+      year +
       "_data.csv";
     dt = await aq.loadCSV(url);
     this.data = this.#parseData(dt);

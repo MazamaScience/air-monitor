@@ -1,6 +1,10 @@
+# air-monitor 1.0.5
+
+Added `loadAnnual()` method to load a years worth of data.
+
 # air-monitor 1.0.4
 
-Added `getMetaObject()` to return an object with all metadata.
+Added `getMetaObject()` method to return an object with all metadata.
 
 # air-monitor 1.0.3
 
@@ -10,7 +14,7 @@ as `count`, `min`, `mean` and `max` properties.
 
 # air-monitor 1.0.2
 
-Added functions to help with generating interactive maps:
+Added methods to help with generating interactive maps:
 
 - `getCurrentStatus()` -- Returns the `meta` dataframe updated with the
   most recent time and pm25 value for each monitor.

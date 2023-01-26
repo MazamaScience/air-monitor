@@ -208,7 +208,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line130">line 130</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line190">line 190</a>
     </li></ul></dd>
     
 
@@ -318,7 +318,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line475">line 475</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line535">line 535</a>
     </li></ul></dd>
     
 
@@ -428,7 +428,7 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line162">line 162</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line222">line 222</a>
     </li></ul></dd>
     
 
@@ -588,7 +588,7 @@ data.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line350">line 350</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line410">line 410</a>
     </li></ul></dd>
     
 
@@ -751,7 +751,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line280">line 280</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line340">line 340</a>
     </li></ul></dd>
     
 
@@ -861,7 +861,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line235">line 235</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line295">line 295</a>
     </li></ul></dd>
     
 
@@ -1059,7 +1059,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line306">line 306</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line366">line 366</a>
     </li></ul></dd>
     
 
@@ -1170,7 +1170,7 @@ Monitor object</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line466">line 466</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line526">line 526</a>
     </li></ul></dd>
     
 
@@ -1330,7 +1330,7 @@ identified by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line337">line 337</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line397">line 397</a>
     </li></ul></dd>
     
 
@@ -1489,7 +1489,7 @@ identified by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line326">line 326</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line386">line 386</a>
     </li></ul></dd>
     
 
@@ -1652,7 +1652,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line263">line 263</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line323">line 323</a>
     </li></ul></dd>
     
 
@@ -1811,7 +1811,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line245">line 245</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line305">line 305</a>
     </li></ul></dd>
     
 
@@ -1865,7 +1865,7 @@ by id.</p>
     
 
     
-    <h4 class="name" id="loadLatest"><span class="type-signature">(async) </span>loadLatest<span class="signature">(provider, archiveBaseUrl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="loadDaily"><span class="type-signature">(async) </span>loadDaily<span class="signature">(provider, archiveBaseUrl)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1873,10 +1873,11 @@ by id.</p>
 
 
 <div class="description">
-    <p>Load latest Monitor objects from USFS AirFire repositories for 'airnow',
+    <p>Load 'daily' Monitor objects from USFS AirFire repositories for 'airnow',
 'airsis' and 'wrcc' data.</p>
-<p>This function replaces the 'meta' and 'data' properties of the
-'monitorObj' with the latest available data. Data are updated every few minutes.</p>
+<p>This function replaces the 'meta' and 'data' properties of 'this' monitor
+object with the latest available data. Data cover the most recent 45 days
+and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
 </div>
 
 
@@ -2006,7 +2007,185 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line55">line 55</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line78">line 78</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="loadLatest"><span class="type-signature">(async) </span>loadLatest<span class="signature">(provider, archiveBaseUrl)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Load 'latest' Monitor objects from USFS AirFire repositories for 'airnow',
+'airsis' and 'wrcc' data.</p>
+<p>This function replaces the 'meta' and 'data' properties of 'this' monitor
+object with the latest available data. Data cover the most recent 10 days
+and are updated every few minutes.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>provider</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    airnow
+                
+                </td>
+            
+
+            <td class="description last"><p>One of &quot;airnow|airsis|wrcc&quot;.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>archiveBaseUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2
+                
+                </td>
+            
+
+            <td class="description last"><p>URL for monitoring v2 data files.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line56">line 56</a>
     </li></ul></dd>
     
 
@@ -2143,7 +2322,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line145">line 145</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line205">line 205</a>
     </li></ul></dd>
     
 
@@ -2303,7 +2482,7 @@ local time days. Any partial days are discarded.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line206">line 206</a>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line266">line 266</a>
     </li></ul></dd>
     
 
@@ -2371,13 +2550,13 @@ local time days. Any partial days are discarded.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadDaily">loadDaily</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Thu Jan 26 2023 14:57:15 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Thu Jan 26 2023 15:46:03 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
