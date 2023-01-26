@@ -1,3 +1,9 @@
+# air-monitor 1.0.3
+
+Replaced `dailyAverage()` and `diurnalAverage()` methods with `dailyStats()`
+and `diurnalStats()`. Both now return objects with `datetime` or `hour` as well
+as `count`, `min`, `mean` and `max` properties.
+
 # air-monitor 1.0.2
 
 Added functions to help with generating interactive maps:
