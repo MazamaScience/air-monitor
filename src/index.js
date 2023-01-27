@@ -133,7 +133,7 @@ export default class Monitor {
   // TODO:  Annual files should be copied to S3.
   async loadAnnual(
     year = "2022",
-    archiveBaseUrl = "http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow"
+    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
   ) {
     try {
       await this.#provider_loadAnnual(year, archiveBaseUrl);
@@ -143,29 +143,30 @@ export default class Monitor {
   }
 
   async #provider_loadAnnual(
-    year = "2022",
-    archiveBaseUrl = "http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow"
+    year = "2021", // TODO:  Remove default year, replace with "current year logic"
+    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
   ) {
     // TODO: support additional arguments
     const QC_negativeValues = "zero";
     const QC_removeSuspectData = true;
 
+    // http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow/2022/data/airnow_PM2.5_2022_meta.csv
     // * Load meta -----
     let url =
       archiveBaseUrl +
-      "/" +
+      "/airnow/" +
       year +
       "/data/" +
       "airnow_PM2.5_" +
       year +
       "_meta.csv";
     let dt = await aq.loadCSV(url);
-    this.meta = this.#parseMeta(dt);
+    this.meta = this.#annual_parseMeta(dt);
 
     // * Load data -----
     url =
       archiveBaseUrl +
-      "/" +
+      "/airnow/" +
       year +
       "/data/" +
       "airnow_PM2.5_" +
@@ -559,6 +560,28 @@ export default class Monitor {
     "fullAQSID",
   ];
 
+  // NOTE:  No fullAQSID present in airnow annual files
+  // TODO:  Remove this when combined annual files are created.
+  annual_coreMetadataNames = [
+    "deviceDeploymentID",
+    "deviceID",
+    "deviceType",
+    "deviceDescription",
+    "pollutant",
+    "units",
+    "dataIngestSource",
+    "locationID",
+    "locationName",
+    "longitude",
+    "latitude",
+    "elevation",
+    "countryCode",
+    "stateCode",
+    "countyName",
+    "timezone",
+    "AQSID",
+  ];
+
   // ----- Private methods -----------------------------------------------------
 
   /**
@@ -589,6 +612,32 @@ export default class Monitor {
       elevation: (d) => op.parse_float(d.elevation),
     };
     return dt.derive(values1).derive(values2).select(this.coreMetadataNames);
+  }
+
+  // TODO: Remove this when combined annual files are created.
+  #annual_parseMeta(dt) {
+    // Programmatically create a values object that replaces values. See:
+    //   https://uwdata.github.io/arquero/api/expressions
+
+    const ids = dt.columnNames();
+
+    // Replace 'NA' with null
+    let values1 = {};
+    ids.map(
+      (id) =>
+        (values1[id] = "d => d['" + id + "'] === 'NA' ? null : d['" + id + "']")
+    );
+
+    // Guarantee numeric
+    let values2 = {
+      longitude: (d) => op.parse_float(d.longitude),
+      latitude: (d) => op.parse_float(d.latitude),
+      elevation: (d) => op.parse_float(d.elevation),
+    };
+    return dt
+      .derive(values1)
+      .derive(values2)
+      .select(this.annual_coreMetadataNames);
   }
 
   /**
