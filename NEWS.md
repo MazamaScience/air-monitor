@@ -1,3 +1,10 @@
+# air-monitor 1.0.6
+
+Tweaked `loadAnnual()` to work with 2022 data.
+
+_NOTE:_ This is a temporary hack for testing until we can create combined
+annual files that have complete metadata.
+
 # air-monitor 1.0.5
 
 Added `loadAnnual()` method to load a years worth of data.
