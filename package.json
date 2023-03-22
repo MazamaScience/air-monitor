@@ -1,6 +1,6 @@
 {
   "name": "air-monitor",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Utilities for working with air quality monitoring data.",
   "main": "./src/index.js",
   "type": "module",
