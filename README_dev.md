@@ -30,7 +30,16 @@ npm version patch
 
 ## Testing
 
-For ES 6 modules, [uvu](https://www.npmjs.com/package/uvu) is recommended.
+### VSCode
+
+Using VSCode, you can do interactive testing by loading a file with javascript
+commands, setting breakpoints and then starting the debugger. Be sure to select
+"Run Current File" before hitting the "Start Debugging" button.
+
+### UVU
+
+For ES 6 modules, [uvu](https://www.npmjs.com/package/uvu) is the recommended
+test framework.
 
 Install uvu as a dev dependency:
 
@@ -40,12 +49,11 @@ npm install uvu --save-dev
 
 The package.json must be modified so that it has:
 
+```
 "scripts": {
-"test": "uvu"
+  "test": "uvu"
 },
+```
 
-With Uvu, you can write scripts with the normal ESM import statements.
-
-Using VSCode, you can do interactive testing by loading a file with javascript
-commands, setting breakpoints and then starting the debugger. Be sure to select
-"Run Current File" before hitting the "Start Debugging" button.
+With Uvu, you can write scripts with the normal ESM import statements. See the
+<https://github.com/MazamaScience/air-monitor-algorithms> project for examples.
