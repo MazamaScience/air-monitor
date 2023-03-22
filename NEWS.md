@@ -1,3 +1,8 @@
+# air-monitor 1.0.7
+
+Added `loadCustom()` method to load monitoring data from places other than the
+USFS AirFire data archives.
+
 # air-monitor 1.0.6
 
 Tweaked `loadAnnual()` to work with 2022 data.

@@ -20,4 +20,10 @@ from this module:
 
 ---
 
-This project is supported by the [USFS AirFire](https://www.airfire.org) group.
+Development of this package has been supported with funding from the
+following institutions:
+
+- USFS [AirFire Research Team](https://www.airfire.org)
+
+Questions regarding further development of the package should be directed to
+<jonathan.callahan@dri.edu>.
