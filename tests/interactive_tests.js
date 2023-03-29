@@ -2,9 +2,9 @@ import Monitor from "../src/index.js";
 
 const monitor = new Monitor();
 
-// await monitor.loadLatest("airnow");
+await monitor.loadLatest("airnow");
 
-// console.log(monitor.count());
+console.log(monitor.count());
 
 // await monitor.loadAnnual("2021");
 

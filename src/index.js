@@ -111,7 +111,7 @@ export default class Monitor {
       timespan +
       "_meta.csv";
     let dt = await aq.loadCSV(url);
-    this.meta = this.#parseMeta(dt);
+    this.meta = this.#parseMeta(dt, false, this.coreMetadataNames);
 
     // * Load data -----
     url =
@@ -162,7 +162,7 @@ export default class Monitor {
       "_meta.csv";
     let dt = await aq.loadCSV(url);
     //this.meta = this.#annual_parseMeta(dt);
-    this.meta = this.#parseMeta(dt, this.annual_coreMetadataNames);
+    this.meta = this.#parseMeta(dt, false, this.annual_coreMetadataNames);
 
     // * Load data -----
     url =
@@ -180,7 +180,19 @@ export default class Monitor {
   // Example:
   // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
 
-  async loadCustom(baseName = "", archiveBaseUrl = "") {
+  /**
+   * Load custom monitoring data.
+   *
+   * Two files will be loaded from <archiveBaseUrl>:
+   *   1. <baseName>_data.csv
+   *   2. <baseName>_meta.csv
+   *
+   * @param baseName File name base..
+   * @param archiveBaseUrl URL path under which data files are found.
+   * @param useAllColumns Logical specifying whether metadata parsing should
+   * retain all available columns of data.
+   */
+  async loadCustom(baseName = "", archiveBaseUrl = "", useAllColumns = true) {
     // TODO: support additional arguments
     const QC_negativeValues = "zero";
     const QC_removeSuspectData = true;
@@ -188,7 +200,7 @@ export default class Monitor {
     // * Load meta -----
     let url = archiveBaseUrl + "/" + baseName + "_meta.csv";
     let dt = await aq.loadCSV(url);
-    this.meta = this.#parseMeta(dt);
+    this.meta = this.#parseMeta(dt, useAllColumns);
 
     // * Load data -----
     url = archiveBaseUrl + "/" + baseName + "_data.csv";
@@ -622,13 +634,23 @@ export default class Monitor {
    *
    * @private
    * @param dt Arquero table.
-   * @param columnNames List of columns to retain .
+   * @param useAllColumns Logical specifying whether to ignore metadataNames
+   * @param columnNames List of columns to retain
+   * and just use all available columns.
    */
-  #parseMeta(dt, metadataNames = this.coreMetadataNames) {
-    // Programmatically create a values object that replaces values. See:
+  #parseMeta(
+    dt,
+    useAllColumns = false,
+    metadataNames = this.coreMetadataNames
+  ) {
+    // Programmatically create a values object that replaces values.   See:
     //   https://uwdata.github.io/arquero/api/expressions
 
     const ids = dt.columnNames();
+
+    if (useAllColumns === true) {
+      metadataNames = ids;
+    }
 
     // Replace 'NA' with null
     let values1 = {};

@@ -1,3 +1,8 @@
+# air-monitor 1.0.8
+
+Added `useAllColumns` argument to `#parseMeta()` and `loadCustom()`
+method. `loadCustom() defaults to `useAllColumns = true`.
+
 # air-monitor 1.0.7
 
 Added `loadCustom()` method to load monitoring data from places other than the
