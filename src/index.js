@@ -51,7 +51,7 @@ export default class Monitor {
    * and are updated every few minutes.
    *
    * @param {string} provider One of "airnow|airsis|wrcc".
-   * @param {string} archiveBaseUrl URL for monitoring v2 data files.
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
   async loadLatest(
     provider = "airnow",
@@ -73,7 +73,7 @@ export default class Monitor {
    * and are updated once per day around 10:00 UTC (2am US Pacific Time).
    *
    * @param {string} provider One of "airnow|airsis|wrcc".
-   * @param {string} archiveBaseUrl URL for monitoring v2 data files.
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
   async loadDaily(
     provider = "airnow",
@@ -86,6 +86,15 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Construct URL and load Monitor objects from the USFS AirFire archives.
+   *
+   * This private function is called by `loadLatest()` and `loadDaily()`.
+   *
+   * @param {string} provider One of "airnow|airsis|wrcc".
+   * @param {string} timespan One of "latest".
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
+   */
   async #provider_load(
     provider = "airnow",
     timespan = "latest",
@@ -131,6 +140,18 @@ export default class Monitor {
   // TODO:  in an 'annual/' directory. This should be performed on the server.
 
   // TODO:  Annual files should be copied to S3.
+
+  /**
+   * Load 'annual' Monitor objects from USFS AirFire repositories for 'airnow',
+   * 'airsis' and 'wrcc' data.
+   *
+   * This function replaces the 'meta' and 'data' properties of 'this' monitor
+   * object with the latest available data. Data cover an entire year or
+   * year-to-date. Current year data are updated daily.
+   *
+   * @param {string} year Year of interest.
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
+   */
   async loadAnnual(
     year = "2022",
     archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
@@ -142,6 +163,15 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Construct URL and load annual Monitor objects from the USFS AirFire archives.
+   *
+   * This private function is called by `loadAnnual()`.
+   *
+   * @param {string} provider One of "airnow|airsis|wrcc".
+   * @param {string} timespan One of "latest".
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
+   */
   async #provider_loadAnnual(
     year = "2021", // TODO:  Remove default year, replace with "current year logic"
     archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
@@ -177,33 +207,33 @@ export default class Monitor {
     this.data = this.#parseData(dt);
   }
 
-  // Example:
-  // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
-
   /**
    * Load custom monitoring data.
    *
-   * Two files will be loaded from <archiveBaseUrl>:
+   * Two files will be loaded from <baseUrl>:
    *   1. <baseName>_data.csv
    *   2. <baseName>_meta.csv
    *
    * @param baseName File name base..
-   * @param archiveBaseUrl URL path under which data files are found.
+   * @param baseUrl URL path under which data files are found.
    * @param useAllColumns Logical specifying whether metadata parsing should
    * retain all available columns of data.
    */
-  async loadCustom(baseName = "", archiveBaseUrl = "", useAllColumns = true) {
+  async loadCustom(baseName = "", baseUrl = "", useAllColumns = true) {
     // TODO: support additional arguments
     const QC_negativeValues = "zero";
     const QC_removeSuspectData = true;
 
+    // Example:
+    // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
+
     // * Load meta -----
-    let url = archiveBaseUrl + "/" + baseName + "_meta.csv";
+    let url = baseUrl + "/" + baseName + "_meta.csv";
     let dt = await aq.loadCSV(url);
     this.meta = this.#parseMeta(dt, useAllColumns);
 
     // * Load data -----
-    url = archiveBaseUrl + "/" + baseName + "_data.csv";
+    url = baseUrl + "/" + baseName + "_data.csv";
     dt = await aq.loadCSV(url);
     this.data = this.#parseData(dt);
   }
@@ -233,13 +263,46 @@ export default class Monitor {
    * Subset and reorder time series within a monitor object.
    *
    * @param {Array.<string>} ids deviceDeploymentIDs of the time series to select.
-   * @returns {Object} A reordered (subset) of the incoming monitor object.
+   * @returns {Object} A (reordered) subset of the incoming monitor object.
    */
   select(ids) {
+    // See https://uwdata.github.io/arquero/api/expressions#limitations
     let meta = this.meta
       .params({ ids: ids })
       .filter((d, $) => op.includes($.ids, d.deviceDeploymentID)); // arquero filter
 
+    let data = this.data.select("datetime", ids);
+
+    // Return
+    let return_monitor = new Monitor(meta, data);
+    return return_monitor;
+  }
+
+  /**
+   * Filter a monitor object based on matching values in the 'meta' dataframe.
+   * The returned monitor object will contain only those records where
+   * monitor.meta.columnName === "value".
+   *
+   * @param {string} columnName Name of the column used for filtering.
+   * @param {string|number} value Value that must be matched.
+   * @returns {Object} A subset of the incoming monitor object.
+   */
+  filterByValue(columnName, value) {
+    // See: https://www.infoworld.com/article/3678168/filter-javascript-objects-the-easy-way-with-arquero.html
+
+    // Filter expression differs based on column type
+    let filterExpression;
+    if (typeof this.meta.get(columnName) === "number") {
+      filterExpression =
+        "d => op.equal(d." + columnName + ", " + parseFloat(value) + ")";
+    } else if (typeof this.meta.get(columnName) === "string") {
+      filterExpression =
+        "d => op.equal(d." + columnName + ", '" + value.toString() + "')";
+    }
+
+    let meta = this.meta.filter(filterExpression);
+
+    let ids = meta.array("deviceDeploymentID");
     let data = this.data.select("datetime", ids);
 
     // Return

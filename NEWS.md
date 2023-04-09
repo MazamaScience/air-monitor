@@ -1,3 +1,7 @@
+# air-monitor 1.0.9
+
+Added `filterByValue()` method.
+
 # air-monitor 1.0.8
 
 Added `useAllColumns` argument to `#parseMeta()` and `loadCustom()`
