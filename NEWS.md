@@ -1,6 +1,10 @@
 # air-monitor 1.0.9
 
-Added `filterByValue()` method.
+Added _filter_ and _collapse_ methods:
+
+- `filterByValue()` -- Subsets a Monitor object based a metadata field.
+- `collapse()` -- Collapses multiple time series into a single time series using
+  a function like `min` or `max`.
 
 # air-monitor 1.0.8
 

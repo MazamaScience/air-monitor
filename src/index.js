@@ -3,7 +3,12 @@ import * as aq from "arquero";
 // First: npm install moment-timezone --save
 import moment from "moment-timezone";
 // npm install github:MazamaScience/air-monitor-algorithms
-import { dailyStats, diurnalStats, pm_nowcast } from "air-monitor-algorithms";
+import {
+  arrayMean,
+  dailyStats,
+  diurnalStats,
+  pm_nowcast,
+} from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields & methods
@@ -247,12 +252,53 @@ export default class Monitor {
    * function provided in the `FUN` argument. The single-time series result will
    * be located at the mean longitude and latitude.
    *
-   * @param {Object} monitor A monitor object.
+   * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
+   * probability.
+   *
+   * Available function names are those defined at:
+   * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
+   * `"op."` removed.
+   *
+   * @param {string} monitor A monitor object.
+   * @param {string} FUN A monitor object.
    * @returns {Object} A collapsed monitor object.
    */
-  collapse(deviceID = "generatedID", FUN = "sum") {
+  collapse(deviceID = "generatedID", FUN = "sum", FUN_arg = 0.8) {
     let meta = this.meta;
     let data = this.data;
+
+    // ----- Create new_meta ---------------------------------------------------
+
+    let longitude = arrayMean(meta.array("longitude"));
+    let latitude = arrayMean(meta.array("latitude"));
+    // TODO:  Could create new locationID based on geohash
+    let locationID = "xxx";
+    let deviceDeploymentID = "xxx_" + deviceID;
+
+    // Start with first record
+    let new_meta = meta.slice(0, 1);
+
+    // Modify core metadata fields
+    new_meta = new_meta.derive({
+      locationID: aq.escape(locationID),
+      locationName: aq.escape(deviceID),
+      longitude: aq.escape(longitude),
+      latitude: aq.escape(latitude),
+      elevation: aq.escape(null),
+      // retain countryCode
+      // retain stateCode
+      // retain countyName
+      // retain timezone
+      houseNumber: aq.escape(null),
+      street: aq.escape(null),
+      city: aq.escape(null),
+      zip: aq.escape(null),
+      deviceDeploymentID: aq.escape(deviceDeploymentID),
+    });
+
+    // NOTE:  We retain all other fields from the first record. Some may be useful!
+
+    // ----- Create new_data ---------------------------------------------------
 
     // NOTE:  arquero provides no functionality for row-operations, nor for
     // NOTE:  transpose. So we have to perform the following operations:
@@ -268,19 +314,24 @@ export default class Monitor {
       .derive({ utcDatestamp: (d) => op.format_utcdate(d.datetime) })
       .select(aq.not("datetime"));
 
-    // Programmatically create arquero expressions to use
-    let valueExpression = "(d) => op." + FUN + "(d.value)";
-    let renameValues = {};
-    renameValues[deviceID] = "(d) => d.value";
-
     let datetimeColumns = data.array("utcDatestamp");
 
-    let data_new = data
+    // Programmatically create arquero aggregation expression to use
+    let valueExpression;
+    if (FUN === "count") {
+      valueExpression = "(d) => op." + FUN + "()";
+    } else if (FUN === "quantile") {
+      valueExpression = "(d) => op." + FUN + "(d.value, " + FUN_arg + ")";
+    } else {
+      valueExpression = "(d) => op." + FUN + "(d.value)";
+    }
+
+    let new_data = data
       .fold(ids)
       .pivot({ key: (d) => d.utcDatestamp }, { value: valueExpression })
       .fold(datetimeColumns)
-      .derive({ datetime: (d) => op.parse_date(d.key) })
-      .derive(renameValues)
+      .derive({ datetime: (d) => op.parse_date(d.key) }) // convert back to Date objects
+      .rename({ value: deviceID })
       .select(["datetime", deviceID]);
 
     // ┌─────────┬──────────────────────────┬───────────────────┐
@@ -292,7 +343,7 @@ export default class Monitor {
     // └─────────┴──────────────────────────┴───────────────────┘
 
     // Return
-    let return_monitor = new Monitor(meta, data_new);
+    let return_monitor = new Monitor(new_meta, new_data);
     return return_monitor;
   }
 

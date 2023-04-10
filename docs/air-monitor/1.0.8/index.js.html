@@ -31,7 +31,12 @@ import * as aq from "arquero";
 // First: npm install moment-timezone --save
 import moment from "moment-timezone";
 // npm install github:MazamaScience/air-monitor-algorithms
-import { dailyStats, diurnalStats, pm_nowcast } from "air-monitor-algorithms";
+import {
+  arrayMean,
+  dailyStats,
+  diurnalStats,
+  pm_nowcast,
+} from "air-monitor-algorithms";
 
 export default class Monitor {
   // Private fields &amp; methods
@@ -79,7 +84,7 @@ export default class Monitor {
    * and are updated every few minutes.
    *
    * @param {string} provider One of "airnow|airsis|wrcc".
-   * @param {string} archiveBaseUrl URL for monitoring v2 data files.
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
   async loadLatest(
     provider = "airnow",
@@ -101,7 +106,7 @@ export default class Monitor {
    * and are updated once per day around 10:00 UTC (2am US Pacific Time).
    *
    * @param {string} provider One of "airnow|airsis|wrcc".
-   * @param {string} archiveBaseUrl URL for monitoring v2 data files.
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
   async loadDaily(
     provider = "airnow",
@@ -114,6 +119,15 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Construct URL and load Monitor objects from the USFS AirFire archives.
+   *
+   * This private function is called by `loadLatest()` and `loadDaily()`.
+   *
+   * @param {string} provider One of "airnow|airsis|wrcc".
+   * @param {string} timespan One of "latest".
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
+   */
   async #provider_load(
     provider = "airnow",
     timespan = "latest",
@@ -159,6 +173,18 @@ export default class Monitor {
   // TODO:  in an 'annual/' directory. This should be performed on the server.
 
   // TODO:  Annual files should be copied to S3.
+
+  /**
+   * Load 'annual' Monitor objects from USFS AirFire repositories for 'airnow',
+   * 'airsis' and 'wrcc' data.
+   *
+   * This function replaces the 'meta' and 'data' properties of 'this' monitor
+   * object with the latest available data. Data cover an entire year or
+   * year-to-date. Current year data are updated daily.
+   *
+   * @param {string} year Year of interest.
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
+   */
   async loadAnnual(
     year = "2022",
     archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
@@ -170,6 +196,15 @@ export default class Monitor {
     }
   }
 
+  /**
+   * Construct URL and load annual Monitor objects from the USFS AirFire archives.
+   *
+   * This private function is called by `loadAnnual()`.
+   *
+   * @param {string} provider One of "airnow|airsis|wrcc".
+   * @param {string} timespan One of "latest".
+   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
+   */
   async #provider_loadAnnual(
     year = "2021", // TODO:  Remove default year, replace with "current year logic"
     archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
@@ -205,38 +240,140 @@ export default class Monitor {
     this.data = this.#parseData(dt);
   }
 
-  // Example:
-  // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
-
   /**
    * Load custom monitoring data.
    *
-   * Two files will be loaded from &lt;archiveBaseUrl>:
+   * Two files will be loaded from &lt;baseUrl>:
    *   1. &lt;baseName>_data.csv
    *   2. &lt;baseName>_meta.csv
    *
    * @param baseName File name base..
-   * @param archiveBaseUrl URL path under which data files are found.
+   * @param baseUrl URL path under which data files are found.
    * @param useAllColumns Logical specifying whether metadata parsing should
    * retain all available columns of data.
    */
-  async loadCustom(baseName = "", archiveBaseUrl = "", useAllColumns = true) {
+  async loadCustom(baseName = "", baseUrl = "", useAllColumns = true) {
     // TODO: support additional arguments
     const QC_negativeValues = "zero";
     const QC_removeSuspectData = true;
 
+    // Example:
+    // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
+
     // * Load meta -----
-    let url = archiveBaseUrl + "/" + baseName + "_meta.csv";
+    let url = baseUrl + "/" + baseName + "_meta.csv";
     let dt = await aq.loadCSV(url);
     this.meta = this.#parseMeta(dt, useAllColumns);
 
     // * Load data -----
-    url = archiveBaseUrl + "/" + baseName + "_data.csv";
+    url = baseUrl + "/" + baseName + "_data.csv";
     dt = await aq.loadCSV(url);
     this.data = this.#parseData(dt);
   }
 
   // ----- Monitor manipulation ------------------------------------------------
+
+  /**
+   * Collapse a Monitor object into a single time series.
+   *
+   * Collapses data from all time series into a single-time series using the
+   * function provided in the `FUN` argument. The single-time series result will
+   * be located at the mean longitude and latitude.
+   *
+   * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
+   * probability.
+   *
+   * Available function names are those defined at:
+   * &lt;https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
+   * `"op."` removed.
+   *
+   * @param {string} monitor A monitor object.
+   * @param {string} FUN A monitor object.
+   * @returns {Object} A collapsed monitor object.
+   */
+  collapse(deviceID = "generatedID", FUN = "sum", FUN_arg = 0.8) {
+    let meta = this.meta;
+    let data = this.data;
+
+    // ----- Create new_meta ---------------------------------------------------
+
+    let longitude = arrayMean(meta.array("longitude"));
+    let latitude = arrayMean(meta.array("latitude"));
+    // TODO:  Could create new locationID based on geohash
+    let locationID = "xxx";
+    let deviceDeploymentID = "xxx_" + deviceID;
+
+    // Start with first record
+    let new_meta = meta.slice(0, 1);
+
+    // Modify core metadata fields
+    new_meta = new_meta.derive({
+      locationID: aq.escape(locationID),
+      locationName: aq.escape(deviceID),
+      longitude: aq.escape(longitude),
+      latitude: aq.escape(latitude),
+      elevation: aq.escape(null),
+      // retain countryCode
+      // retain stateCode
+      // retain countyName
+      // retain timezone
+      houseNumber: aq.escape(null),
+      street: aq.escape(null),
+      city: aq.escape(null),
+      zip: aq.escape(null),
+      deviceDeploymentID: aq.escape(deviceDeploymentID),
+    });
+
+    // NOTE:  We retain all other fields from the first record. Some may be useful!
+
+    // ----- Create new_data ---------------------------------------------------
+
+    // NOTE:  arquero provides no functionality for row-operations, nor for
+    // NOTE:  transpose. So we have to perform the following operations:
+    // NOTE:    - fold the data into a dataframe with timestamp and id columns
+    // NOTE:    - pivot the data based on timestamp while summing data columns
+    // NOTE:    - fold the result into a dataframe with timestamp and value columns
+
+    let ids = this.getIDs();
+    let datetime = this.getDatetime();
+
+    // Replace datetime with utcDatestamp to use as column headers
+    data = data
+      .derive({ utcDatestamp: (d) => op.format_utcdate(d.datetime) })
+      .select(aq.not("datetime"));
+
+    let datetimeColumns = data.array("utcDatestamp");
+
+    // Programmatically create arquero aggregation expression to use
+    let valueExpression;
+    if (FUN === "count") {
+      valueExpression = "(d) => op." + FUN + "()";
+    } else if (FUN === "quantile") {
+      valueExpression = "(d) => op." + FUN + "(d.value, " + FUN_arg + ")";
+    } else {
+      valueExpression = "(d) => op." + FUN + "(d.value)";
+    }
+
+    let new_data = data
+      .fold(ids)
+      .pivot({ key: (d) => d.utcDatestamp }, { value: valueExpression })
+      .fold(datetimeColumns)
+      .derive({ datetime: (d) => op.parse_date(d.key) }) // convert back to Date objects
+      .rename({ value: deviceID })
+      .select(["datetime", deviceID]);
+
+    // ┌─────────┬──────────────────────────┬───────────────────┐
+    // │ (index) │         datetime         │    generatedID    │
+    // ├─────────┼──────────────────────────┼───────────────────┤
+    // │    0    │ 2023-04-02T22:00:00.000Z │       12.3        │
+    // │    1    │ 2023-04-02T23:00:00.000Z │        9.4        │
+    // │    2    │ 2023-04-03T00:00:00.000Z │        8.2        │
+    // └─────────┴──────────────────────────┴───────────────────┘
+
+    // Return
+    let return_monitor = new Monitor(new_meta, new_data);
+    return return_monitor;
+  }
 
   /**
    * Combine another Monitor object with 'this' object.
@@ -261,13 +398,46 @@ export default class Monitor {
    * Subset and reorder time series within a monitor object.
    *
    * @param {Array.&lt;string>} ids deviceDeploymentIDs of the time series to select.
-   * @returns {Object} A reordered (subset) of the incoming monitor object.
+   * @returns {Object} A (reordered) subset of the incoming monitor object.
    */
   select(ids) {
+    // See https://uwdata.github.io/arquero/api/expressions#limitations
     let meta = this.meta
       .params({ ids: ids })
       .filter((d, $) => op.includes($.ids, d.deviceDeploymentID)); // arquero filter
 
+    let data = this.data.select("datetime", ids);
+
+    // Return
+    let return_monitor = new Monitor(meta, data);
+    return return_monitor;
+  }
+
+  /**
+   * Filter a monitor object based on matching values in the 'meta' dataframe.
+   * The returned monitor object will contain only those records where
+   * monitor.meta.columnName === "value".
+   *
+   * @param {string} columnName Name of the column used for filtering.
+   * @param {string|number} value Value that must be matched.
+   * @returns {Object} A subset of the incoming monitor object.
+   */
+  filterByValue(columnName, value) {
+    // See: https://www.infoworld.com/article/3678168/filter-javascript-objects-the-easy-way-with-arquero.html
+
+    // Filter expression differs based on column type
+    let filterExpression;
+    if (typeof this.meta.get(columnName) === "number") {
+      filterExpression =
+        "d => op.equal(d." + columnName + ", " + parseFloat(value) + ")";
+    } else if (typeof this.meta.get(columnName) === "string") {
+      filterExpression =
+        "d => op.equal(d." + columnName + ", '" + value.toString() + "')";
+    }
+
+    let meta = this.meta.filter(filterExpression);
+
+    let ids = meta.array("deviceDeploymentID");
     let data = this.data.select("datetime", ids);
 
     // Return
@@ -353,7 +523,7 @@ export default class Monitor {
    *
    * @returns {Array.&lt;Date>} Array of Date objects.
    */
-  getDatetime(id) {
+  getDatetime() {
     return this.data.array("datetime");
   }
 
@@ -744,13 +914,13 @@ export default class Monitor {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadCustom">loadCustom</a></li><li><a href="global.html#loadDaily">loadDaily</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#collapse">collapse</a></li><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#filterByValue">filterByValue</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadAnnual">loadAnnual</a></li><li><a href="global.html#loadCustom">loadCustom</a></li><li><a href="global.html#loadDaily">loadDaily</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Wed Mar 29 2023 16:54:52 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Apr 10 2023 13:58:28 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

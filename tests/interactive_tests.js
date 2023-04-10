@@ -56,6 +56,8 @@ await monitor.loadCustom(
 
 let a = monitor.filterByValue("HUC", "1702000805");
 
-let b = a.collapse("sumID", "sum");
+let b = a.collapse("max", "max");
+
+let c = a.collapse("quantile_08", "quantile", 0.8);
 
 let z = 1;
