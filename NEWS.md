@@ -2,7 +2,7 @@
 
 Added _filter_ and _collapse_ methods:
 
-- `filterByValue()` -- Subsets a Monitor object based a metadata field.
+- `filterByValue()` -- Subsets a Monitor object based on a metadata field.
 - `collapse()` -- Collapses multiple time series into a single time series using
   a function like `min` or `max`.
 
