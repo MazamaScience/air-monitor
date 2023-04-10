@@ -56,4 +56,6 @@ await monitor.loadCustom(
 
 let a = monitor.filterByValue("HUC", "1702000805");
 
-let b = 1;
+let b = a.collapse("sumID", "sum");
+
+let z = 1;

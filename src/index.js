@@ -241,6 +241,62 @@ export default class Monitor {
   // ----- Monitor manipulation ------------------------------------------------
 
   /**
+   * Collapse a Monitor object into a single time series.
+   *
+   * Collapses data from all time series into a single-time series using the
+   * function provided in the `FUN` argument. The single-time series result will
+   * be located at the mean longitude and latitude.
+   *
+   * @param {Object} monitor A monitor object.
+   * @returns {Object} A collapsed monitor object.
+   */
+  collapse(deviceID = "generatedID", FUN = "sum") {
+    let meta = this.meta;
+    let data = this.data;
+
+    // NOTE:  arquero provides no functionality for row-operations, nor for
+    // NOTE:  transpose. So we have to perform the following operations:
+    // NOTE:    - fold the data into a dataframe with timestamp and id columns
+    // NOTE:    - pivot the data based on timestamp while summing data columns
+    // NOTE:    - fold the result into a dataframe with timestamp and value columns
+
+    let ids = this.getIDs();
+    let datetime = this.getDatetime();
+
+    // Replace datetime with utcDatestamp to use as column headers
+    data = data
+      .derive({ utcDatestamp: (d) => op.format_utcdate(d.datetime) })
+      .select(aq.not("datetime"));
+
+    // Programmatically create arquero expressions to use
+    let valueExpression = "(d) => op." + FUN + "(d.value)";
+    let renameValues = {};
+    renameValues[deviceID] = "(d) => d.value";
+
+    let datetimeColumns = data.array("utcDatestamp");
+
+    let data_new = data
+      .fold(ids)
+      .pivot({ key: (d) => d.utcDatestamp }, { value: valueExpression })
+      .fold(datetimeColumns)
+      .derive({ datetime: (d) => op.parse_date(d.key) })
+      .derive(renameValues)
+      .select(["datetime", deviceID]);
+
+    // ┌─────────┬──────────────────────────┬───────────────────┐
+    // │ (index) │         datetime         │    generatedID    │
+    // ├─────────┼──────────────────────────┼───────────────────┤
+    // │    0    │ 2023-04-02T22:00:00.000Z │       12.3        │
+    // │    1    │ 2023-04-02T23:00:00.000Z │        9.4        │
+    // │    2    │ 2023-04-03T00:00:00.000Z │        8.2        │
+    // └─────────┴──────────────────────────┴───────────────────┘
+
+    // Return
+    let return_monitor = new Monitor(meta, data_new);
+    return return_monitor;
+  }
+
+  /**
    * Combine another Monitor object with 'this' object.
    *
    * A new Monitor object is returned containing all time series and metadata from
@@ -388,7 +444,7 @@ export default class Monitor {
    *
    * @returns {Array.<Date>} Array of Date objects.
    */
-  getDatetime(id) {
+  getDatetime() {
     return this.data.array("datetime");
   }
 
