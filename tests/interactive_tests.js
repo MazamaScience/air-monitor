@@ -2,23 +2,23 @@ import Monitor from "../src/index.js";
 
 const monitor = new Monitor();
 
-// await monitor.loadLatest("airnow");
+await monitor.loadLatest("airnow");
 
-// console.log(monitor.count());
+console.log(monitor.count());
 
 // await monitor.loadAnnual("2021");
 
 // console.log(monitor.count());
 
-// let id = monitor.getIDs()[234];
+let id = monitor.getIDs()[234];
 
-// let daily = monitor.getDailyStats(id);
+let daily = monitor.getDailyStats(id);
 
-// let diurnal = monitor.getDiurnalStats(id);
+let diurnal = monitor.getDiurnalStats(id);
 
-// let geojson = monitor.createGeoJSON();
+let geojson = monitor.createGeoJSON();
 
-// let z = 1;
+let z = 1;
 
 // ----- Methow Valley Monitors ------------------------------------------------
 
@@ -49,15 +49,15 @@ const monitor = new Monitor();
 
 // ----- Methow Valley Sensors ------------------------------------------------
 
-await monitor.loadCustom(
-  "PM2.5",
-  "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/sensor"
-);
+// await monitor.loadCustom(
+//   "PM2.5",
+//   "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/sensor"
+// );
 
-let a = monitor.filterByValue("HUC", "1702000805");
+// let a = monitor.filterByValue("HUC", "1702000805");
 
-let b = a.collapse("max", "max");
+// let b = a.collapse("max", "max");
 
-let c = a.collapse("quantile_08", "quantile", 0.8);
+// let c = a.collapse("quantile_08", "quantile", 0.8);
 
-let z = 1;
+// let z = 1;

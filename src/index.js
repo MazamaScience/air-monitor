@@ -21,6 +21,7 @@ export default class Monitor {
       deviceDeploymentID: [],
       deviceID: [],
       deviceType: [],
+      deploymentType: [],
       deviceDescription: [],
       pollutant: [],
       units: [],
@@ -294,6 +295,8 @@ export default class Monitor {
       city: aq.escape(null),
       zip: aq.escape(null),
       deviceDeploymentID: aq.escape(deviceDeploymentID),
+      deviceType: aq.escape(null),
+      deploymentType: aq.escape(null),
     });
 
     // NOTE:  We retain all other fields from the first record. Some may be useful!
@@ -756,6 +759,7 @@ export default class Monitor {
     "deviceDeploymentID",
     "deviceID",
     "deviceType",
+    "deploymentType",
     "deviceDescription",
     "pollutant",
     "units",

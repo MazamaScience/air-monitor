@@ -1,3 +1,7 @@
+# air-monitor 1.0.10
+
+- Added `deploymentType` to core metadata.`
+
 # air-monitor 1.0.9
 
 Added _filter_ and _collapse_ methods:
