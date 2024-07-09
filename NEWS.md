@@ -1,3 +1,7 @@
+# air-monitor 1.0.11
+
+- 'combine' now uses "join_full" to retain all times from either Monitor object.
+
 # air-monitor 1.0.10
 
 - Added `deploymentType` to core metadata.`

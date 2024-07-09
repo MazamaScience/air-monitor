@@ -18,6 +18,17 @@ let diurnal = monitor.getDiurnalStats(id);
 
 let geojson = monitor.createGeoJSON();
 
+// -----
+
+let airnow = new Monitor();
+await airnow.loadLatest("airnow");
+
+let airsis = new Monitor();
+await airsis.loadLatest("airsis");
+
+//let bop = new Monitor();
+let bop = airnow.combine(airsis);
+
 let z = 1;
 
 // ----- Methow Valley Monitors ------------------------------------------------
