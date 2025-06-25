@@ -11,12 +11,15 @@ import {
   arrayMean,
   dailyStats,
   diurnalStats,
-  pm_nowcast,
+  pm_nowcast
 } from "air-monitor-algorithms";
 
 // module imports
 import {
   internal_loadLatest,
+  internal_loadDaily,
+  internal_loadAnnual,
+  internal_loadCustom
 } from './utils/load.js';
 
 // ----- Monitor Class ---------------------------------------------------------
@@ -85,29 +88,61 @@ class Monitor {
     return internal_loadLatest(this, provider, baseUrl);
   }
 
-  // ----- Data load -------------------------------------------------------------
-
-  /**
-   * Load 'latest' Monitor objects from USFS AirFire repositories for 'airnow',
-   * 'airsis' and 'wrcc' data.
+   /**
+   * Asynchronously loads 'daily' Monitor objects from USFS AirFire repositories
+   * for 'airnow', 'airsis' or 'wrcc' data.
    *
    * This function replaces the 'meta' and 'data' properties of 'this' monitor
-   * object with the latest available data. Data cover the most recent 10 days
-   * and are updated every few minutes.
+   * object with the latest available data. Data cover the most recent 45 days
+   * and are updated once per day around 10:00 UTC (2am US Pacific Time).
    *
-   * @param {string} provider One of "airnow|airsis|wrcc".
-   * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
-  //  */
-  // async loadLatest(
-  //   provider = "airnow",
-  //   archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
-  // ) {
-  //   try {
-  //     await this.#provider_load(provider, "latest", archiveBaseUrl);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // }
+   * @async
+   * @param {string} provider - One of "airnow|airsis|wrcc".
+   * @param {string} baseUrl - Base URL for monitoring v2 data files.
+   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @throws {Error} If there's an issue loading the data.
+   */
+  async loadDaily(provider, baseUrl) {
+    return internal_loadDaily(this, provider, baseUrl);
+  }
+
+  /**
+   * Asynchronously loads 'annual' Monitor objects from USFS AirFire repositories
+   * for 'airnow', 'airsis' or 'wrcc' data.
+   *
+   * This function replaces the 'meta' and 'data' properties of 'this' monitor
+   * object with the latest available data. Data cover an entire year or
+   * year-to-date. Current year data are updated daily.
+   *
+   * @async
+   * @param {string} year - Year of interest.
+   * @param {string} baseUrl - Base URL for monitoring v2 data files.
+   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @throws {Error} If there's an issue loading the data.
+   */
+  async loadAnnual(year, baseUrl) {
+    return internal_loadAnnual(this, year, baseUrl);
+  }
+
+  /**
+   * Asynchronously loads custom monitoring data.
+   *
+   * Two files will be loaded from <baseUrl>:
+   *   1. <baseName>_data.csv
+   *   2. <baseName>_meta.csv
+   *
+   * @param {string} baseName - File name base.
+   * @param {string} baseUrl - URL path under which data files are found.
+   * @param {boolean} useAllColumns - Whether to retain all available columns in the metadata.
+   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @throws {Error} If there's an issue loading the data.
+   */
+  async loadCustom(baseName, baseUrl, useAllColumns = true) {
+    return internal_loadCustom(this, baseName, baseUrl, useAllColumns);
+  }
+
+ // ----- Data load -------------------------------------------------------------
+
 
   /**
    * Load 'daily' Monitor objects from USFS AirFire repositories for 'airnow',
@@ -120,16 +155,16 @@ class Monitor {
    * @param {string} provider One of "airnow|airsis|wrcc".
    * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
-  async loadDaily(
-    provider = "airnow",
-    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
-  ) {
-    try {
-      await this.#provider_load(provider, "daily", archiveBaseUrl);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  // async loadDaily(
+  //   provider = "airnow",
+  //   archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
+  // ) {
+  //   try {
+  //     await this.#provider_load(provider, "daily", archiveBaseUrl);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
 
   /**
    * Construct URL and load Monitor objects from the USFS AirFire archives.
@@ -140,46 +175,46 @@ class Monitor {
    * @param {string} timespan One of "latest".
    * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
-  async #provider_load(
-    provider = "airnow",
-    timespan = "latest",
-    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
-  ) {
-    // TODO: support additional arguments
-    const QC_negativeValues = "zero";
-    const QC_removeSuspectData = true;
+  // async #provider_load(
+  //   provider = "airnow",
+  //   timespan = "latest",
+  //   archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
+  // ) {
+  //   // TODO: support additional arguments
+  //   const QC_negativeValues = "zero";
+  //   const QC_removeSuspectData = true;
 
-    // TODO: load concurrently // https://www.youtube.com/watch?v=QO-3d128l28 14:31
-    // urlArray = [urlMeta, urlData]
-    // loadCsvPromises = urlArray.map((url) => aq.loadCsv(url));
-    // csvArray = await Promise.all(loadCsvPromises);
+  //   // TODO: load concurrently // https://www.youtube.com/watch?v=QO-3d128l28 14:31
+  //   // urlArray = [urlMeta, urlData]
+  //   // loadCsvPromises = urlArray.map((url) => aq.loadCsv(url));
+  //   // csvArray = await Promise.all(loadCsvPromises);
 
-    // * Load meta -----
-    let url =
-      archiveBaseUrl +
-      "/" +
-      timespan +
-      "/data/" +
-      provider +
-      "_PM2.5_" +
-      timespan +
-      "_meta.csv";
-    let dt = await aq.loadCSV(url);
-    this.meta = this.#parseMeta(dt, false, this.coreMetadataNames);
+  //   // * Load meta -----
+  //   let url =
+  //     archiveBaseUrl +
+  //     "/" +
+  //     timespan +
+  //     "/data/" +
+  //     provider +
+  //     "_PM2.5_" +
+  //     timespan +
+  //     "_meta.csv";
+  //   let dt = await aq.loadCSV(url);
+  //   this.meta = this.#parseMeta(dt, false, this.coreMetadataNames);
 
-    // * Load data -----
-    url =
-      archiveBaseUrl +
-      "/" +
-      timespan +
-      "/data/" +
-      provider +
-      "_PM2.5_" +
-      timespan +
-      "_data.csv";
-    dt = await aq.loadCSV(url);
-    this.data = this.#parseData(dt);
-  }
+  //   // * Load data -----
+  //   url =
+  //     archiveBaseUrl +
+  //     "/" +
+  //     timespan +
+  //     "/data/" +
+  //     provider +
+  //     "_PM2.5_" +
+  //     timespan +
+  //     "_data.csv";
+  //   dt = await aq.loadCSV(url);
+  //   this.data = this.#parseData(dt);
+  // }
 
   // TODO:  AirNow, AIRSIS and WRCC annual files should be combined and placed
   // TODO:  in an 'annual/' directory. This should be performed on the server.
@@ -197,16 +232,16 @@ class Monitor {
    * @param {string} year Year of interest.
    * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
-  async loadAnnual(
-    year = "2022",
-    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
-  ) {
-    try {
-      await this.#provider_loadAnnual(year, archiveBaseUrl);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  // async loadAnnual(
+  //   year = "2022",
+  //   archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
+  // ) {
+  //   try {
+  //     await this.#provider_loadAnnual(year, archiveBaseUrl);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
 
   /**
    * Construct URL and load annual Monitor objects from the USFS AirFire archives.
@@ -217,40 +252,40 @@ class Monitor {
    * @param {string} timespan One of "latest".
    * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
    */
-  async #provider_loadAnnual(
-    year = "2021", // TODO:  Remove default year, replace with "current year logic"
-    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
-  ) {
-    // TODO: support additional arguments
-    const QC_negativeValues = "zero";
-    const QC_removeSuspectData = true;
+  // async #provider_loadAnnual(
+  //   year = "2021", // TODO:  Remove default year, replace with "current year logic"
+  //   archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
+  // ) {
+  //   // TODO: support additional arguments
+  //   const QC_negativeValues = "zero";
+  //   const QC_removeSuspectData = true;
 
-    // http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow/2022/data/airnow_PM2.5_2022_meta.csv
-    // * Load meta -----
-    let url =
-      archiveBaseUrl +
-      "/airnow/" +
-      year +
-      "/data/" +
-      "airnow_PM2.5_" +
-      year +
-      "_meta.csv";
-    let dt = await aq.loadCSV(url);
-    //this.meta = this.#annual_parseMeta(dt);
-    this.meta = this.#parseMeta(dt, false, this.annual_coreMetadataNames);
+  //   // http://data-monitoring_v2-c1.airfire.org/monitoring-v2/airnow/2022/data/airnow_PM2.5_2022_meta.csv
+  //   // * Load meta -----
+  //   let url =
+  //     archiveBaseUrl +
+  //     "/airnow/" +
+  //     year +
+  //     "/data/" +
+  //     "airnow_PM2.5_" +
+  //     year +
+  //     "_meta.csv";
+  //   let dt = await aq.loadCSV(url);
+  //   //this.meta = this.#annual_parseMeta(dt);
+  //   this.meta = this.#parseMeta(dt, false, this.annual_coreMetadataNames);
 
-    // * Load data -----
-    url =
-      archiveBaseUrl +
-      "/airnow/" +
-      year +
-      "/data/" +
-      "airnow_PM2.5_" +
-      year +
-      "_data.csv";
-    dt = await aq.loadCSV(url);
-    this.data = this.#parseData(dt);
-  }
+  //   // * Load data -----
+  //   url =
+  //     archiveBaseUrl +
+  //     "/airnow/" +
+  //     year +
+  //     "/data/" +
+  //     "airnow_PM2.5_" +
+  //     year +
+  //     "_data.csv";
+  //   dt = await aq.loadCSV(url);
+  //   this.data = this.#parseData(dt);
+  // }
 
   /**
    * Load custom monitoring data.
@@ -264,24 +299,24 @@ class Monitor {
    * @param useAllColumns Logical specifying whether metadata parsing should
    * retain all available columns of data.
    */
-  async loadCustom(baseName = "", baseUrl = "", useAllColumns = true) {
-    // TODO: support additional arguments
-    const QC_negativeValues = "zero";
-    const QC_removeSuspectData = true;
+  // async loadCustom(baseName = "", baseUrl = "", useAllColumns = true) {
+  //   // TODO: support additional arguments
+  //   const QC_negativeValues = "zero";
+  //   const QC_removeSuspectData = true;
 
-    // Example:
-    // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
+  //   // Example:
+  //   // https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor/PM2.5_meta.csv
 
-    // * Load meta -----
-    let url = baseUrl + "/" + baseName + "_meta.csv";
-    let dt = await aq.loadCSV(url);
-    this.meta = this.#parseMeta(dt, useAllColumns);
+  //   // * Load meta -----
+  //   let url = baseUrl + "/" + baseName + "_meta.csv";
+  //   let dt = await aq.loadCSV(url);
+  //   this.meta = this.#parseMeta(dt, useAllColumns);
 
-    // * Load data -----
-    url = baseUrl + "/" + baseName + "_data.csv";
-    dt = await aq.loadCSV(url);
-    this.data = this.#parseData(dt);
-  }
+  //   // * Load data -----
+  //   url = baseUrl + "/" + baseName + "_data.csv";
+  //   dt = await aq.loadCSV(url);
+  //   this.data = this.#parseData(dt);
+  // }
 
   // ----- Monitor manipulation ------------------------------------------------
 

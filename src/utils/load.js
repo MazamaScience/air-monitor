@@ -99,6 +99,28 @@ async function providerLoad(monitor, provider, timespan, archiveBaseUrl) {
   monitor.data = parseData(dataCSV);
 }
 
+/**
+ * Loads annual metadata and data CSVs for a given year and updates the
+ * given Monitor object in place.
+ *
+ * @note This is an internal function.
+ * @param {Monitor} monitor - The Monitor instance to populate.
+ * @param {string} year - Four-digit year string.
+ * @param {string} archiveBaseUrl - Base URL to retrieve files from.
+ */
+async function providerLoadAnnual(monitor, year, archiveBaseUrl) {
+  const metaURL = `${archiveBaseUrl}/airnow/${year}/data/airnow_PM2.5_${year}_meta.csv`;
+  const dataURL = `${archiveBaseUrl}/airnow/${year}/data/airnow_PM2.5_${year}_data.csv`;
+
+  const [metaCSV, dataCSV] = await Promise.all([
+    aq.loadCSV(metaURL),
+    aq.loadCSV(dataURL),
+  ]);
+
+  monitor.meta = parseMeta(metaCSV, false, annual_coreMetadataNames);
+  monitor.data = parseData(dataCSV);
+}
+
 // ----- Public API ------------------------------------------------------------
 
 /**
@@ -119,5 +141,70 @@ async function providerLoad(monitor, provider, timespan, archiveBaseUrl) {
  */
 export async function internal_loadLatest(monitor, provider = 'airnow', baseUrl = DEFAULT_URL) {
   return providerLoad(monitor, provider, 'latest', baseUrl);
+}
+
+/**
+ * Asynchronously loads 'daily' Monitor objects from USFS AirFire repositories
+ * for 'airnow', 'airsis' or 'wrcc' data.
+ *
+ * This function replaces the 'meta' and 'data' properties of the Monitor
+ * object with the latest available data. Data cover the most recent 45 days
+ * and are updated once per day around 10:00 UTC (2am US Pacific Time).
+ *
+ * @async
+ * @param {Monitor} monitor - Monitor object.
+ * @param {string} provider - One of "airnow|airsis|wrcc".
+ * @param {string} baseUrl - Base URL for monitoring v2 data files.
+ * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @throws {Error} If there's an issue loading the data.
+ */
+export async function internal_loadDaily(monitor, provider = 'airnow', baseUrl = DEFAULT_URL) {
+  return providerLoad(monitor, provider, 'daily', baseUrl);
+}
+
+/**
+ * Asynchronously loads 'annual' Monitor objects from USFS AirFire repositories
+ * for 'airnow', 'airsis' or 'wrcc' data.
+ *
+ * This function replaces the 'meta' and 'data' properties of the Monitor
+ * object with the latest available data. Data cover an entire year or
+ * year-to-date. Current year data are updated daily.
+ *
+ * @async
+ * @param {Monitor} monitor - Monitor object.
+ * @param {string} year - Year of interest.
+ * @param {string} baseUrl - Base URL for monitoring v2 data files.
+ * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @throws {Error} If there's an issue loading the data.
+ */
+export async function internal_loadAnnual(monitor, year = String(new Date().getFullYear()), baseUrl = DEFAULT_URL) {
+  return providerLoadAnnual(monitor, year, baseUrl);
+}
+
+/**
+ * Asynchronously loads custom monitoring data.
+ *
+ * Two files will be loaded from <baseUrl>:
+ *   1. <baseName>_data.csv
+ *   2. <baseName>_meta.csv
+ *
+ * @param {Monitor} monitor - Monitor object.
+ * @param {string} baseName - File name base.
+ * @param {string} baseUrl - URL path under which data files are found.
+ * @param {boolean} useAllColumns - Whether to retain all available columns in the metadata.
+ * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @throws {Error} If there's an issue loading the data.
+ */
+export async function internal_loadCustom(monitor, baseName = '', baseUrl = '', useAllColumns = true) {
+  const metaURL = `${baseUrl}/${baseName}_meta.csv`;
+  const dataURL = `${baseUrl}/${baseName}_data.csv`;
+
+  const [metaCSV, dataCSV] = await Promise.all([
+    aq.loadCSV(metaURL),
+    aq.loadCSV(dataURL),
+  ]);
+
+  monitor.meta = parseMeta(metaCSV, useAllColumns);
+  monitor.data = parseData(dataCSV);
 }
 
