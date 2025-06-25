@@ -24,6 +24,6 @@
   "dependencies": {
     "air-monitor-algorithms": "github:MazamaScience/air-monitor-algorithms",
     "arquero": "7.2.1",
-    "moment-timezone": "^0.6.0"
+    "luxon": "^3.6.1"
   }
 }

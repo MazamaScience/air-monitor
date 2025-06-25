@@ -3,6 +3,8 @@
 import * as aq from 'arquero';
 const op = aq.op;
 
+import moment from 'moment-timezone';
+
 export function internal_collapse(monitor, deviceID = 'generatedID', FUN = 'sum', FUN_arg = 0.8) {
   const meta = monitor.meta;
   const data = monitor.data;
@@ -55,14 +57,37 @@ export function internal_collapse(monitor, deviceID = 'generatedID', FUN = 'sum'
   return { meta: new_meta, data: new_data };
 }
 
+/**
+ * Combines two Monitor objects by merging their metadata and time series data.
+ * If any deviceDeploymentIDs in `monitorB` are already present in `monitorA`,
+ * they will be dropped from `monitorB` before merging.
+ *
+ * @param {Monitor} monitorA - The base Monitor instance.
+ * @param {Monitor} monitorB - The Monitor instance to merge in.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A combined monitor object.
+ */
 export function internal_combine(monitorA, monitorB) {
-  const meta = monitorA.meta.concat(monitorB.meta);
-  const data = monitorA.data
-    .join_full(monitorB.data, 'datetime')
-    .orderby('datetime');
+  const idsA = new Set(monitorA.meta.array('deviceDeploymentID'));
+  const idsB = monitorB.meta.array('deviceDeploymentID');
 
-  return { meta, data };
+  // Identify overlapping and unique IDs
+  const overlappingIDs = idsB.filter(id => idsA.has(id));
+  const uniqueIDs = idsB.filter(id => !idsA.has(id));
+
+  // Filter monitorB's meta and data to include only unique IDs
+  const metaB = monitorB.meta
+    .params({ ids: uniqueIDs })
+    .filter('op.includes(ids, d.deviceDeploymentID)');
+
+  const dataB = monitorB.data.select(['datetime', ...uniqueIDs]);
+
+  // Combine everything
+  const combinedMeta = monitorA.meta.concat(metaB);
+  const combinedData = monitorA.data.join(dataB); // joins on 'datetime'
+
+  return { meta: combinedMeta, data: combinedData };
 }
+
 
 /**
  * Subsets and reorders time series columns and corresponding metadata
@@ -170,18 +195,41 @@ export function internal_dropEmpty(monitor) {
   return { meta: filteredMeta, data: filteredData };
 }
 
-export function internal_trimDate(monitor, timezone) {
-  const localTime = monitor.data.array('datetime').map(d => new Date(d));
-  const localHours = localTime.map(d => aq.op.tz(d, timezone).getHours());
+import { DateTime } from 'luxon';
 
-  const start = localHours[0] === 0 ? 0 : 24 - localHours[0];
-  const end = localHours.at(-1) === 23 ? localHours.length - 1 : localHours.length - localHours.at(-1) - 1;
+/**
+ * Trims the time-series data to full local-time days using Luxon.
+ * Removes partial days at the start and end of the series.
+ *
+ * @param {Monitor} monitor - The Monitor instance with datetime-ordered data.
+ * @param {string} timezone - An IANA timezone string (e.g., "America/New_York").
+ * @returns {{ meta: aq.Table, data: aq.Table }} A subset of the monitor with trimmed data.
+ *
+ * @throws {Error} If the datetime column is missing or empty.
+ */
+export function internal_trimDate(monitor, timezone) {
+  const datetime = monitor.data.array('datetime');
+  if (!datetime || datetime.length === 0) {
+    throw new Error('No datetime values found in monitor.data');
+  }
+
+  const localTime = datetime.map((jsDate) =>
+    DateTime.fromJSDate(jsDate, { zone: timezone })
+  );
+
+  const hours = localTime.map((t) => t.hour);
+
+  const start = hours[0] === 0 ? 0 : 24 - hours[0];
+  const end = hours[hours.length - 1] === 23
+    ? hours.length - 1
+    : hours.length - hours[hours.length - 1] - 1;
 
   const data = monitor.data.slice(start, end);
   const meta = monitor.meta;
 
   return { meta, data };
 }
+
 
 // ----- Utilities -------------------------------------------------------------
 

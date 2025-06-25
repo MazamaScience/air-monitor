@@ -6,6 +6,8 @@ await monitor.loadLatest("airnow");
 
 console.log(monitor.count());
 
+let bop; // Generic variable for reuse
+
 // await monitor.loadAnnual("2021");
 
 // console.log(monitor.count());
@@ -15,15 +17,28 @@ let timezone = monitor.getTimezone(id);
 
 console.log(`id: %s, timezone = %s`, id, timezone);
 
-const idsArray = monitor.getIDs();
-const ids = [idsArray[234], idsArray[512]];
-let sub = monitor.select(ids);
-sub.data.print();
+// const idsArray = monitor.getIDs();
+// const ids = [idsArray[234], idsArray[512]];
+// let sub = monitor.select(ids);
+// sub.data.print();
+
+// bop = monitor.dropEmpty();
 
 let WA = monitor.filterByValue('stateCode', 'WA');
-console.log(`WA has %d monitors`, WA.count())
+console.log(`WA has %d monitors`, WA.count());
 
-let bop = monitor.dropEmpty();
+let WA_trimmed = WA.trimDate("America/Los_Angeles");
+let OR_trimmed = monitor
+  .filterByValue('stateCode', 'OR')
+  .trimDate("America/Los_Angeles");
+
+console.log(`OR has %d monitors`, OR_trimmed.count());
+
+let PNW = WA_trimmed.combine(OR_trimmed);
+
+console.log(`PNW has %d monitors`, PNW.count());
+
+// bop = PNW.combine(OR_trimmed); // This should drop the duplicate sites
 
 let pm25 = monitor.getPM25(id);
 

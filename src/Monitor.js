@@ -4,7 +4,7 @@
 import * as aq from 'arquero';
 
 // First: npm install moment-timezone --save
-import moment from "moment-timezone";
+// import moment from "moment-timezone";
 
 // npm install github:MazamaScience/air-monitor-algorithms
 import {
@@ -23,11 +23,11 @@ import {
 } from './utils/load.js';
 import {
   // internal_collapse,
-  // internal_combine,
+  internal_combine,
   internal_select,
   internal_filterByValue,
-  internal_dropEmpty
-  // internal_trimDate
+  internal_dropEmpty,
+  internal_trimDate
 } from './utils/transform.js';
 import {
   internal_getTimezone,
@@ -289,20 +289,17 @@ class Monitor {
   //   return new Monitor(meta, data);
   // }
 
-  // /**
-  //  * Combines another Monitor object with 'this' Monitor.
-  //  *
-  //  * A new Monitor object is returned containing all time series and metadata from
-  //  * 'this' Monitor as well as the passed in 'monitor'. This allows for chaining to
-  //  * combine multiple Monitor objects.
-  //  *
-  //  * @param {Monitor} otherMonitor - - Another Monitor object to combine with.
-  //  * @returns {Monitor} New Monitor with combined metadata and data.
-  //  */
-  // combine(otherMonitor) {
-  //   const { meta, data } = internal_combine(this, otherMonitor);
-  //   return new Monitor(meta, data);
-  // }
+  /**
+   * Combines this Monitor object with another, dropping duplicate deviceDeploymentIDs
+   * from the second monitor to avoid collisions.
+   *
+   * @param {Monitor} monitor - Another Monitor instance to combine with this one.
+   * @returns {Monitor} A new combined Monitor instance.
+   */
+  combine(monitor) {
+    const { meta, data } = internal_combine(this, monitor);
+    return new Monitor(meta, data);
+  }
 
   /**
    * Subset and reorder time series within the Monitor.
@@ -340,21 +337,16 @@ class Monitor {
     return new Monitor(meta, data);
   }
 
-  // /**
-  //  * Returns a modified Monitor object with the records trimmed to full
-  //  * local time days. Any partial days are discarded.
-  //  * @note This function requires moment.js.
-  //  * @param {string} timezone - Olson timezone identifier (e.g., "America/Los_Angeles").
-  //  * @returns {Monitor} New Monitor with data trimmed by timezone-aware ranges.
-  //  */
-  // trimDate(timezone) {
-  //   const { meta, data } = internal_trimDate(this, timezone);
-  //   return new Monitor(meta, data);
-  // }
-
-
-
-
+  /**
+   * Returns a modified Monitor object with the records trimmed to full
+   * local time days. Any partial days are discarded.
+   * @param {string} timezone - Olson timezone identifier (e.g., "America/Los_Angeles").
+   * @returns {Monitor} New Monitor with data trimmed by timezone-aware ranges.
+   */
+  trimDate(timezone) {
+    const { meta, data } = internal_trimDate(this, timezone);
+    return new Monitor(meta, data);
+  }
 
   // ----- Monitor manipulation ------------------------------------------------
 
@@ -462,24 +454,24 @@ class Monitor {
     return return_monitor;
   }
 
-  /**
-   * Combine another Monitor object with 'this' object.
-   *
-   * A new Monitor object is returned containing all time series and metadata from
-   * 'this' Monitor as well as the passed in 'monitor'. This allows for chaining to
-   * combine multiple Monitor objects.
-   *
-   * @param {Object} monitor A monitor object.
-   * @returns {Object} A combined monitor object.
-   */
-  combine(monitor) {
-    let meta = this.meta.concat(monitor.meta);
-    let data = this.data.join(monitor.data); // automatically joins on 'datetime' as the only shared column
+  // /**
+  //  * Combine another Monitor object with 'this' object.
+  //  *
+  //  * A new Monitor object is returned containing all time series and metadata from
+  //  * 'this' Monitor as well as the passed in 'monitor'. This allows for chaining to
+  //  * combine multiple Monitor objects.
+  //  *
+  //  * @param {Object} monitor A monitor object.
+  //  * @returns {Object} A combined monitor object.
+  //  */
+  // combine(monitor) {
+  //   let meta = this.meta.concat(monitor.meta);
+  //   let data = this.data.join(monitor.data); // automatically joins on 'datetime' as the only shared column
 
-    // Return
-    let return_monitor = new Monitor(meta, data);
-    return return_monitor;
-  }
+  //   // Return
+  //   let return_monitor = new Monitor(meta, data);
+  //   return return_monitor;
+  // }
 
   // /**
   //  * Subset and reorder time series within a monitor object.
@@ -500,36 +492,6 @@ class Monitor {
   //   return return_monitor;
   // }
 
-
-  /**
-   * Returns a modified Monitor object with the records trimmed to full
-   * local time days. Any partial days are discarded.
-   *
-   * @note This function requires moment.js.
-   * @param {string} timezone Olsen timezone for the time series
-   * @returns {Object} A subset of the incoming Monitor object.
-   */
-  trimDate(timezone) {
-    // Calculate local time hours and start/end
-    let localTime = this.data
-      .array("datetime")
-      .map((o) => moment.tz(o, timezone));
-    let hours = localTime.map((x) => x.hours());
-    let start = hours[0] == 0 ? 0 : 24 - hours[0];
-    let end =
-      hours[hours.length - 1] == 23
-        ? hours.length - 1
-        : hours.length - hours[hours.length - 1] - 1;
-
-    // https://uwdata.github.io/arquero/api/verbs#slice
-    // Subset data and meta
-    let data = this.data.slice(start, end);
-    let meta = this.meta;
-
-    // Return
-    let return_monitor = new Monitor(meta, data);
-    return return_monitor;
-  }
 
   // ----- Special methods------------------------------------------------------
 
