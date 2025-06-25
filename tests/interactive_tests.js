@@ -18,7 +18,9 @@ console.log(`id: %s, timezone = %s`, id, timezone);
 const idsArray = monitor.getIDs();
 const ids = [idsArray[234], idsArray[512]];
 let sub = monitor.select(ids);
-sub.data.print()
+sub.data.print();
+
+let bop = monitor.dropEmpty();
 
 let pm25 = monitor.getPM25(id);
 

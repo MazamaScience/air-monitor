@@ -24,9 +24,9 @@ import {
 import {
   // internal_collapse,
   // internal_combine,
-  internal_select
+  internal_select,
   // internal_filterByValue,
-  // internal_dropEmpty,
+  internal_dropEmpty
   // internal_trimDate
 } from './utils/transform.js';
 import {
@@ -328,14 +328,17 @@ class Monitor {
   //   return new Monitor(meta, data);
   // }
 
-  // /**
-  //  * Drops time series with all missing data.
-  //  * @returns {Monitor} New Monitor with empty time series removed.
-  //  */
-  // dropEmpty() {
-  //   const { meta, data } = internal_dropEmpty(this);
-  //   return new Monitor(meta, data);
-  // }
+  /**
+   * Drops time series from the monitor that contain only missing values.
+   *
+   * A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
+   * The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.
+   * @returns {{ meta: aq.Table, data: aq.Table }} A new monitor object with empty time series removed.
+   */
+  dropEmpty() {
+    const { meta, data } = internal_dropEmpty(this);
+    return new Monitor(meta, data);
+  }
 
   // /**
   //  * Returns a modified Monitor object with the records trimmed to full
@@ -529,46 +532,6 @@ class Monitor {
     return return_monitor;
   }
 
-  /**
-   * Drop monitor object time series with all missing data.
-   *
-   * @returns {Object} A subset of the incoming monitor object.
-   */
-  dropEmpty() {
-    let validCount = function (dt) {
-      // Programmatically create a values object that counts valid values
-      const ids = dt.columnNames();
-      let values = {};
-      ids.map((id) => (values[id] = "d => op.valid(d['" + id + "'])"));
-      let new_dt = dt.rollup(values);
-      return new_dt;
-    };
-
-    // -----
-
-    let meta = this.meta;
-    let data = this.data;
-
-    // Single row table with the count of valid values
-    let countObj = validCount(data).object(0);
-    // {a: 4, b: 4, c: 0}
-
-    let ids = [];
-    for (const [key, value] of Object.entries(countObj)) {
-      if (value > 0) ids.push(key);
-    }
-
-    // Subset data and meta
-    data = data.select(ids);
-
-    meta = meta
-      .params({ ids: ids })
-      .filter((d, $) => op.includes($.ids, d.deviceDeploymentID)); // arquero filter
-
-    // Return
-    let return_monitor = new Monitor(meta, data);
-    return return_monitor;
-  }
 
   /**
    * Returns a modified Monitor object with the records trimmed to full

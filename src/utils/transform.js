@@ -115,25 +115,38 @@ export function internal_filterByValue(monitor, columnName, value) {
   return { meta, data };
 }
 
+/**
+ * Drops time series from the monitor that contain only missing values.
+ *
+ * A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
+ * The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing metadata and data.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A new monitor object with empty time series removed.
+ */
 export function internal_dropEmpty(monitor) {
-  const dt = monitor.data;
-  const ids = dt.columnNames().filter(c => c !== 'datetime');
+  const data = monitor.data;
+  const ids = data.columnNames().filter(c => c !== 'datetime');
 
-  // Count valid values per column
-  const countRow = dt.rollup(
-    Object.fromEntries(ids.map(id => [id, d => op.valid(d[id])]))
-  ).object(0);
+  // Count valid (non-null, non-NaN, non-'NA') values for each time series column
+  const countRow = data
+    // arquero pattern to compute column-wise aggregations
+    .rollup(Object.fromEntries(ids.map(id => [id, "d => op.valid(d['" + id + "'])"])))
+    .object(0); // Get the single row as an object
 
+
+  // Keep only the IDs with at least one valid value
   const validIDs = Object.entries(countRow)
     .filter(([_, count]) => count > 0)
     .map(([id]) => id);
 
-  const data = dt.select(['datetime', ...validIDs]);
-  const meta = monitor.meta
+  const filteredData = data.select(['datetime', ...validIDs]);
+
+  const filteredMeta = monitor.meta
     .params({ ids: validIDs })
     .filter((d, $) => op.includes($.ids, d.deviceDeploymentID));
 
-  return { meta, data };
+  return { meta: filteredMeta, data: filteredData };
 }
 
 export function internal_trimDate(monitor, timezone) {
