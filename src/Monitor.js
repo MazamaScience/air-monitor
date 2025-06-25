@@ -106,19 +106,19 @@ class Monitor {
   }
 
    /**
-   * Asynchronously loads 'daily' Monitor objects from USFS AirFire repositories
-   * for 'airnow', 'airsis' or 'wrcc' data.
-   *
-   * This function replaces the 'meta' and 'data' properties of 'this' monitor
-   * object with the latest available data. Data cover the most recent 45 days
-   * and are updated once per day around 10:00 UTC (2am US Pacific Time).
-   *
-   * @async
-   * @param {string} provider - One of "airnow|airsis|wrcc".
-   * @param {string} baseUrl - Base URL for monitoring v2 data files.
-   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
-   * @throws {Error} If there's an issue loading the data.
-   */
+    * Asynchronously loads 'daily' Monitor objects from USFS AirFire repositories
+    * for 'airnow', 'airsis' or 'wrcc' data.
+    *
+    * This function replaces the 'meta' and 'data' properties of 'this' monitor
+    * object with the latest available data. Data cover the most recent 45 days
+    * and are updated once per day around 10:00 UTC (2am US Pacific Time).
+    *
+    * @async
+    * @param {string} provider - One of "airnow|airsis|wrcc".
+    * @param {string} baseUrl - Base URL for monitoring v2 data files.
+    * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+    * @throws {Error} If there's an issue loading the data.
+    */
   async loadDaily(provider, baseUrl) {
     return internal_loadDaily(this, provider, baseUrl);
   }
@@ -157,6 +157,55 @@ class Monitor {
   async loadCustom(baseName, baseUrl, useAllColumns = true) {
     return internal_loadCustom(this, baseName, baseUrl, useAllColumns);
   }
+
+  // ----- Accessors and Utilities ---------------------------------------------
+
+  /**
+   * Returns an array of unique identifiers (deviceDeploymentIDs) found in a
+   * Monitor object.
+   * @returns {string[]} Array of deviceDeploymentIDs.
+   */
+  getIDs() {
+    return this.meta.array('deviceDeploymentID');
+  }
+
+  /**
+   * Returns the number of individual time series found in a Monitor object.
+   * @returns {number} Number of metadata rows.
+   */
+  count() {
+    return this.meta.numRows();
+  }
+
+  /**
+   * Returns the array of date objects that define this Monitor object's time axis.
+   * @returns {Array.<Date>} Array of Date objects.
+   */
+  getDatetime() {
+    return this.data.array('datetime');
+  }
+
+  /**
+   * Returns the named metadata field for the time series identified by id.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string} fieldName - Name of the metadata field to retrieve.
+   * @returns {string|number} The value of the metadata field.
+   */
+  getMetadata(id, fieldName) {
+    const index = this.getIDs().indexOf(id);
+    return this.meta.array(fieldName)[index];
+  }
+
+  /**
+   * Returns an object with all metadata properties for the time series
+   * identified by id.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {Object} Object with all metadata properties.
+   */
+  getMetaObject(id) {
+    return this.select(id).meta.object();
+  }
+
 
   // ----- Monitor manipulation ------------------------------------------------
 
@@ -466,33 +515,33 @@ class Monitor {
 
   // ----- Get single-device values --------------------------------------------
 
-  /**
-   * Returns the array of date objects that define this Monitor object's time axis.
-   * @returns {Array.<Date>} Array of Date objects.
-   */
-  getDatetime() {
-    return this.data.array("datetime");
-  }
+  // /**
+  //  * Returns the array of date objects that define this Monitor object's time axis.
+  //  * @returns {Array.<Date>} Array of Date objects.
+  //  */
+  // getDatetime() {
+  //   return this.data.array("datetime");
+  // }
 
-  /**
-   * Returns the named metadata field for the time series identified by id.
-   * @param {string} id - The deviceDeploymentID identifying the desired time series.
-   * @returns {string|number} The named metadata field for a time series.
-   */
-  getMetadata(id, fieldName) {
-    const index = this.getIDs().indexOf(id);
-    return this.meta.array(fieldName)[index];
-  }
+  // /**
+  //  * Returns the named metadata field for the time series identified by id.
+  //  * @param {string} id - The deviceDeploymentID identifying the desired time series.
+  //  * @returns {string|number} The named metadata field for a time series.
+  //  */
+  // getMetadata(id, fieldName) {
+  //   const index = this.getIDs().indexOf(id);
+  //   return this.meta.array(fieldName)[index];
+  // }
 
-  /**
-   * Returns an object with all metadata properties for the time series
-   * identified by id.
-   * @param {string} id - The deviceDeploymentID identifying the desired time series.
-   * @returns {Object} Object with all metadata properties.
-   */
-  getMetaObject(id) {
-    return this.select(id).meta.object();
-  }
+  // /**
+  //  * Returns an object with all metadata properties for the time series
+  //  * identified by id.
+  //  * @param {string} id - The deviceDeploymentID identifying the desired time series.
+  //  * @returns {Object} Object with all metadata properties.
+  //  */
+  // getMetaObject(id) {
+  //   return this.select(id).meta.object();
+  // }
 
   // ----- Special methods------------------------------------------------------
 
@@ -613,24 +662,24 @@ class Monitor {
 
   // ----- Utility methods -----------------------------------------------------
 
-  /**
-   * Returns an array of unique identifiers (deviceDeploymentIDs) found in a
-   * Monitor object
-   *
-   * @returns {Array.<string>} An array of deviceDeploymentIDs.
-   */
-  getIDs() {
-    return this.meta.array("deviceDeploymentID");
-  }
+  // /**
+  //  * Returns an array of unique identifiers (deviceDeploymentIDs) found in a
+  //  * Monitor object
+  //  *
+  //  * @returns {Array.<string>} An array of deviceDeploymentIDs.
+  //  */
+  // getIDs() {
+  //   return this.meta.array("deviceDeploymentID");
+  // }
 
-  /**
-   * Returns the number of individual time series found in a Monitor object
-   *
-   * @returns {number} Count of individual time series.
-   */
-  count() {
-    return this.meta.numRows();
-  }
+  // /**
+  //  * Returns the number of individual time series found in a Monitor object
+  //  *
+  //  * @returns {number} Count of individual time series.
+  //  */
+  // count() {
+  //   return this.meta.numRows();
+  // }
 
   // ----- Other functions -----------------------------------------------------
 
