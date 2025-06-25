@@ -15,6 +15,11 @@ let timezone = monitor.getTimezone(id);
 
 console.log(`id: %s, timezone = %s`, id, timezone);
 
+const idsArray = monitor.getIDs();
+const ids = [idsArray[234], idsArray[512]];
+let sub = monitor.select(ids);
+sub.data.print()
+
 let pm25 = monitor.getPM25(id);
 
 let nowcast = monitor.getNowcast(id);

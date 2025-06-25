@@ -64,11 +64,35 @@ export function internal_combine(monitorA, monitorB) {
   return { meta, data };
 }
 
+/**
+ * Subsets and reorders time series columns and corresponding metadata
+ * for the specified deviceDeploymentIDs.
+ *
+ * Ensures that the returned `meta` rows appear in the same order as `ids`,
+ * and that all specified columns are included in the `data` table.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing metadata and data.
+ * @param {string[]} ids - An array of deviceDeploymentIDs to select and order.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A subset of the monitor with selected columns.
+ *
+ * @throws {Error} If `ids` is not a non-empty array.
+ */
 export function internal_select(monitor, ids) {
-  const meta = monitor.meta
-    .params({ ids })
-    .filter((d, $) => op.includes($.ids, d.deviceDeploymentID));
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new Error('ids must be a non-empty array of deviceDeploymentIDs');
+  }
 
+  // Reorder meta rows to match the order of `ids`
+  const metaRows = ids.map(id => {
+    const row = monitor.meta.objects().find(r => r.deviceDeploymentID === id);
+    if (!row) {
+      throw new Error(`deviceDeploymentID '${id}' not found in metadata`);
+    }
+    return row;
+  });
+  const meta = aq.from(metaRows);
+
+  // Subset and reorder columns in the data table
   const data = monitor.data.select(['datetime', ...ids]);
 
   return { meta, data };
@@ -127,8 +151,14 @@ export function internal_trimDate(monitor, timezone) {
 
 // ----- Utilities -------------------------------------------------------------
 
+/**
+ * Computes the arithmetic mean of an array of numbers, ignoring non-numeric values.
+ *
+ * @param {Array<*>} arr - The input array (may contain nulls, strings, or other types).
+ * @returns {number|null} The mean of valid numbers, or null if none are found.
+ */
 function arrayMean(arr) {
-  const valid = arr.filter(v => typeof v === 'number' && !isNaN(v));
+  const valid = arr.filter(v => typeof v === 'number' && Number.isFinite(v));
   const sum = valid.reduce((acc, v) => acc + v, 0);
-  return valid.length ? sum / valid.length : null;
+  return valid.length > 0 ? sum / valid.length : null;
 }

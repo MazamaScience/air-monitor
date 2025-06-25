@@ -21,14 +21,14 @@ import {
   internal_loadAnnual,
   internal_loadCustom
 } from './utils/load.js';
-// import {
-//   internal_collapse,
-//   internal_combine,
-//   internal_select,
-//   internal_filterByValue,
-//   internal_dropEmpty,
-//   internal_trimDate
-// } from './utils/transform.js';
+import {
+  // internal_collapse,
+  // internal_combine,
+  internal_select
+  // internal_filterByValue,
+  // internal_dropEmpty,
+  // internal_trimDate
+} from './utils/transform.js';
 import {
   internal_getTimezone,
   internal_getPM25,
@@ -206,6 +206,152 @@ class Monitor {
     return this.select(id).meta.object();
   }
 
+  // ----- Data manipulation functions -----------------------------------------
+
+  /**
+   * Returns the timezone for the specified device.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {string} Olson timezone.
+   */
+  getTimezone(id) {
+    return internal_getTimezone(this, id);
+  }
+  /**
+   * Returns the PM2.5 time series for the specified device.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {number[]} PM2.5 values.
+   *
+   * @throws {Error} If the device ID is not found.
+   */
+  getPM25(id) {
+    return internal_getPM25(this, id);
+  }
+
+  /**
+   * Returns the NowCast PM2.5 value for the specified device.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {number} NowCast value.
+   */
+  getNowcast(id) {
+    return internal_getNowcast(this, id);
+  }
+
+  /**
+   * Calculates daily statistics for the time series identified by id after the
+   * time series has been trimmed to local-time day boundaries. The starting
+   * hour of each local time day and statistics derived from that day's data
+   * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
+   * properties.
+   *
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max` properties.
+   */
+  getDailyStats(id) {
+    return internal_getDailyStats(this, id);
+  }
+
+  /**
+   * Calculates hour-of-day statistics for the time series identified by id after
+   * the time series has been trimmed to local-time day boundaries. An array of
+   * local time hours and hour-of-day statistics derived from recent data
+   * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
+   * properties.
+   *
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {number} dayCount - Number of most recent days to use.
+   * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
+   */
+  getDiurnalStats(id, dayCount) {
+    return internal_getDiurnalStats(this, id, dayCount);
+  }
+
+  // ----- Transformation and statistical functions ----------------------------
+
+  // /**
+  //  * Collapses data from all time series into a single-time series using the
+  //  * function provided in the `FUN` argument. The single-time series result will
+  //  * be located at the mean longitude and latitude.
+  //  *
+  //  * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
+  //  * probability.
+  //  *
+  //  * Available function names are those defined at:
+  //  * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
+  //  * `"op."` removed.
+  //  *
+  //  * @param {string} deviceID - New deviceDeploymentID for the collapsed series.
+  //  * @param {string} FUN - Name of an aggregation function (e.g., "mean", "max").
+  //  * @param {any} [FUN_arg] - Optional argument to pass to FUN.
+  //  * @returns {Monitor} New Monitor with collapsed data.
+  //  */
+  // collapse(deviceID, FUN, FUN_arg) {
+  //   const { meta, data } = internal_collapse(this, deviceID, FUN, FUN_arg);
+  //   return new Monitor(meta, data);
+  // }
+
+  // /**
+  //  * Combines another Monitor object with 'this' Monitor.
+  //  *
+  //  * A new Monitor object is returned containing all time series and metadata from
+  //  * 'this' Monitor as well as the passed in 'monitor'. This allows for chaining to
+  //  * combine multiple Monitor objects.
+  //  *
+  //  * @param {Monitor} otherMonitor - - Another Monitor object to combine with.
+  //  * @returns {Monitor} New Monitor with combined metadata and data.
+  //  */
+  // combine(otherMonitor) {
+  //   const { meta, data } = internal_combine(this, otherMonitor);
+  //   return new Monitor(meta, data);
+  // }
+
+  /**
+   * Subset and reorder time series within the Monitor.
+   *
+   * @param {string|string[]} ids - Single ID or array of IDs to select.
+   * @returns {Monitor} New Monitor with selected/reordered time series.
+   */
+  select(ids) {
+    const { meta, data } = internal_select(this, ids);
+    return new Monitor(meta, data);
+  }
+
+  // /**
+  //  * Filters time series based on matching values in the 'meta' dataframe.
+  //  * The returned Monitor object will contain only those records where
+  //  * monitor.meta.columnName === "value".
+  //  * @param {string} column - Name of the column used for filtering.
+  //  * @param {string|number} value - Value to match.
+  //  * @returns {Monitor} New Monitor with filtered time series.
+  //  */
+  // filterByValue(column, value) {
+  //   const { meta, data } = internal_filterByValue(this, column, value);
+  //   return new Monitor(meta, data);
+  // }
+
+  // /**
+  //  * Drops time series with all missing data.
+  //  * @returns {Monitor} New Monitor with empty time series removed.
+  //  */
+  // dropEmpty() {
+  //   const { meta, data } = internal_dropEmpty(this);
+  //   return new Monitor(meta, data);
+  // }
+
+  // /**
+  //  * Returns a modified Monitor object with the records trimmed to full
+  //  * local time days. Any partial days are discarded.
+  //  * @note This function requires moment.js.
+  //  * @param {string} timezone - Olson timezone identifier (e.g., "America/Los_Angeles").
+  //  * @returns {Monitor} New Monitor with data trimmed by timezone-aware ranges.
+  //  */
+  // trimDate(timezone) {
+  //   const { meta, data } = internal_trimDate(this, timezone);
+  //   return new Monitor(meta, data);
+  // }
+
+
+
+
 
   // ----- Monitor manipulation ------------------------------------------------
 
@@ -332,24 +478,24 @@ class Monitor {
     return return_monitor;
   }
 
-  /**
-   * Subset and reorder time series within a monitor object.
-   *
-   * @param {Array.<string>} ids deviceDeploymentIDs of the time series to select.
-   * @returns {Object} A (reordered) subset of the incoming monitor object.
-   */
-  select(ids) {
-    // See https://uwdata.github.io/arquero/api/expressions#limitations
-    let meta = this.meta
-      .params({ ids: ids })
-      .filter((d, $) => op.includes($.ids, d.deviceDeploymentID)); // arquero filter
+  // /**
+  //  * Subset and reorder time series within a monitor object.
+  //  *
+  //  * @param {Array.<string>} ids deviceDeploymentIDs of the time series to select.
+  //  * @returns {Object} A (reordered) subset of the incoming monitor object.
+  //  */
+  // select(ids) {
+  //   // See https://uwdata.github.io/arquero/api/expressions#limitations
+  //   let meta = this.meta
+  //     .params({ ids: ids })
+  //     .filter((d, $) => op.includes($.ids, d.deviceDeploymentID)); // arquero filter
 
-    let data = this.data.select("datetime", ids);
+  //   let data = this.data.select("datetime", ids);
 
-    // Return
-    let return_monitor = new Monitor(meta, data);
-    return return_monitor;
-  }
+  //   // Return
+  //   let return_monitor = new Monitor(meta, data);
+  //   return return_monitor;
+  // }
 
   /**
    * Filter a monitor object based on matching values in the 'meta' dataframe.
@@ -453,95 +599,6 @@ class Monitor {
     let return_monitor = new Monitor(meta, data);
     return return_monitor;
   }
-
-  // ----- Data manipulation functions -----------------------------------------
-
-  /**
-   * Returns the timezone for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {string} Olson timezone.
-   */
-  getTimezone(id) {
-    return internal_getTimezone(this, id);
-  }
-  /**
-   * Returns the PM2.5 time series for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {number[]} PM2.5 values.
-   *
-   * @throws {Error} If the device ID is not found.
-   */
-  getPM25(id) {
-    return internal_getPM25(this, id);
-  }
-
-  /**
-   * Returns the NowCast PM2.5 value for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {number} NowCast value.
-   */
-  getNowcast(id) {
-    return internal_getNowcast(this, id);
-  }
-
-  /**
-   * Calculates daily statistics for the time series identified by id after the
-   * time series has been trimmed to local-time day boundaries. The starting
-   * hour of each local time day and statistics derived from that day's data
-   * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
-   * properties.
-   *
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max` properties.
-   */
-  getDailyStats(id) {
-    return internal_getDailyStats(this, id);
-  }
-
-  /**
-   * Calculates hour-of-day statistics for the time series identified by id after
-   * the time series has been trimmed to local-time day boundaries. An array of
-   * local time hours and hour-of-day statistics derived from recent data
-   * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
-   * properties.
-   *
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @param {number} dayCount - Number of most recent days to use.
-   * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
-   */
-  getDiurnalStats(id, dayCount) {
-    return internal_getDiurnalStats(this, id, dayCount);
-  }
-
-  // ----- Get single-device values --------------------------------------------
-
-  // /**
-  //  * Returns the array of date objects that define this Monitor object's time axis.
-  //  * @returns {Array.<Date>} Array of Date objects.
-  //  */
-  // getDatetime() {
-  //   return this.data.array("datetime");
-  // }
-
-  // /**
-  //  * Returns the named metadata field for the time series identified by id.
-  //  * @param {string} id - The deviceDeploymentID identifying the desired time series.
-  //  * @returns {string|number} The named metadata field for a time series.
-  //  */
-  // getMetadata(id, fieldName) {
-  //   const index = this.getIDs().indexOf(id);
-  //   return this.meta.array(fieldName)[index];
-  // }
-
-  // /**
-  //  * Returns an object with all metadata properties for the time series
-  //  * identified by id.
-  //  * @param {string} id - The deviceDeploymentID identifying the desired time series.
-  //  * @returns {Object} Object with all metadata properties.
-  //  */
-  // getMetaObject(id) {
-  //   return this.select(id).meta.object();
-  // }
 
   // ----- Special methods------------------------------------------------------
 
