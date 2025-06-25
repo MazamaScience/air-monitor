@@ -80,21 +80,16 @@ export function parseData(dt) {
   let values1 = {};
   ids.map(
     (id) =>
-      (values1[id] =
-        "d => d['" +
-        id +
-        "'] === 'NA' ? null : op.parse_float(d['" +
-        id +
-        "'])")
+      (values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`)
   );
 
   // Lift up negative values to zero
   // NOTE:  'null <= 0' evaluates to true. So we have to test with '< 0'.
   let values2 = {};
   ids.map(
-    (id) => (values2[id] = "d => d['" + id + "'] < 0 ? 0 : d['" + id + "']")
+    (id) =>
+      (values2[id] = `d => d['${id}'] < 0 ? 0 : d['${id}']`)
   );
-
   // Return the modified data table
   return dt.derive(values1).derive(values2);
 
