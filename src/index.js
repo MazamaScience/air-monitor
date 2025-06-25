@@ -744,6 +744,8 @@ export default class Monitor {
 
   // ----- Constants -----------------------------------------------------------
 
+  FLOAT_COLUMNS = ['longitude', 'latitude', 'elevation'];
+
   minimalMetadataNames = [
     "deviceDeploymentID",
     "locationName",
@@ -820,26 +822,22 @@ export default class Monitor {
     // Programmatically create a values object that replaces values.   See:
     //   https://uwdata.github.io/arquero/api/expressions
 
-    const ids = dt.columnNames();
-
-    if (useAllColumns === true) {
-      metadataNames = ids;
-    }
+    const columns = dt.columnNames();
+    const selectedColumns = useAllColumns ? columns : metadataNames;
 
     // Replace 'NA' with null
-    let values1 = {};
-    ids.map(
-      (id) =>
-        (values1[id] = "d => d['" + id + "'] === 'NA' ? null : d['" + id + "']")
-    );
+    const values1 = {};
+    columns.forEach(col => {
+      values1[col] = aq.escape(d => d[col] === 'NA' ? null : d[col]);
+    });
 
-    // Guarantee numeric
-    let values2 = {
-      longitude: (d) => op.parse_float(d.longitude),
-      latitude: (d) => op.parse_float(d.latitude),
-      elevation: (d) => op.parse_float(d.elevation),
-    };
-    return dt.derive(values1).derive(values2).select(metadataNames);
+    // Parse longitude, latitude, and elevation as floats (if present)
+    const floatValues = {};
+    this.FLOAT_COLUMNS.filter(col => columns.includes(col)).forEach(col => {
+      floatValues[col] = aq.escape(d => parseFloat(d[col]));
+    });
+
+    return dt.derive(values1).derive(floatValues).select(selectedColumns);
   }
 
   /**
