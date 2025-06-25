@@ -11,6 +11,13 @@ console.log(monitor.count());
 // console.log(monitor.count());
 
 let id = monitor.getIDs()[234];
+let timezone = monitor.getTimezone(id);
+
+console.log(`id: %s, timezone = %s`, id, timezone);
+
+let pm25 = monitor.getPM25(id);
+
+let nowcast = monitor.getNowcast(id);
 
 let daily = monitor.getDailyStats(id);
 

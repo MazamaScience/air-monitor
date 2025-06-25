@@ -21,6 +21,23 @@ import {
   internal_loadAnnual,
   internal_loadCustom
 } from './utils/load.js';
+// import {
+//   internal_collapse,
+//   internal_combine,
+//   internal_select,
+//   internal_filterByValue,
+//   internal_dropEmpty,
+//   internal_trimDate
+// } from './utils/transform.js';
+import {
+  internal_getTimezone,
+  internal_getPM25,
+  internal_getNowcast,
+  internal_getDailyStats,
+  internal_getDiurnalStats
+} from './utils/analysis.js';
+// import { internal_getCurrentStatus } from './utils/status.js';
+// import { internal_createGeoJSON } from './utils/geojson.js';
 
 // ----- Monitor Class ---------------------------------------------------------
 
@@ -388,46 +405,34 @@ class Monitor {
     return return_monitor;
   }
 
-  // ----- Get single-device values --------------------------------------------
+  // ----- Data manipulation functions -----------------------------------------
 
   /**
-   * Returns the array of date objects that define this Monitor object's time axis.
-   *
-   * @returns {Array.<Date>} Array of Date objects.
+   * Returns the timezone for the specified device.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {string} Olson timezone.
    */
-  getDatetime() {
-    return this.data.array("datetime");
+  getTimezone(id) {
+    return internal_getTimezone(this, id);
   }
-
   /**
-   * Returns an array of PM2.5 values derived from the time series identified by id.
+   * Returns the PM2.5 time series for the specified device.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {number[]} PM2.5 values.
    *
-   * @param {String} id deviceDeploymentID of the time series to select.
-   * @returns  {Array.<number>}
+   * @throws {Error} If the device ID is not found.
    */
   getPM25(id) {
-    let pm25 = this.data
-      .array(id)
-      .map((o) =>
-        o === null || o === undefined || isNaN(o)
-          ? null
-          : Math.round(10 * o) / 10
-      );
-    return pm25;
+    return internal_getPM25(this, id);
   }
 
   /**
-   * Returns an array of NowCast values derived from the time series identified
-   * by id.
-   *
-   * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Array.<number>} Array of NowCast values.
+   * Returns the NowCast PM2.5 value for the specified device.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {number} NowCast value.
    */
   getNowcast(id) {
-    let pm25 = this.data.array(id);
-    // pm_nowcast() comes from "air-monitor-algorithms"
-    let nowcast = pm_nowcast(pm25);
-    return nowcast;
+    return internal_getNowcast(this, id);
   }
 
   /**
@@ -437,22 +442,11 @@ class Monitor {
    * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
    * properties.
    *
-   * @param {string} id deviceDeploymentID of the time series to select.
-   * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max`
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max` properties.
    */
   getDailyStats(id) {
-    let datetime = this.getDatetime();
-    let pm25 = this.getPM25(id);
-    let timezone = this.getMetadata(id, "timezone");
-    // dailyStats comes from "air-monitor-algorithms"
-    let daily = dailyStats(datetime, pm25, timezone);
-    return {
-      datetime: daily.datetime,
-      count: daily.count,
-      min: daily.min,
-      mean: daily.mean,
-      max: daily.max,
-    };
+    return internal_getDailyStats(this, id);
   }
 
   /**
@@ -462,28 +456,27 @@ class Monitor {
    * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
    * properties.
    *
-   * @param {string} id deviceDeploymentID of the time series to select.
-   * @param {number} dayCount Number of most recent days to use.
+   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {number} dayCount - Number of most recent days to use.
    * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
    */
-  getDiurnalStats(id, dayCount = 7) {
-    let datetime = this.getDatetime();
-    let pm25 = this.getPM25(id);
-    let timezone = this.getMetadata(id, "timezone");
-    // diurnalStats comes from "air-monitor-algorithms"
-    let diurnal = diurnalStats(datetime, pm25, timezone, dayCount);
-    return {
-      hour: diurnal.hour,
-      count: diurnal.count,
-      min: diurnal.min,
-      mean: diurnal.mean,
-      max: diurnal.max,
-    };
+  getDiurnalStats(id, dayCount) {
+    return internal_getDiurnalStats(this, id, dayCount);
+  }
+
+  // ----- Get single-device values --------------------------------------------
+
+  /**
+   * Returns the array of date objects that define this Monitor object's time axis.
+   * @returns {Array.<Date>} Array of Date objects.
+   */
+  getDatetime() {
+    return this.data.array("datetime");
   }
 
   /**
    * Returns the named metadata field for the time series identified by id.
-   * @param {string} id deviceDeploymentID of the time series to select.
+   * @param {string} id - The deviceDeploymentID identifying the desired time series.
    * @returns {string|number} The named metadata field for a time series.
    */
   getMetadata(id, fieldName) {
@@ -494,7 +487,7 @@ class Monitor {
   /**
    * Returns an object with all metadata properties for the time series
    * identified by id.
-   * @param {string} id deviceDeploymentID of the time series to select.
+   * @param {string} id - The deviceDeploymentID identifying the desired time series.
    * @returns {Object} Object with all metadata properties.
    */
   getMetaObject(id) {
@@ -639,153 +632,25 @@ class Monitor {
     return this.meta.numRows();
   }
 
-  // ----- Constants -----------------------------------------------------------
+  // ----- Other functions -----------------------------------------------------
 
-  FLOAT_COLUMNS = ['longitude', 'latitude', 'elevation'];
+  // /**
+  //  * Augments and returns 'meta' with current status information derived from 'data'.
+  //  * @returns {aq.Table} An enhanced version of monitor.meta.
+  //  */
+  // getCurrentStatus() {
+  //   return internal_getCurrentStatus(this);
+  // }
 
-  minimalMetadataNames = [
-    "deviceDeploymentID",
-    "locationName",
-    "longitude",
-    "latitude",
-    "elevation", // missing is allowed
-    "countryCode", // missing is allowed
-    "stateCode", // missing is allowed
-    "timezone",
-  ];
+  // /**
+  //  * Returns a GeoJSON FeatureCollection representing deployment locations.
+  //  * @returns {Object} GeoJSON FeatureCollection.
+  //  */
+  // createGeoJSON() {
+  //   return internal_createGeoJSON(this);
+  // }
 
-  coreMetadataNames = [
-    "deviceDeploymentID",
-    "deviceID",
-    "deviceType",
-    "deploymentType",
-    "deviceDescription",
-    "pollutant",
-    "units",
-    "dataIngestSource",
-    "locationID",
-    "locationName",
-    "longitude",
-    "latitude",
-    "elevation",
-    "countryCode",
-    "stateCode",
-    "countyName",
-    "timezone",
-    "AQSID",
-    "fullAQSID",
-  ];
 
-  // NOTE:  No fullAQSID present in airnow annual files
-  // TODO:  Remove this when combined annual files are created.
-  annual_coreMetadataNames = [
-    "deviceDeploymentID",
-    "deviceID",
-    "deviceType",
-    "deviceDescription",
-    "pollutant",
-    "units",
-    "dataIngestSource",
-    "locationID",
-    "locationName",
-    "longitude",
-    "latitude",
-    "elevation",
-    "countryCode",
-    "stateCode",
-    "countyName",
-    "timezone",
-    "AQSID",
-  ];
-
-  // ----- Private methods -----------------------------------------------------
-
-  /**
-   * Automatic parsing works quite well. We help out with:
-   *   1. replace 'NA' with null
-   *   2. only retain core metadata columns
-   *
-   * @private
-   * @param dt Arquero table.
-   * @param useAllColumns Logical specifying whether to ignore metadataNames
-   * @param columnNames List of columns to retain
-   * and just use all available columns.
-   */
-  #parseMeta(
-    dt,
-    useAllColumns = false,
-    metadataNames = this.coreMetadataNames
-  ) {
-    // Programmatically create a values object that replaces values.   See:
-    //   https://uwdata.github.io/arquero/api/expressions
-
-    const columns = dt.columnNames();
-    const selectedColumns = useAllColumns ? columns : metadataNames;
-
-    // Replace 'NA' with null
-    const values1 = {};
-    columns.forEach(col => {
-      values1[col] = aq.escape(d => d[col] === 'NA' ? null : d[col]);
-    });
-
-    // Parse longitude, latitude, and elevation as floats (if present)
-    const floatValues = {};
-    this.FLOAT_COLUMNS.filter(col => columns.includes(col)).forEach(col => {
-      floatValues[col] = aq.escape(d => parseFloat(d[col]));
-    });
-
-    return dt.derive(values1).derive(floatValues).select(selectedColumns);
-  }
-
-  /**
-   * Automatic parsing doesn't automatically recognize 'NA' as null so data gets
-   * parsed as text strings. We fix things by:
-   *   1. replace 'NA' with null and convert to numeric
-   *   2. lift any negative values to zero (matching the default R code behavior)
-   *
-   * @private
-   * @param dt Arquero table.
-   */
-  #parseData(dt) {
-    // const columns = dt.columnNames().slice(1); // skip 'datetime'
-
-    // const values = {};
-    // columns.forEach(col => {
-    //   values[col] = aq.escape(d => {
-    //     const val = d[col] === 'NA' ? null : parseFloat(d[col]);
-    //     return val < 0 ? 0 : val;
-    //   });
-    // });
-
-    // const returnDT = dt.derive(values);
-
-    // Programmatically create a values object that replaces values. See:
-    //   https://uwdata.github.io/arquero/api/expressions
-
-    const ids = dt.columnNames().splice(1); // remove 'datetime'
-
-    // Replace 'NA' with null
-    let values1 = {};
-    ids.map(
-      (id) =>
-        (values1[id] =
-          "d => d['" +
-          id +
-          "'] === 'NA' ? null : op.parse_float(d['" +
-          id +
-          "'])")
-    );
-
-    // Lift up negative values to zero
-    // NOTE:  'null <= 0' evaluates to true. So we have to test with '< 0'.
-    let values2 = {};
-    ids.map(
-      (id) => (values2[id] = "d => d['" + id + "'] < 0 ? 0 : d['" + id + "']")
-    );
-
-    // Return the modified data table
-    return dt.derive(values1).derive(values2);
-  }
 }
 
 export { Monitor };
