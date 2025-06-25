@@ -6,7 +6,7 @@
  * - Replace string `'NA'` with `null`
  * - Convert numeric fields to floats
  * - Optionally restrict metadata columns to core subsets
- * - Clamp negative measurements (e.g. PM2.5) to zero
+ * - Replace negative measurements (e.g. PM2.5) with zero
  *
  * Intended for internal use only.
  */
@@ -59,38 +59,24 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
  * @returns {aq.Table} Cleaned data table suitable for use in a Monitor object.
  */
 export function parseData(dt) {
-  // const columns = dt.columnNames().slice(1); // skip 'datetime'
-
-  // const values = {};
-  // columns.forEach(col => {
-  //   values[col] = aq.escape(d => {
-  //     const val = d[col] === 'NA' ? null : op.parse_float(d[col]);
-  //     return val < 0 ? 0 : val;
-  //   });
-  // });
-
-  // const returnDT = dt.derive(values);
-
-  // return returnDT;
-  // //return dt.derive(values);
-
   const ids = dt.columnNames().splice(1); // remove 'datetime'
 
-  // Replace 'NA' with null
-  let values1 = {};
-  ids.map(
-    (id) =>
-      (values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`)
-  );
+  // NOTE:  2025-06-25
+  // NOTE:  I tried replacing the string expressions with aq.escape() but never
+  // NOTE:  got it to work. For now, we'll stick with the string expressions.
 
-  // Lift up negative values to zero
-  // NOTE:  'null <= 0' evaluates to true. So we have to test with '< 0'.
+  // Replace 'NA' with null, and parse as float
+  let values1 = {};
+  ids.forEach(id => {
+    values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`;
+  });
+
+  // Replace negative values with zero
   let values2 = {};
-  ids.map(
-    (id) =>
-      (values2[id] = `d => d['${id}'] < 0 ? 0 : d['${id}']`)
-  );
+  ids.forEach(id => {
+    values2[id] = `d => d['${id}'] < 0 ? 0 : d['${id}']`;
+  });
+
   // Return the modified data table
   return dt.derive(values1).derive(values2);
-
 }
