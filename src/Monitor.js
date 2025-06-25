@@ -14,6 +14,11 @@ import {
   pm_nowcast,
 } from "air-monitor-algorithms";
 
+// module imports
+import {
+  internal_loadLatest,
+} from './utils/load.js';
+
 // ----- Monitor Class ---------------------------------------------------------
 
 /**
@@ -60,6 +65,26 @@ class Monitor {
     this.data = data;
   }
 
+  // ----- Data Loading Methods ------------------------------------------------
+
+  /**
+   * Asynchronously loads 'latest' Monitor objects from USFS AirFire repositories
+   * for 'airnow', 'airsis' or 'wrcc' data.
+   *
+   * This function replaces the 'meta' and 'data' properties of 'this' monitor
+   * object with the latest available data. Data cover the most recent 10 days
+   * and are updated every few minutes.
+   *
+   * @async
+   * @param {string} provider - One of "airnow|airsis|wrcc"
+   * @param {string} baseUrl - Base URL for monitoring v2 data files.
+   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @throws {Error} If there's an issue loading the data.
+   */
+  async loadLatest(provider, baseUrl) {
+    return internal_loadLatest(this, provider, baseUrl);
+  }
+
   // ----- Data load -------------------------------------------------------------
 
   /**
@@ -72,17 +97,17 @@ class Monitor {
    *
    * @param {string} provider One of "airnow|airsis|wrcc".
    * @param {string} archiveBaseUrl Base URL for monitoring v2 data files.
-   */
-  async loadLatest(
-    provider = "airnow",
-    archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
-  ) {
-    try {
-      await this.#provider_load(provider, "latest", archiveBaseUrl);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  //  */
+  // async loadLatest(
+  //   provider = "airnow",
+  //   archiveBaseUrl = "https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2"
+  // ) {
+  //   try {
+  //     await this.#provider_load(provider, "latest", archiveBaseUrl);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
 
   /**
    * Load 'daily' Monitor objects from USFS AirFire repositories for 'airnow',
