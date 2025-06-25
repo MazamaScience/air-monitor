@@ -40,6 +40,9 @@ console.log(`PNW has %d monitors`, PNW.count());
 
 // bop = PNW.combine(OR_trimmed); // This should drop the duplicate sites
 
+let OR_1 = OR_trimmed.collapse('mean')
+OR_1.data.print()
+
 let pm25 = monitor.getPM25(id);
 
 let nowcast = monitor.getNowcast(id);

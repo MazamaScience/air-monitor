@@ -22,7 +22,7 @@ import {
   internal_loadCustom
 } from './utils/load.js';
 import {
-  // internal_collapse,
+  internal_collapse,
   internal_combine,
   internal_select,
   internal_filterByValue,
@@ -267,27 +267,27 @@ class Monitor {
 
   // ----- Transformation and statistical functions ----------------------------
 
-  // /**
-  //  * Collapses data from all time series into a single-time series using the
-  //  * function provided in the `FUN` argument. The single-time series result will
-  //  * be located at the mean longitude and latitude.
-  //  *
-  //  * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
-  //  * probability.
-  //  *
-  //  * Available function names are those defined at:
-  //  * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
-  //  * `"op."` removed.
-  //  *
-  //  * @param {string} deviceID - New deviceDeploymentID for the collapsed series.
-  //  * @param {string} FUN - Name of an aggregation function (e.g., "mean", "max").
-  //  * @param {any} [FUN_arg] - Optional argument to pass to FUN.
-  //  * @returns {Monitor} New Monitor with collapsed data.
-  //  */
-  // collapse(deviceID, FUN, FUN_arg) {
-  //   const { meta, data } = internal_collapse(this, deviceID, FUN, FUN_arg);
-  //   return new Monitor(meta, data);
-  // }
+  /**
+ * Collapses data from all time series into a single time series using the
+ * function provided in the `FUN` argument (typically 'mean'). The single time
+ * series result will be located at the mean longitude and latitude.
+   *
+   * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
+   * probability.
+   *
+   * Available function names are those defined at:
+   * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
+   * `"op."` removed.
+   *
+   * @param {string} deviceID - New deviceDeploymentID for the collapsed series.
+   * @param {string} FUN - Name of an aggregation function (e.g., "mean", "max").
+   * @param {any} [FUN_arg] - Optional argument to pass to FUN.
+   * @returns {Monitor} New Monitor with a single time series.
+   */
+  collapse(deviceID, FUN, FUN_arg) {
+    const { meta, data } = internal_collapse(this, deviceID, FUN, FUN_arg);
+    return new Monitor(meta, data);
+  }
 
   /**
    * Combines this Monitor object with another, dropping duplicate deviceDeploymentIDs
@@ -350,109 +350,109 @@ class Monitor {
 
   // ----- Monitor manipulation ------------------------------------------------
 
-  /**
-   * Collapse a Monitor object into a single time series.
-   *
-   * Collapses data from all time series into a single-time series using the
-   * function provided in the `FUN` argument. The single-time series result will
-   * be located at the mean longitude and latitude.
-   *
-   * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
-   * probability.
-   *
-   * Available function names are those defined at:
-   * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
-   * `"op."` removed.
-   *
-   * @param {string} monitor A monitor object.
-   * @param {string} FUN A monitor object.
-   * @returns {Object} A collapsed monitor object.
-   */
-  collapse(deviceID = "generatedID", FUN = "sum", FUN_arg = 0.8) {
-    let meta = this.meta;
-    let data = this.data;
+  // /**
+  //  * Collapse a Monitor object into a single time series.
+  //  *
+  //  * Collapses data from all time series into a single-time series using the
+  //  * function provided in the `FUN` argument. The single-time series result will
+  //  * be located at the mean longitude and latitude.
+  //  *
+  //  * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
+  //  * probability.
+  //  *
+  //  * Available function names are those defined at:
+  //  * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
+  //  * `"op."` removed.
+  //  *
+  //  * @param {string} monitor A monitor object.
+  //  * @param {string} FUN A monitor object.
+  //  * @returns {Object} A collapsed monitor object.
+  //  */
+  // collapse(deviceID = "generatedID", FUN = "sum", FUN_arg = 0.8) {
+  //   let meta = this.meta;
+  //   let data = this.data;
 
-    // ----- Create new_meta ---------------------------------------------------
+  //   // ----- Create new_meta ---------------------------------------------------
 
-    let longitude = arrayMean(meta.array("longitude"));
-    let latitude = arrayMean(meta.array("latitude"));
-    // TODO:  Could create new locationID based on geohash
-    let locationID = "xxx";
-    let deviceDeploymentID = "xxx_" + deviceID;
+  //   let longitude = arrayMean(meta.array("longitude"));
+  //   let latitude = arrayMean(meta.array("latitude"));
+  //   // TODO:  Could create new locationID based on geohash
+  //   let locationID = "xxx";
+  //   let deviceDeploymentID = "xxx_" + deviceID;
 
-    // Start with first record
-    let new_meta = meta.slice(0, 1);
+  //   // Start with first record
+  //   let new_meta = meta.slice(0, 1);
 
-    // Modify core metadata fields
-    new_meta = new_meta.derive({
-      locationID: aq.escape(locationID),
-      locationName: aq.escape(deviceID),
-      longitude: aq.escape(longitude),
-      latitude: aq.escape(latitude),
-      elevation: aq.escape(null),
-      // retain countryCode
-      // retain stateCode
-      // retain countyName
-      // retain timezone
-      houseNumber: aq.escape(null),
-      street: aq.escape(null),
-      city: aq.escape(null),
-      zip: aq.escape(null),
-      deviceDeploymentID: aq.escape(deviceDeploymentID),
-      deviceType: aq.escape(null),
-      deploymentType: aq.escape(null),
-    });
+  //   // Modify core metadata fields
+  //   new_meta = new_meta.derive({
+  //     locationID: aq.escape(locationID),
+  //     locationName: aq.escape(deviceID),
+  //     longitude: aq.escape(longitude),
+  //     latitude: aq.escape(latitude),
+  //     elevation: aq.escape(null),
+  //     // retain countryCode
+  //     // retain stateCode
+  //     // retain countyName
+  //     // retain timezone
+  //     houseNumber: aq.escape(null),
+  //     street: aq.escape(null),
+  //     city: aq.escape(null),
+  //     zip: aq.escape(null),
+  //     deviceDeploymentID: aq.escape(deviceDeploymentID),
+  //     deviceType: aq.escape(null),
+  //     deploymentType: aq.escape(null),
+  //   });
 
-    // NOTE:  We retain all other fields from the first record. Some may be useful!
+  //   // NOTE:  We retain all other fields from the first record. Some may be useful!
 
-    // ----- Create new_data ---------------------------------------------------
+  //   // ----- Create new_data ---------------------------------------------------
 
-    // NOTE:  arquero provides no functionality for row-operations, nor for
-    // NOTE:  transpose. So we have to perform the following operations:
-    // NOTE:    - fold the data into a dataframe with timestamp and id columns
-    // NOTE:    - pivot the data based on timestamp while summing data columns
-    // NOTE:    - fold the result into a dataframe with timestamp and value columns
+  //   // NOTE:  arquero provides no functionality for row-operations, nor for
+  //   // NOTE:  transpose. So we have to perform the following operations:
+  //   // NOTE:    - fold the data into a dataframe with timestamp and id columns
+  //   // NOTE:    - pivot the data based on timestamp while summing data columns
+  //   // NOTE:    - fold the result into a dataframe with timestamp and value columns
 
-    let ids = this.getIDs();
-    let datetime = this.getDatetime();
+  //   let ids = this.getIDs();
+  //   let datetime = this.getDatetime();
 
-    // Replace datetime with utcDatestamp to use as column headers
-    data = data
-      .derive({ utcDatestamp: (d) => op.format_utcdate(d.datetime) })
-      .select(aq.not("datetime"));
+  //   // Replace datetime with utcDatestamp to use as column headers
+  //   data = data
+  //     .derive({ utcDatestamp: (d) => op.format_utcdate(d.datetime) })
+  //     .select(aq.not("datetime"));
 
-    let datetimeColumns = data.array("utcDatestamp");
+  //   let datetimeColumns = data.array("utcDatestamp");
 
-    // Programmatically create arquero aggregation expression to use
-    let valueExpression;
-    if (FUN === "count") {
-      valueExpression = "(d) => op." + FUN + "()";
-    } else if (FUN === "quantile") {
-      valueExpression = "(d) => op." + FUN + "(d.value, " + FUN_arg + ")";
-    } else {
-      valueExpression = "(d) => op." + FUN + "(d.value)";
-    }
+  //   // Programmatically create arquero aggregation expression to use
+  //   let valueExpression;
+  //   if (FUN === "count") {
+  //     valueExpression = "(d) => op." + FUN + "()";
+  //   } else if (FUN === "quantile") {
+  //     valueExpression = "(d) => op." + FUN + "(d.value, " + FUN_arg + ")";
+  //   } else {
+  //     valueExpression = "(d) => op." + FUN + "(d.value)";
+  //   }
 
-    let new_data = data
-      .fold(ids)
-      .pivot({ key: (d) => d.utcDatestamp }, { value: valueExpression })
-      .fold(datetimeColumns)
-      .derive({ datetime: (d) => op.parse_date(d.key) }) // convert back to Date objects
-      .rename({ value: deviceID })
-      .select(["datetime", deviceID]);
+  //   let new_data = data
+  //     .fold(ids)
+  //     .pivot({ key: (d) => d.utcDatestamp }, { value: valueExpression })
+  //     .fold(datetimeColumns)
+  //     .derive({ datetime: (d) => op.parse_date(d.key) }) // convert back to Date objects
+  //     .rename({ value: deviceID })
+  //     .select(["datetime", deviceID]);
 
-    // ┌─────────┬──────────────────────────┬───────────────────┐
-    // │ (index) │         datetime         │    generatedID    │
-    // ├─────────┼──────────────────────────┼───────────────────┤
-    // │    0    │ 2023-04-02T22:00:00.000Z │       12.3        │
-    // │    1    │ 2023-04-02T23:00:00.000Z │        9.4        │
-    // │    2    │ 2023-04-03T00:00:00.000Z │        8.2        │
-    // └─────────┴──────────────────────────┴───────────────────┘
+  //   // ┌─────────┬──────────────────────────┬───────────────────┐
+  //   // │ (index) │         datetime         │    generatedID    │
+  //   // ├─────────┼──────────────────────────┼───────────────────┤
+  //   // │    0    │ 2023-04-02T22:00:00.000Z │       12.3        │
+  //   // │    1    │ 2023-04-02T23:00:00.000Z │        9.4        │
+  //   // │    2    │ 2023-04-03T00:00:00.000Z │        8.2        │
+  //   // └─────────┴──────────────────────────┴───────────────────┘
 
-    // Return
-    let return_monitor = new Monitor(new_meta, new_data);
-    return return_monitor;
-  }
+  //   // Return
+  //   let return_monitor = new Monitor(new_meta, new_data);
+  //   return return_monitor;
+  // }
 
   // /**
   //  * Combine another Monitor object with 'this' object.

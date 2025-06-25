@@ -1,19 +1,60 @@
-// src/utils/transform.js
+/**
+ * @module utils/transform
+ *
+ * Utility functions for transforming and restructuring Monitor objects.
+ * These internal functions operate on the underlying `meta` and `data` tables
+ * and return plain `{ meta, data }` objects, enabling consistent post-processing.
+ *
+ * Internal functions:
+ * - {@link internal_collapse} – Collapses multiple time series into a single column using aggregation.
+ * - {@link internal_combine} – Merges two monitor objects, dropping duplicated IDs in the second.
+ * - {@link internal_select} – Subsets a monitor by selected deviceDeploymentIDs.
+ * - {@link internal_filterByValue} – Filters by a metadata field and matching value.
+ * - {@link internal_dropEmpty} – Removes time series columns with no valid data.
+ * - {@link internal_trimDate} – Trims time series to full local-time days.
+ *
+ * Helper functions:
+ * - {@link arrayMean} – Computes the mean of an array, skipping null/NaN/invalid values.
+ * - {@link round1} – Rounds all non-datetime columns in a data table to 1 decimal place.
+ */
 
 import * as aq from 'arquero';
 const op = aq.op;
 
-import moment from 'moment-timezone';
+import { DateTime } from 'luxon';
 
-export function internal_collapse(monitor, deviceID = 'generatedID', FUN = 'sum', FUN_arg = 0.8) {
+/**
+ * Collapse a Monitor object into a single time series.
+ *
+ * Collapses data from all time series into a single time series using the
+ * function provided in the `FUN` argument (typically 'mean'). The single time
+ * series result will be located at the mean longitude and latitude.
+ *
+ * When `FUN === "quantile"`, the `FUN_arg` argument specifies the quantile
+ * probability.
+ *
+ * Available function names are those defined at:
+ * https://uwdata.github.io/arquero/api/op#aggregate-functions
+ *
+ * @param {Monitor} monitor - The Monitor instance to collapse.
+ * @param {string} deviceID - The name of the resulting time series column.
+ * @param {string} FUN - The aggregate function name (e.g. "mean", "sum", "quantile").
+ * @param {number} FUN_arg - An optional argument for the aggregator (e.g. quantile prob).
+ * @returns {{ meta: aq.Table, data: aq.Table }} A Monitor object with a single time series.
+ */
+export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean", FUN_arg = 0.8) {
   const meta = monitor.meta;
   const data = monitor.data;
 
-  const longitude = arrayMean(meta.array('longitude'));
-  const latitude = arrayMean(meta.array('latitude'));
-  const locationID = 'xxx';
+  // ----- Create new_meta ---------------------------------------------------
+
+  const longitude = arrayMean(meta.array("longitude"));
+  const latitude = arrayMean(meta.array("latitude"));
+  // TODO:  Could create new locationID based on geohash
+  const locationID = "xxx";
   const deviceDeploymentID = `xxx_${deviceID}`;
 
+  // Start with first row and override key fields
   let new_meta = meta.slice(0, 1).derive({
     locationID: aq.escape(locationID),
     locationName: aq.escape(deviceID),
@@ -29,32 +70,42 @@ export function internal_collapse(monitor, deviceID = 'generatedID', FUN = 'sum'
     deploymentType: aq.escape(null),
   });
 
-  const ids = meta.array('deviceDeploymentID')
+  // ----- Create new_data ---------------------------------------------------
 
-  let dataWithStamp = data
-    .derive({ utcDatestamp: d => op.format_utcdate(d.datetime) })
+  // NOTE: Arquero provides no support for row-wise or matrix ops,
+  // so we fold → pivot → fold → rebuild
+
+  const ids = monitor.getIDs();
+  const datetime = monitor.getDatetime();
+
+  let transformed = data
+    .derive({ utcDatestamp: 'd => op.format_utcdate(d.datetime)' })
     .select(aq.not('datetime'));
 
-  const datetimeColumns = dataWithStamp.array('utcDatestamp');
+  const datetimeColumns = transformed.array('utcDatestamp');
 
+  // Build aggregation function string
   let valueExpression;
   if (FUN === 'count') {
-    valueExpression = d => op.count();
+    valueExpression = '() => op.count()';
   } else if (FUN === 'quantile') {
-    valueExpression = d => op.quantile(d.value, FUN_arg);
+    valueExpression = `d => op.quantile(d.value, ${FUN_arg})`;
   } else {
-    valueExpression = d => op[FUN](d.value);
+    valueExpression = `d => op.${FUN}(d.value)`;
   }
 
-  const new_data = dataWithStamp
+  const new_data = transformed
     .fold(ids)
-    .pivot({ key: d => d.utcDatestamp }, { value: valueExpression })
+    .pivot(
+      { key: 'd => d.utcDatestamp' },
+      { value: valueExpression }
+    )
     .fold(datetimeColumns)
-    .derive({ datetime: d => op.parse_date(d.key) })
+    .derive({ datetime: 'd => op.parse_date(d.key)' })
     .rename({ value: deviceID })
     .select(['datetime', deviceID]);
 
-  return { meta: new_meta, data: new_data };
+  return { meta: new_meta, data: round1(new_data) };
 }
 
 /**
@@ -85,7 +136,7 @@ export function internal_combine(monitorA, monitorB) {
   const combinedMeta = monitorA.meta.concat(metaB);
   const combinedData = monitorA.data.join(dataB); // joins on 'datetime'
 
-  return { meta: combinedMeta, data: combinedData };
+  return { meta: combinedMeta, data: round1(combinedData) };
 }
 
 
@@ -120,7 +171,7 @@ export function internal_select(monitor, ids) {
   // Subset and reorder columns in the data table
   const data = monitor.data.select(['datetime', ...ids]);
 
-  return { meta, data };
+  return { meta: meta, data: round1(data) };
 }
 
 /**
@@ -158,7 +209,7 @@ export function internal_filterByValue(monitor, columnName, value) {
   const ids = meta.array('deviceDeploymentID');
   const data = monitor.data.select(['datetime', ...ids]);
 
-  return { meta, data };
+  return { meta: meta, data: round1(data) };
 }
 
 /**
@@ -192,10 +243,8 @@ export function internal_dropEmpty(monitor) {
     .params({ ids: validIDs })
     .filter((d, $) => op.includes($.ids, d.deviceDeploymentID));
 
-  return { meta: filteredMeta, data: filteredData };
+  return { meta: filteredMeta, data: round1(filteredData) };
 }
-
-import { DateTime } from 'luxon';
 
 /**
  * Trims the time-series data to full local-time days using Luxon.
@@ -227,7 +276,7 @@ export function internal_trimDate(monitor, timezone) {
   const data = monitor.data.slice(start, end);
   const meta = monitor.meta;
 
-  return { meta, data };
+  return { meta: meta, data: round1(data) };
 }
 
 
@@ -239,8 +288,28 @@ export function internal_trimDate(monitor, timezone) {
  * @param {Array<*>} arr - The input array (may contain nulls, strings, or other types).
  * @returns {number|null} The mean of valid numbers, or null if none are found.
  */
-function arrayMean(arr) {
+export function arrayMean(arr) {
   const valid = arr.filter(v => typeof v === 'number' && Number.isFinite(v));
   const sum = valid.reduce((acc, v) => acc + v, 0);
   return valid.length > 0 ? sum / valid.length : null;
+}
+
+/**
+ * Rounds all numeric columns in an Arquero time-series `data` table to 1 decimal place,
+ * skipping the 'datetime' column.
+ *
+ * @param {aq.Table} table - The canonical data table with a 'datetime' column and one or more numeric series.
+ * @returns {aq.Table} A new table with rounded values (to 1 decimal place) for all measurement columns.
+ */
+export function round1(table) {
+  const columns = table.columnNames().filter(name => name !== 'datetime');
+
+  const expressions = Object.fromEntries(
+    columns.map(col => [
+      col,
+      `d => op.round(d['${col}'] * 10) / 10`
+    ])
+  );
+
+  return table.derive(expressions);
 }
