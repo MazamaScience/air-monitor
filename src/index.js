@@ -850,6 +850,18 @@ export default class Monitor {
    * @param dt Arquero table.
    */
   #parseData(dt) {
+    // const columns = dt.columnNames().slice(1); // skip 'datetime'
+
+    // const values = {};
+    // columns.forEach(col => {
+    //   values[col] = aq.escape(d => {
+    //     const val = d[col] === 'NA' ? null : parseFloat(d[col]);
+    //     return val < 0 ? 0 : val;
+    //   });
+    // });
+
+    // const returnDT = dt.derive(values);
+
     // Programmatically create a values object that replaces values. See:
     //   https://uwdata.github.io/arquero/api/expressions
 
