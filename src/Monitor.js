@@ -25,7 +25,7 @@ import {
   // internal_collapse,
   // internal_combine,
   internal_select,
-  // internal_filterByValue,
+  internal_filterByValue,
   internal_dropEmpty
   // internal_trimDate
 } from './utils/transform.js';
@@ -315,18 +315,18 @@ class Monitor {
     return new Monitor(meta, data);
   }
 
-  // /**
-  //  * Filters time series based on matching values in the 'meta' dataframe.
-  //  * The returned Monitor object will contain only those records where
-  //  * monitor.meta.columnName === "value".
-  //  * @param {string} column - Name of the column used for filtering.
-  //  * @param {string|number} value - Value to match.
-  //  * @returns {Monitor} New Monitor with filtered time series.
-  //  */
-  // filterByValue(column, value) {
-  //   const { meta, data } = internal_filterByValue(this, column, value);
-  //   return new Monitor(meta, data);
-  // }
+  /**
+   * Filters time series based on matching values in the 'meta' dataframe.
+   * The returned Monitor object will contain only those records where
+   * monitor.meta.columnName === "value".
+   * @param {string} column - Name of the column used for filtering.
+   * @param {string|number} value - Value to match.
+   * @returns {Monitor} New Monitor with filtered time series.
+   */
+  filterByValue(column, value) {
+    const { meta, data } = internal_filterByValue(this, column, value);
+    return new Monitor(meta, data);
+  }
 
   /**
    * Drops time series from the monitor that contain only missing values.
@@ -499,38 +499,6 @@ class Monitor {
   //   let return_monitor = new Monitor(meta, data);
   //   return return_monitor;
   // }
-
-  /**
-   * Filter a monitor object based on matching values in the 'meta' dataframe.
-   * The returned monitor object will contain only those records where
-   * monitor.meta.columnName === "value".
-   *
-   * @param {string} columnName Name of the column used for filtering.
-   * @param {string|number} value Value that must be matched.
-   * @returns {Object} A subset of the incoming monitor object.
-   */
-  filterByValue(columnName, value) {
-    // See: https://www.infoworld.com/article/3678168/filter-javascript-objects-the-easy-way-with-arquero.html
-
-    // Filter expression differs based on column type
-    let filterExpression;
-    if (typeof this.meta.get(columnName) === "number") {
-      filterExpression =
-        "d => op.equal(d." + columnName + ", " + parseFloat(value) + ")";
-    } else if (typeof this.meta.get(columnName) === "string") {
-      filterExpression =
-        "d => op.equal(d." + columnName + ", '" + value.toString() + "')";
-    }
-
-    let meta = this.meta.filter(filterExpression);
-
-    let ids = meta.array("deviceDeploymentID");
-    let data = this.data.select("datetime", ids);
-
-    // Return
-    let return_monitor = new Monitor(meta, data);
-    return return_monitor;
-  }
 
 
   /**

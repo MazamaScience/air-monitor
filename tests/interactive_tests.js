@@ -20,6 +20,9 @@ const ids = [idsArray[234], idsArray[512]];
 let sub = monitor.select(ids);
 sub.data.print();
 
+let WA = monitor.filterByValue('stateCode', 'WA');
+console.log(`WA has %d monitors`, WA.count())
+
 let bop = monitor.dropEmpty();
 
 let pm25 = monitor.getPM25(id);

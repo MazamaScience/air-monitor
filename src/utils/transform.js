@@ -98,17 +98,38 @@ export function internal_select(monitor, ids) {
   return { meta, data };
 }
 
+/**
+ * Filters a monitor object to include only records where a given metadata field equals the specified value.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing metadata and data.
+ * @param {string} columnName - Name of the metadata column to filter on.
+ * @param {string|number} value - Value to match in the specified column.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A filtered monitor object.
+ *
+ * @throws {Error} If the specified column does not exist in monitor.meta.
+ */
 export function internal_filterByValue(monitor, columnName, value) {
-  const col = monitor.meta.get(columnName);
-  let filterFn;
-
-  if (typeof col === 'number') {
-    filterFn = d => d[columnName] === parseFloat(value);
-  } else {
-    filterFn = d => d[columnName] === value.toString();
+  if (!monitor.meta.columnNames().includes(columnName)) {
+    throw new Error(`Column '${columnName}' not found in metadata`);
   }
 
-  const meta = monitor.meta.filter(filterFn);
+  const colType = typeof monitor.meta.get(columnName);
+  let filterExpression;
+
+  if (colType === 'number') {
+    const parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      throw new Error(`Value '${value}' could not be parsed as a number`);
+    }
+    filterExpression = `d => op.equal(d.${columnName}, ${parsedValue})`;
+  } else if (colType === 'string') {
+    const escaped = value.toString().replace(/'/g, "\\'");
+    filterExpression = `d => op.equal(d.${columnName}, '${escaped}')`;
+  } else {
+    throw new Error(`Unsupported column type for filtering: ${colType}`);
+  }
+
+  const meta = monitor.meta.filter(filterExpression);
   const ids = meta.array('deviceDeploymentID');
   const data = monitor.data.select(['datetime', ...ids]);
 
