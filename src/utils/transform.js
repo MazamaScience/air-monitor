@@ -23,6 +23,8 @@ const op = aq.op;
 
 import { DateTime } from 'luxon';
 
+import { arrayMean, round1 } from './helpers.js';
+
 /**
  * Collapse a Monitor object into a single time series.
  *
@@ -72,8 +74,11 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
 
   // ----- Create new_data ---------------------------------------------------
 
-  // NOTE: Arquero provides no support for row-wise or matrix ops,
-  // so we fold → pivot → fold → rebuild
+  // NOTE:  Arquero provides no functionality for row-operations, nor for
+  // NOTE:  transpose. So we have to perform the following operations:
+  // NOTE:    - fold the data into a dataframe with timestamp and id columns
+  // NOTE:    - pivot the data based on timestamp while summing data columns
+  // NOTE:    - fold the result into a dataframe with timestamp and value columns
 
   const ids = monitor.getIDs();
   const datetime = monitor.getDatetime();
@@ -279,37 +284,3 @@ export function internal_trimDate(monitor, timezone) {
   return { meta: meta, data: round1(data) };
 }
 
-
-// ----- Utilities -------------------------------------------------------------
-
-/**
- * Computes the arithmetic mean of an array of numbers, ignoring non-numeric values.
- *
- * @param {Array<*>} arr - The input array (may contain nulls, strings, or other types).
- * @returns {number|null} The mean of valid numbers, or null if none are found.
- */
-export function arrayMean(arr) {
-  const valid = arr.filter(v => typeof v === 'number' && Number.isFinite(v));
-  const sum = valid.reduce((acc, v) => acc + v, 0);
-  return valid.length > 0 ? sum / valid.length : null;
-}
-
-/**
- * Rounds all numeric columns in an Arquero time-series `data` table to 1 decimal place,
- * skipping the 'datetime' column.
- *
- * @param {aq.Table} table - The canonical data table with a 'datetime' column and one or more numeric series.
- * @returns {aq.Table} A new table with rounded values (to 1 decimal place) for all measurement columns.
- */
-export function round1(table) {
-  const columns = table.columnNames().filter(name => name !== 'datetime');
-
-  const expressions = Object.fromEntries(
-    columns.map(col => [
-      col,
-      `d => op.round(d['${col}'] * 10) / 10`
-    ])
-  );
-
-  return table.derive(expressions);
-}
