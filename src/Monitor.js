@@ -36,8 +36,10 @@ import {
   internal_getDailyStats,
   internal_getDiurnalStats
 } from './utils/analysis.js';
-// import { internal_getCurrentStatus } from './utils/status.js';
-// import { internal_createGeoJSON } from './utils/geojson.js';
+import {
+  internal_getCurrentStatus,
+  internal_createGeoJSON
+} from './utils/geojson.js';
 
 // ----- Monitor Class ---------------------------------------------------------
 
@@ -348,162 +350,23 @@ class Monitor {
     return new Monitor(meta, data);
   }
 
-  // ----- Special methods------------------------------------------------------
-
-  /**
-   * Augment monitor.meta with current status information derived from monitor
-   * data.
-   *
-   * @param {Monitor} monitor Monitor object with 'meta' and 'data'.
-   * @returns {Table} An enhanced version of monitor.meta.
-   */
-  getCurrentStatus() {
-    let data = this.data;
-
-    let ids = this.getIDs();
-
-    // Create a data table with no 'datetime' but an added 'index' column
-    // NOTE:  op.row_number() starts at 1
-    let dataBrick = data
-      .select(aq.not("datetime"))
-      .derive({ index: (d) => op.row_number() - 1 });
-
-    // Programmatically create a values object that replaces valid values with a row index
-    let values1 = {};
-    ids.map(
-      (id) => (values1[id] = "d => op.is_finite(d['" + id + "']) ? d.index : 0")
-    );
-
-    // Programmatically create a values object that finds the max for each column
-    let values2 = {};
-    ids.map((id) => (values2[id] = "d => op.max(d['" + id + "'])"));
-
-    // Create a single-row dt with the row index of the last valid PM2.5 value
-    // Then extract the row as an object.
-    let lastValidIndexObj = dataBrick.derive(values1).rollup(values2).object(0);
-
-    // Array of indices;
-    let lastValidIndex = Object.values(lastValidIndexObj);
-
-    // Map indices onto an array of datetimes
-    let lastValidDatetime = lastValidIndex.map(
-      (index) => data.array("datetime")[index]
-    );
-
-    // Map ids onto an array of PM2.5 values
-    let lastValidPM_25 = ids.map((id, index) =>
-      data.get(id, lastValidIndex[index])
-    );
-
-    // Create a data table with current status columns
-    let lastValidDT = aq.table({
-      lastValidDatetime: lastValidDatetime,
-      lastValidPM_25: lastValidPM_25,
-    });
-
-    // Return the enhanced metadata
-    let metaPlus = this.meta.assign(lastValidDT);
-
-    return metaPlus;
-  }
-
-  createGeoJSON() {
-    // From:  mv4_wrcc_PM2.5_latest.geojson
-    //
-    // {
-    //   "type": "FeatureCollection",
-    //   "features": [
-    //     {
-    //       "type": "Feature",
-    //       "geometry": {
-    //         "type": "Point",
-    //         "coordinates": [-114.0909, 46.5135]
-    //       },
-    //       "properties": {
-    //         "deviceDeploymentID": "aaef057f3e4d83c4_wrcc.s139",
-    //         "locationName": "Smoke USFS R1-39",
-    //         "timezone": "America/Denver",
-    //         "dataIngestSource": "WRCC",
-    //         "dataIngestUnitID": "s139",
-    //         "currentStatus_processingTime": "2022-12-12 13:54:13",
-    //         "last_validTime": "2022-12-12 12:00:00",
-    //         "last_validLocalTimestamp": "2022-12-12 05:00:00 MST",
-    //         "last_nowcast": "2.9",
-    //         "last_PM2.5": "2",
-    //         "last_latency": "1",
-    //         "yesterday_PM2.5_avg": "4.7"
-    //       }
-    //     }
-    //   ]
-    // }
-
-    let meta = this.getCurrentStatus();
-    let features = Array(this.meta.numRows());
-
-    for (let i = 0; i < this.meta.numRows(); i++) {
-      let site = meta.slice(i, i + 1).object();
-      features[i] = {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [site.longitude, site.latitude],
-        },
-        properties: {
-          deviceDeploymentID: site.deviceDeploymentID,
-          locationName: site.locationName,
-          last_time: site.lastValidDatetime,
-          last_pm25: site.lastValidPM_25,
-        },
-      };
-    }
-
-    let geojsonObj = {
-      type: "FeatureCollection",
-      features: features,
-    };
-
-    return geojsonObj;
-  }
-
-  // ----- Utility methods -----------------------------------------------------
-
-  // /**
-  //  * Returns an array of unique identifiers (deviceDeploymentIDs) found in a
-  //  * Monitor object
-  //  *
-  //  * @returns {Array.<string>} An array of deviceDeploymentIDs.
-  //  */
-  // getIDs() {
-  //   return this.meta.array("deviceDeploymentID");
-  // }
-
-  // /**
-  //  * Returns the number of individual time series found in a Monitor object
-  //  *
-  //  * @returns {number} Count of individual time series.
-  //  */
-  // count() {
-  //   return this.meta.numRows();
-  // }
-
   // ----- Other functions -----------------------------------------------------
 
-  // /**
-  //  * Augments and returns 'meta' with current status information derived from 'data'.
-  //  * @returns {aq.Table} An enhanced version of monitor.meta.
-  //  */
-  // getCurrentStatus() {
-  //   return internal_getCurrentStatus(this);
-  // }
+  /**
+   * Augments and returns 'meta' with current status information derived from 'data'.
+   * @returns {aq.Table} An enhanced version of monitor.meta.
+   */
+  getCurrentStatus() {
+    return internal_getCurrentStatus(this);
+  }
 
-  // /**
-  //  * Returns a GeoJSON FeatureCollection representing deployment locations.
-  //  * @returns {Object} GeoJSON FeatureCollection.
-  //  */
-  // createGeoJSON() {
-  //   return internal_createGeoJSON(this);
-  // }
-
+  /**
+   * Returns a GeoJSON FeatureCollection representing deployment locations.
+   * @returns {Object} GeoJSON FeatureCollection.
+   */
+  createGeoJSON() {
+    return internal_createGeoJSON(this);
+  }
 
 }
 

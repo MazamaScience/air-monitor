@@ -5,8 +5,9 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
-    "docs": "jsdoc src -d docs -R ./README.md -c ./jsdoc.conf.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel src -d dist",
+    "docs": "jsdoc -c ./jsdoc.conf.json",
+    "test": "uvu"
   },
   "repository": {
     "type": "git",
@@ -22,8 +23,10 @@
   },
   "homepage": "https://github.com/MazamaScience/air-monitor#readme",
   "dependencies": {
-    "air-monitor-algorithms": "github:MazamaScience/air-monitor-algorithms",
+    "air-monitor-algorithms": "1.1.1",
     "arquero": "7.2.1",
-    "luxon": "^3.6.1"
+    "babel": "^5.8.38",
+    "luxon": "3.6.1",
+    "uvu": "^0.5.6"
   }
 }
