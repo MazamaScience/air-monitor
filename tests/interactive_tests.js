@@ -6,6 +6,24 @@ await monitor.loadLatest("airnow");
 
 console.log(monitor.count());
 
+// ----- test subset -----------------------------------------------------------
+
+const WA = monitor.filterByValue('stateCode', 'WA');
+console.log(`WA has %d monitors`, WA.count());
+const WA_meta = WA.meta;
+const WA_data = WA.data;
+
+import fs from 'fs';
+
+// Export `meta` and `data` to a JSON file
+fs.writeFileSync(
+  './tests/WA_test_data.json',
+  JSON.stringify({ wa_meta, wa_data }, null, 2)
+);
+
+// -----------------------------------------------------------------------------
+
+
 let bop; // Generic variable for reuse
 
 // await monitor.loadAnnual("2021");
@@ -24,8 +42,6 @@ console.log(`id: %s, timezone = %s`, id, timezone);
 
 // bop = monitor.dropEmpty();
 
-let WA = monitor.filterByValue('stateCode', 'WA');
-console.log(`WA has %d monitors`, WA.count());
 
 let WA_trimmed = WA.trimDate("America/Los_Angeles");
 let OR_trimmed = monitor
