@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/MazamaScience/air-monitor/issues"
   },
-  "homepage": "https://github.com/MazamaScience/air-monitor#readme",
+  "homepage": "https://mazamascience.github.io/air-monitor",
   "dependencies": {
     "air-monitor-algorithms": "1.1.1",
     "arquero": "7.2.1",
