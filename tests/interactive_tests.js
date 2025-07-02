@@ -1,4 +1,4 @@
-// import Monitor from "../src/index.js";
+import Monitor from "../src/index.js";
 
 // const monitor = new Monitor();
 
@@ -7,6 +7,27 @@
 // console.log(monitor.count());
 
 // let trimmed = monitor.trimDate("America/Los_Angeles")
+
+// ----- README.md example -----------------------------------------------------
+
+    // // import Monitor from 'air-monitor';
+
+    // const monitor = new Monitor();
+    // await monitor.loadLatest("airnow");
+    // console.log(`airnow has ${monitor.count()} monitors`);
+
+    // // Filter to a single state
+    // const wa = monitor.filterByValue('stateCode', 'WA');
+    // console.log(`washington has ${wa.count()} monitors`);
+
+    // const id = wa
+    //   .filterByValue('locationName', 'Entiat')
+    //   .getIDs();
+    // const pm25 = wa.getPM25(id);
+    // const meta = wa.getMetaObject(id);
+
+    // console.log(pm25);
+    // console.log(JSON.stringify(meta, null, 2));
 
 // // ----- test subset -----------------------------------------------------------
 

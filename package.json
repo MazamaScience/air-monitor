@@ -1,23 +1,32 @@
 {
   "name": "air-monitor",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Utilities for working with air quality monitoring data.",
-  "main": "./src/index.js",
   "type": "module",
+  "exports": "./src/index.js",
+  "main": "./src/index.js",
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "babel src -d dist",
     "docs": "jsdoc -c ./jsdoc.conf.json",
-    "test": "uvu"
+    "test": "uvu tests"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MazamaScience/air-monitor.git"
   },
   "keywords": [
-    "air-quality"
+    "air quality",
+    "nowcast",
+    "monitoring",
+    "arquero"
   ],
   "author": "Jonathan Callahan",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "GPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/MazamaScience/air-monitor/issues"
   },
@@ -25,8 +34,13 @@
   "dependencies": {
     "air-monitor-algorithms": "1.1.1",
     "arquero": "7.2.1",
-    "babel": "^5.8.38",
-    "luxon": "3.6.1",
+    "luxon": "3.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.24.1",
+    "@babel/core": "^7.24.3",
+    "@babel/preset-env": "^7.24.3",
     "uvu": "^0.5.6"
   }
+
 }
