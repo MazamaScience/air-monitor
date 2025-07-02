@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils/parse.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils/parse.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Utility functions for parsing and cleaning raw CSV data into normalized
+ * `meta` and `data` tables used by the Monitor class.
+ *
+ * These functions:
+ * - Replace string `'NA'` with `null`
+ * - Convert numeric fields to floats
+ * - Optionally restrict metadata columns to core subsets
+ * - Replace negative measurements (e.g. PM2.5) with zero
+ *
+ * Intended for internal use only.
+ */
+
+import * as aq from 'arquero';
+const op = aq.op;
+
+const FLOAT_COLUMNS = ['longitude', 'latitude', 'elevation'];
+
+/**
+ * Parses and cleans a metadata table.
+ *
+ * - Replaces string `'NA'` values with `null`
+ * - Converts longitude, latitude, and elevation to floats
+ * - Restricts output columns to `metadataNames` unless `useAllColumns` is true
+ *
+ * @param {aq.Table} dt - Raw Arquero table from CSV.
+ * @param {boolean} [useAllColumns=false] - Whether to retain all columns.
+ * @param {string[]} [metadataNames=[]] - Subset of columns to keep if `useAllColumns` is false.
+ * @returns {aq.Table} Cleaned and optionally filtered metadata table.
+ */
+export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
+  const columns = dt.columnNames();
+  const selectedColumns = useAllColumns ? columns : metadataNames;
+
+  // Replace 'NA' with null
+  const values1 = {};
+  columns.forEach(col => {
+    values1[col] = aq.escape(d => d[col] === 'NA' ? null : d[col]);
+  });
+
+  // Parse longitude, latitude, and elevation as floats (if present)
+  const floatValues = {};
+  FLOAT_COLUMNS.filter(col => columns.includes(col)).forEach(col => {
+    floatValues[col] = aq.escape(d => parseFloat(d[col]));
+  });
+
+  return dt.derive(values1).derive(floatValues).select(selectedColumns);
+}
+
+/**
+ * Parses and cleans a time-series measurement table.
+ *
+ * - Skips the first column (assumed to be `datetime`)
+ * - Replaces string `'NA'` with `null`
+ * - Converts all values to floats
+ * - Replaces negative values with zero
+ * - Replaces non-finite values (e.g. NaN, Infinity) with null
+ *
+ * @param {aq.Table} dt - Raw Arquero table from CSV.
+ * @returns {aq.Table} Cleaned data table suitable for use in a Monitor object.
+ */
+export function parseData(dt) {
+  const ids = dt.columnNames().slice(1); // skip 'datetime'
+
+  // Replace 'NA' with null, then parse as float
+  const values1 = {};
+  ids.forEach(id => {
+    values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`;
+  });
+
+  // Replace negative values with zero
+  const values2 = {};
+  ids.forEach(id => {
+    values2[id] = `d => d['${id}'] &lt; 0 ? 0 : d['${id}']`;
+  });
+
+  // Replace non-finite values (e.g. NaN, Infinity) with null
+  const values3 = {};
+  ids.forEach(id => {
+    values3[id] = `d => d['${id}'] != null &amp;&amp; !op.is_finite(d['${id}']) ? null : d['${id}']`;
+  });
+
+  return dt.derive(values1).derive(values2).derive(values3);
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 02 2025 12:11:24 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

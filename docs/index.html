@@ -44,19 +44,99 @@
 
     <section>
         <article><h1>air-monitor</h1>
-<p>TODO: Write me.</p>
-<p><strong>NOTE:</strong> A core assumption of the &quot;air-monitor&quot; data model is that all time
-series data are on a regular hourly axis with no gaps. When working with this
-javascript package, missing values should be indicated by <code>null</code>.</p>
-<h2>Usage</h2>
-<p>The package can be installed with <code>npm</code>:</p>
-<pre class="prettyprint source"><code>npm install github:MazamaScience/air-monitor
+<p>Utilities for working with hourly air quality monitoring data
+with a focus on small particulates (PM2.5). This package is designed for
+scientific analysis with a focus on robust and performant algorithms.</p>
+<h2>Overview</h2>
+<p>This package provides a compact data model and transformation utilities for
+working with air quality monitor deployments, including:</p>
+<ul>
+<li>Spatial metadata (e.g., location, timezone, ID)</li>
+<li>Hourly time-series measurements (e.g., PM2.5)</li>
+<li>Integration with GeoJSON</li>
+<li>Timezone-aware trimming and aggregation</li>
+<li>Methods to summarize, filter, and export subsets of the data</li>
+</ul>
+<p>All functionality is encapsulated in a <code>Monitor</code> class designed for ES module
+environments and data-driven workflows. It is also useful in Svelte and Vue applications.</p>
+<h2>Data Model</h2>
+<p>The compact data model for a <em>monitor</em> object consists of two aligned <strong>Arquero</strong> tables:</p>
+<ul>
+<li><code>meta</code>: A metadata table describing each monitoring device deployment</li>
+<li><code>data</code>: A time-series table with hourly observations and a <code>datetime</code> column (UTC)</li>
+</ul>
+<p>Both tables are linked by a shared identifier:</p>
+<pre><code>meta.deviceDeploymentID  &lt;---&gt;  data columns (besides datetime)
 </code></pre>
-<p>This package is provided as an ES Module intended for use in other modules or
-in Svelte and Vue applications. Here is an example of how to import functions
-from this module:</p>
-<hr>
-<p>This project is supported by the <a href="https://www.airfire.org">USFS AirFire</a> group.</p></article>
+<h2>Install</h2>
+<pre><code>npm install air-monitor
+</code></pre>
+<h2>Example Usage</h2>
+<pre><code>import Monitor from 'air-monitor';
+
+// Load AirNow monitor data
+const monitor = new Monitor();
+await monitor.loadLatest(&quot;airnow&quot;);
+console.log(`airnow has ${monitor.count()} monitors`);
+
+// Filter to a single state
+const wa = monitor.filterByValue('stateCode', 'WA');
+console.log(`washington has ${wa.count()} monitors`);
+
+// Get pm25 array and metadata for Entiat, WA
+const id = wa
+  .filterByValue('locationName', 'Entiat')
+  .getIDs();
+const pm25 = wa.getPM25(id);
+const meta = wa.getMetaObject(id);
+
+console.log(pm25);
+console.log(JSON.stringify(meta, null, 2));
+</code></pre>
+<h2>Key Features</h2>
+<ul>
+<li>✅ Clean parsing of time-series CSVs (with <code>'NA'</code>, negative, and NaN handling)</li>
+<li>✅ Accurate trimming to full local-time days with DST support</li>
+<li>✅ Chaining API for filtering, summarizing, and reshaping</li>
+<li>✅ GeoJSON export with per-site metadata and recent status</li>
+<li>✅ UVU-based test suite with 100% transformation coverage</li>
+</ul>
+<h2>API Highlights</h2>
+<h3><code>new Monitor(metaTable, dataTable)</code></h3>
+<p>Creates a new monitor instance from parsed tables.</p>
+<h3><code>loadCustom(baseName, baseUrl)</code></h3>
+<p>Loads <code>{baseName}.meta.csv</code> and <code>{baseName}.data.csv</code> from a file URL.</p>
+<h3><code>filterByValue(column, value)</code></h3>
+<p>Returns a new <code>Monitor</code> filtered by a metadata column.</p>
+<h3><code>collapse(granularity, method)</code></h3>
+<p>Aggregates time series by day or hour using <code>mean</code>, <code>max</code>, etc.</p>
+<h3><code>combine(otherMonitor)</code></h3>
+<p>Merges another monitor instance into the current one.</p>
+<h3><code>dropEmpty()</code></h3>
+<p>Removes device series that contain no valid observations.</p>
+<h3><code>trimDate(timezone, trimEmptyDays = true)</code></h3>
+<p>Trims incomplete or fully missing days from the edges of the time range.</p>
+<h3><code>getCurrentStatus()</code></h3>
+<p>Appends most recent valid timestamp and value to each metadata row.</p>
+<h3><code>createGeoJSON()</code></h3>
+<p>Converts metadata + status into a valid GeoJSON <code>FeatureCollection</code>.</p>
+<h2>Assumptions</h2>
+<ul>
+<li><code>data.datetime</code> is a regular hourly time axis with no gaps</li>
+<li>All non-datetime values are either finite numbers or <code>null</code></li>
+<li>Time-series columns match exactly with <code>meta.deviceDeploymentID</code></li>
+<li><code>datetime</code> values are stored in UTC (not local time)</li>
+</ul>
+<h2>License</h2>
+<p>GPL-3.0-or-later © Jonathan Callahan</p>
+<h2>Support</h2>
+<p>Development of this package has been supported with funding from the
+following institutions:</p>
+<ul>
+<li>USFS <a href="https://www.airfire.org">AirFire Research Team</a></li>
+</ul>
+<p>Questions regarding further development of the package should be directed to
+<a href="mailto:jonathan.callahan@dri.edu">jonathan.callahan@dri.edu</a>.</p></article>
     </section>
 
 
@@ -67,13 +147,13 @@ from this module:</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadDaily">loadDaily</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Fri Jan 27 2023 08:41:24 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 02 2025 12:11:24 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

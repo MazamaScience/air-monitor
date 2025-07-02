@@ -104,7 +104,7 @@
     
 
     
-    <h4 class="name" id="combine"><span class="type-signature"></span>combine<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="arrayMean"><span class="type-signature"></span>arrayMean<span class="signature">(arr)</span><span class="type-signature"> &rarr; {number|null}</span></h4>
     
 
     
@@ -112,10 +112,337 @@
 
 
 <div class="description">
-    <p>Combine another Monitor object with 'this' object.</p>
-<p>A new Monitor object is returned containing all time series and metadata from
-'this' Monitor as well as the passed in 'monitor'. This allows for chaining to
-combine multiple Monitor objects.</p>
+    <p>Computes the arithmetic mean of an array of numbers, ignoring non-numeric values.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>arr</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;*></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The input array (may contain nulls, strings, or other types).</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line21">line 21</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The mean of valid numbers, or null if none are found.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+|
+
+<span class="param-type">null</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="assertIsMonitor"><span class="type-signature"></span>assertIsMonitor<span class="signature">(result, methodName)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Asserts that the value is a Monitor instance.
+Useful for verifying return types of public methods.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>result</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The value to check.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>methodName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Name of the method returning the value (for error messages).</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line108">line 108</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_collapse"><span class="type-signature"></span>internal_collapse<span class="signature">(monitor, deviceID, FUN, FUN_arg)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Collapse a Monitor object into a single time series.</p>
+<p>Collapses data from all time series into a single time series using the
+function provided in the <code>FUN</code> argument (typically 'mean'). The single time
+series result will be located at the mean longitude and latitude.</p>
+<p>When <code>FUN === &quot;quantile&quot;</code>, the <code>FUN_arg</code> argument specifies the quantile
+probability.</p>
+<p>Available function names are those defined at:
+https://uwdata.github.io/arquero/api/op#aggregate-functions</p>
 </div>
 
 
@@ -157,7 +484,7 @@ combine multiple Monitor objects.</p>
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
 
 
             
@@ -167,7 +494,76 @@ combine multiple Monitor objects.</p>
 
             
 
-            <td class="description last"><p>A monitor object.</p></td>
+            <td class="description last"><p>The Monitor instance to collapse.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>deviceID</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of the resulting time series column.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>FUN</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The aggregate function name (e.g. &quot;mean&quot;, &quot;sum&quot;, &quot;quantile&quot;).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>FUN_arg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An optional argument for the aggregator (e.g. quantile prob).</p></td>
         </tr>
 
     
@@ -208,7 +604,193 @@ combine multiple Monitor objects.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line191">line 191</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line45">line 45</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A Monitor object with a single time series.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_combine"><span class="type-signature"></span>internal_combine<span class="signature">(monitorA, monitorB)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Combines two Monitor objects by merging their metadata and time series data.
+If any deviceDeploymentIDs in <code>monitorB</code> are already present in <code>monitorA</code>,
+they will be dropped from <code>monitorB</code> before merging.</p>
+<p>Data are combined with 'join_full' to guarantee that all times from either
+Monitor object will be retained.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitorA</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The base Monitor instance.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>monitorB</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance to merge in.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line126">line 126</a>
     </li></ul></dd>
     
 
@@ -266,7 +848,7 @@ combine multiple Monitor objects.</p>
     
 
     
-    <h4 class="name" id="count"><span class="type-signature"></span>count<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+    <h4 class="name" id="internal_createGeoJSON"><span class="type-signature"></span>internal_createGeoJSON<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -274,228 +856,7 @@ combine multiple Monitor objects.</p>
 
 
 <div class="description">
-    <p>Returns the number of individual time series found in a Monitor object</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line536">line 536</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Count of individual time series.</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="dropEmpty"><span class="type-signature"></span>dropEmpty<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Drop monitor object time series with all missing data.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line223">line 223</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>A subset of the incoming monitor object.</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Object</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getCurrentStatus"><span class="type-signature"></span>getCurrentStatus<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {Table}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Augment monitor.meta with current status information derived from monitor
-data.</p>
+    <p>Convert the current metadata table to a GeoJSON FeatureCollection.</p>
 </div>
 
 
@@ -537,7 +898,7 @@ data.</p>
             <td class="type">
             
                 
-<span class="param-type">Monitor</span>
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
 
 
             
@@ -547,7 +908,7 @@ data.</p>
 
             
 
-            <td class="description last"><p>Monitor object with 'meta' and 'data'.</p></td>
+            <td class="description last"><p>The Monitor instance.</p></td>
         </tr>
 
     
@@ -588,7 +949,7 @@ data.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line411">line 411</a>
+        <a href="utils_geojson.js.html">utils/geojson.js</a>, <a href="utils_geojson.js.html#line62">line 62</a>
     </li></ul></dd>
     
 
@@ -617,7 +978,7 @@ data.</p>
 
         
 <div class="param-desc">
-    <p>An enhanced version of monitor.meta.</p>
+    <p>A GeoJSON FeatureCollection object.</p>
 </div>
 
 
@@ -628,7 +989,7 @@ data.</p>
     </dt>
     <dd>
         
-<span class="param-type">Table</span>
+<span class="param-type">Object</span>
 
 
     </dd>
@@ -646,7 +1007,565 @@ data.</p>
     
 
     
-    <h4 class="name" id="getDailyStats"><span class="type-signature"></span>getDailyStats<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="internal_dropEmpty"><span class="type-signature"></span>internal_dropEmpty<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Drops time series from the monitor that contain only missing values.</p>
+<p>A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
+The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance containing metadata and data.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line241">line 241</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A new monitor object with empty time series removed.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_filterByValue"><span class="type-signature"></span>internal_filterByValue<span class="signature">(monitor, columnName, value)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Filters a monitor object to include only records where a given metadata field equals the specified value.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance containing metadata and data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>columnName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Name of the metadata column to filter on.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Value to match in the specified column.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line204">line 204</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If the specified column does not exist in monitor.meta.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A filtered monitor object.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_getCurrentStatus"><span class="type-signature"></span>internal_getCurrentStatus<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {aq.Table}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Compute the most recent valid timestamp and value for each deviceDeploymentID,
+and append them to the metadata table.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_geojson.js.html">utils/geojson.js</a>, <a href="utils_geojson.js.html#line21">line 21</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An enhanced metadata table with last valid datetime and value.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">aq.Table</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_getDailyStats"><span class="type-signature"></span>internal_getDailyStats<span class="signature">(monitor, id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -694,13 +1613,13 @@ properties.</p>
 
         <tr>
             
-                <td class="name"><code>id</code></td>
+                <td class="name"><code>monitor</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
 
 
             
@@ -710,7 +1629,33 @@ properties.</p>
 
             
 
-            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+            <td class="description last"><p>The Monitor instance containing parsed time-series data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A single deviceDeploymentID or array of length 1.</p></td>
         </tr>
 
     
@@ -751,7 +1696,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line341">line 341</a>
+        <a href="utils_analysis.js.html">utils/analysis.js</a>, <a href="utils_analysis.js.html#line111">line 111</a>
     </li></ul></dd>
     
 
@@ -780,7 +1725,7 @@ properties.</p>
 
         
 <div class="param-desc">
-    <p>Object with <code>datetime</code>, <code>count</code>, <code>min</code>, <code>mean</code> and <code>max</code></p>
+    <p>Object with <code>datetime</code>, <code>count</code>, <code>min</code>, <code>mean</code> and <code>max</code> properties.</p>
 </div>
 
 
@@ -809,117 +1754,7 @@ properties.</p>
     
 
     
-    <h4 class="name" id="getDatetime"><span class="type-signature"></span>getDatetime<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;Date>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Returns the array of date objects that define this Monitor object's time axis.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line296">line 296</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Array of Date objects.</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;Date></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getDiurnalStats"><span class="type-signature"></span>getDiurnalStats<span class="signature">(id, dayCount)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="internal_getDiurnalStats"><span class="type-signature"></span>internal_getDiurnalStats<span class="signature">(monitor, id, dayCount)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -957,14 +1792,35 @@ properties.</p>
         
 
         
-        <th>Default</th>
-        
 
         <th class="last">Description</th>
     </tr>
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance containing parsed time-series data.</p></td>
+        </tr>
+
     
 
         <tr>
@@ -984,12 +1840,8 @@ properties.</p>
             
 
             
-                <td class="default">
-                
-                </td>
-            
 
-            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+            <td class="description last"><p>The deviceDeploymentID identifying the desired time series.</p></td>
         </tr>
 
     
@@ -1010,12 +1862,6 @@ properties.</p>
 
             
 
-            
-                <td class="default">
-                
-                    7
-                
-                </td>
             
 
             <td class="description last"><p>Number of most recent days to use.</p></td>
@@ -1059,7 +1905,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line367">line 367</a>
+        <a href="utils_analysis.js.html">utils/analysis.js</a>, <a href="utils_analysis.js.html#line144">line 144</a>
     </li></ul></dd>
     
 
@@ -1117,7 +1963,7 @@ properties.</p>
     
 
     
-    <h4 class="name" id="getIDs"><span class="type-signature"></span>getIDs<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;string>}</span></h4>
+    <h4 class="name" id="internal_getNowcast"><span class="type-signature"></span>internal_getNowcast<span class="signature">(monitor, id)</span><span class="type-signature"> &rarr; {number|null}</span></h4>
     
 
     
@@ -1125,119 +1971,7 @@ properties.</p>
 
 
 <div class="description">
-    <p>Returns an array of unique identifiers (deviceDeploymentIDs) found in a
-Monitor object</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line527">line 527</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>An array of deviceDeploymentIDs.</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;string></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getMetaObject"><span class="type-signature"></span>getMetaObject<span class="signature">(id)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Returns an object with all metadata properties for the time series
-identified by id.</p>
+    <p>Computes the NowCast PM2.5 value for a specified device.</p>
 </div>
 
 
@@ -1273,13 +2007,13 @@ identified by id.</p>
 
         <tr>
             
-                <td class="name"><code>id</code></td>
+                <td class="name"><code>monitor</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
 
 
             
@@ -1289,145 +2023,9 @@ identified by id.</p>
 
             
 
-            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+            <td class="description last"><p>The Monitor instance containing parsed time-series data.</p></td>
         </tr>
 
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line398">line 398</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Object with all metadata properties.</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Object</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getMetadata"><span class="type-signature"></span>getMetadata<span class="signature">(id)</span><span class="type-signature"> &rarr; {string|number}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Returns the named metadata field for the time series identified by id.</p>
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
     
 
         <tr>
@@ -1438,101 +2036,133 @@ identified by id.</p>
             <td class="type">
             
                 
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line387">line 387</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>The named metadata field for a time series.</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
 <span class="param-type">string</span>
 |
 
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A single deviceDeploymentID or array of length 1.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_analysis.js.html">utils/analysis.js</a>, <a href="utils_analysis.js.html#line88">line 88</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If the device ID is not found or is not a string.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The NowCast PM2.5 value, or null if input data is invalid or missing.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
 <span class="param-type">number</span>
+|
+
+<span class="param-type">null</span>
 
 
     </dd>
@@ -1550,7 +2180,7 @@ identified by id.</p>
     
 
     
-    <h4 class="name" id="getNowcast"><span class="type-signature"></span>getNowcast<span class="signature">(id)</span><span class="type-signature"> &rarr; {Array.&lt;number>}</span></h4>
+    <h4 class="name" id="internal_getPM25"><span class="type-signature"></span>internal_getPM25<span class="signature">(monitor, id)</span><span class="type-signature"> &rarr; {Array.&lt;(number|null)>}</span></h4>
     
 
     
@@ -1558,8 +2188,8 @@ identified by id.</p>
 
 
 <div class="description">
-    <p>Returns an array of NowCast values derived from the time series identified
-by id.</p>
+    <p>Retrieves and rounds the PM2.5 time series for a given device ID.
+Ensures all non-null values are numeric before applying rounding.</p>
 </div>
 
 
@@ -1595,7 +2225,462 @@ by id.</p>
 
         <tr>
             
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance containing time-series data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
                 <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A single deviceDeploymentID or array of length 1.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_analysis.js.html">utils/analysis.js</a>, <a href="utils_analysis.js.html#line64">line 64</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If the device ID is not found or is not a string.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Cleaned PM2.5 values rounded to 1 decimal place.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;(number|null)></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_getTimezone"><span class="type-signature"></span>internal_getTimezone<span class="signature">(monitor, id)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Returns the Olson timezone string for a single deviceDeploymentID.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Monitor instance with <code>.meta</code> table.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A single deviceDeploymentID or array of length 1.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_analysis.js.html">utils/analysis.js</a>, <a href="utils_analysis.js.html#line28">line 28</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If ID is not found or is invalid.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Olson timezone.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_loadAnnual"><span class="type-signature">(async) </span>internal_loadAnnual<span class="signature">(monitor, year, baseUrl)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Asynchronously loads 'annual' Monitor objects from USFS AirFire repositories
+for 'airnow', 'airsis' or 'wrcc' data.</p>
+<p>This function replaces the 'meta' and 'data' properties of the Monitor
+object with the latest available data. Data cover an entire year or
+year-to-date. Current year data are updated daily.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Monitor object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>year</code></td>
             
 
             <td class="type">
@@ -1611,7 +2696,30 @@ by id.</p>
 
             
 
-            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+            <td class="description last"><p>Year of interest.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Base URL for monitoring v2 data files.</p></td>
         </tr>
 
     
@@ -1652,7 +2760,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line324">line 324</a>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line246">line 246</a>
     </li></ul></dd>
     
 
@@ -1675,13 +2783,42 @@ by id.</p>
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If there's an issue loading the data.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
 
 
 <h5>Returns:</h5>
 
         
 <div class="param-desc">
-    <p>Array of NowCast values.</p>
+    <p>Resolves when the monitor's .meta and .data fields have been populated.</p>
 </div>
 
 
@@ -1692,7 +2829,7 @@ by id.</p>
     </dt>
     <dd>
         
-<span class="param-type">Array.&lt;number></span>
+<span class="param-type">Promise.&lt;void></span>
 
 
     </dd>
@@ -1710,7 +2847,7 @@ by id.</p>
     
 
     
-    <h4 class="name" id="getPM25"><span class="type-signature"></span>getPM25<span class="signature">(id)</span><span class="type-signature"> &rarr; {Array.&lt;number>}</span></h4>
+    <h4 class="name" id="internal_loadCustom"><span class="type-signature">(async) </span>internal_loadCustom<span class="signature">(monitor, baseName, baseUrl, useAllColumns)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
     
 
     
@@ -1718,7 +2855,12 @@ by id.</p>
 
 
 <div class="description">
-    <p>Returns an array of PM2.5 values derived from the time series identified by id.</p>
+    <p>Asynchronously loads custom monitoring data.</p>
+<p>Two files will be loaded from <baseUrl>:</p>
+<ol>
+<li><baseName>_data.csv</li>
+<li><baseName>_meta.csv</li>
+</ol>
 </div>
 
 
@@ -1754,13 +2896,13 @@ by id.</p>
 
         <tr>
             
-                <td class="name"><code>id</code></td>
+                <td class="name"><code>monitor</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
 
 
             
@@ -1770,7 +2912,76 @@ by id.</p>
 
             
 
-            <td class="description last"><p>deviceDeploymentID of the time series to select.</p></td>
+            <td class="description last"><p>Monitor object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>File name base.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>baseUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>URL path under which data files are found.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>useAllColumns</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Whether to retain all available columns in the metadata.</p></td>
         </tr>
 
     
@@ -1811,7 +3022,7 @@ by id.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line306">line 306</a>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line265">line 265</a>
     </li></ul></dd>
     
 
@@ -1834,11 +3045,44 @@ by id.</p>
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If there's an issue loading the data.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
 
 
 <h5>Returns:</h5>
 
         
+<div class="param-desc">
+    <p>Resolves when the monitor's .meta and .data fields have been populated.</p>
+</div>
+
 
 
 <dl>
@@ -1847,7 +3091,7 @@ by id.</p>
     </dt>
     <dd>
         
-<span class="param-type">Array.&lt;number></span>
+<span class="param-type">Promise.&lt;void></span>
 
 
     </dd>
@@ -1865,7 +3109,7 @@ by id.</p>
     
 
     
-    <h4 class="name" id="loadDaily"><span class="type-signature">(async) </span>loadDaily<span class="signature">(provider, archiveBaseUrl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="internal_loadDaily"><span class="type-signature">(async) </span>internal_loadDaily<span class="signature">(monitor, provider, baseUrl)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
     
 
     
@@ -1873,9 +3117,9 @@ by id.</p>
 
 
 <div class="description">
-    <p>Load 'daily' Monitor objects from USFS AirFire repositories for 'airnow',
-'airsis' and 'wrcc' data.</p>
-<p>This function replaces the 'meta' and 'data' properties of 'this' monitor
+    <p>Asynchronously loads 'daily' Monitor objects from USFS AirFire repositories
+for 'airnow', 'airsis' or 'wrcc' data.</p>
+<p>This function replaces the 'meta' and 'data' properties of the Monitor
 object with the latest available data. Data cover the most recent 45 days
 and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
 </div>
@@ -1903,14 +3147,35 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
         
 
         
-        <th>Default</th>
-        
 
         <th class="last">Description</th>
     </tr>
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Monitor object.</p></td>
+        </tr>
+
     
 
         <tr>
@@ -1930,12 +3195,6 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
             
 
             
-                <td class="default">
-                
-                    airnow
-                
-                </td>
-            
 
             <td class="description last"><p>One of &quot;airnow|airsis|wrcc&quot;.</p></td>
         </tr>
@@ -1944,7 +3203,7 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
 
         <tr>
             
-                <td class="name"><code>archiveBaseUrl</code></td>
+                <td class="name"><code>baseUrl</code></td>
             
 
             <td class="type">
@@ -1959,14 +3218,8 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
             
 
             
-                <td class="default">
-                
-                    https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2
-                
-                </td>
-            
 
-            <td class="description last"><p>URL for monitoring v2 data files.</p></td>
+            <td class="description last"><p>Base URL for monitoring v2 data files.</p></td>
         </tr>
 
     
@@ -2007,7 +3260,7 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line78">line 78</a>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line227">line 227</a>
     </li></ul></dd>
     
 
@@ -2030,8 +3283,59 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If there's an issue loading the data.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
 
 
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves when the monitor's .meta and .data fields have been populated.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;void></span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -2043,7 +3347,7 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
     
 
     
-    <h4 class="name" id="loadLatest"><span class="type-signature">(async) </span>loadLatest<span class="signature">(provider, archiveBaseUrl)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="internal_loadLatest"><span class="type-signature">(async) </span>internal_loadLatest<span class="signature">(monitor, provider, baseUrl)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
     
 
     
@@ -2051,9 +3355,9 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
 
 
 <div class="description">
-    <p>Load 'latest' Monitor objects from USFS AirFire repositories for 'airnow',
-'airsis' and 'wrcc' data.</p>
-<p>This function replaces the 'meta' and 'data' properties of 'this' monitor
+    <p>Asynchronously loads 'latest' Monitor objects from USFS AirFire repositories
+for 'airnow', 'airsis' or 'wrcc' data.</p>
+<p>This function replaces the 'meta' and 'data' properties of the Monitor
 object with the latest available data. Data cover the most recent 10 days
 and are updated every few minutes.</p>
 </div>
@@ -2081,14 +3385,35 @@ and are updated every few minutes.</p>
         
 
         
-        <th>Default</th>
-        
 
         <th class="last">Description</th>
     </tr>
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Monitor object.</p></td>
+        </tr>
+
     
 
         <tr>
@@ -2108,21 +3433,15 @@ and are updated every few minutes.</p>
             
 
             
-                <td class="default">
-                
-                    airnow
-                
-                </td>
-            
 
-            <td class="description last"><p>One of &quot;airnow|airsis|wrcc&quot;.</p></td>
+            <td class="description last"><p>One of &quot;airnow|airsis|wrcc&quot;</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>archiveBaseUrl</code></td>
+                <td class="name"><code>baseUrl</code></td>
             
 
             <td class="type">
@@ -2137,14 +3456,8 @@ and are updated every few minutes.</p>
             
 
             
-                <td class="default">
-                
-                    https://airfire-data-exports.s3.us-west-2.amazonaws.com/monitoring/v2
-                
-                </td>
-            
 
-            <td class="description last"><p>URL for monitoring v2 data files.</p></td>
+            <td class="description last"><p>Base URL for monitoring v2 data files.</p></td>
         </tr>
 
     
@@ -2185,7 +3498,7 @@ and are updated every few minutes.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line56">line 56</a>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line208">line 208</a>
     </li></ul></dd>
     
 
@@ -2208,10 +3521,66 @@ and are updated every few minutes.</p>
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If there's an issue loading the data.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves when the monitor's .meta and .data fields have been populated.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;void></span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
 
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>await internal_loadLatest(monitor, 'airnow'); * @async</code></pre>
 
 
 
@@ -2221,7 +3590,7 @@ and are updated every few minutes.</p>
     
 
     
-    <h4 class="name" id="select"><span class="type-signature"></span>select<span class="signature">(ids)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="internal_select"><span class="type-signature"></span>internal_select<span class="signature">(monitor, ids)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -2229,7 +3598,10 @@ and are updated every few minutes.</p>
 
 
 <div class="description">
-    <p>Subset and reorder time series within a monitor object.</p>
+    <p>Subsets and reorders time series columns and corresponding metadata
+for the specified deviceDeploymentIDs.</p>
+<p>Ensures that the returned <code>meta</code> rows appear in the same order as <code>ids</code>,
+and that all specified columns are included in the <code>data</code> table.</p>
 </div>
 
 
@@ -2265,6 +3637,29 @@ and are updated every few minutes.</p>
 
         <tr>
             
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance containing metadata and data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
                 <td class="name"><code>ids</code></td>
             
 
@@ -2281,7 +3676,7 @@ and are updated every few minutes.</p>
 
             
 
-            <td class="description last"><p>deviceDeploymentIDs of the time series to select.</p></td>
+            <td class="description last"><p>An array of deviceDeploymentIDs to select and order.</p></td>
         </tr>
 
     
@@ -2322,7 +3717,7 @@ and are updated every few minutes.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line206">line 206</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line164">line 164</a>
     </li></ul></dd>
     
 
@@ -2345,13 +3740,42 @@ and are updated every few minutes.</p>
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If <code>ids</code> is not a non-empty array.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
 
 
 <h5>Returns:</h5>
 
         
 <div class="param-desc">
-    <p>A reordered (subset) of the incoming monitor object.</p>
+    <p>A subset of the monitor with selected columns.</p>
 </div>
 
 
@@ -2380,7 +3804,7 @@ and are updated every few minutes.</p>
     
 
     
-    <h4 class="name" id="trimDate"><span class="type-signature"></span>trimDate<span class="signature">(timezone)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id="internal_trimDate"><span class="type-signature"></span>internal_trimDate<span class="signature">(monitor, timezone, trimEmptyDays<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -2388,8 +3812,8 @@ and are updated every few minutes.</p>
 
 
 <div class="description">
-    <p>Returns a modified Monitor object with the records trimmed to full
-local time days. Any partial days are discarded.</p>
+    <p>Trims time-series data to full local-time days (00:00–23:00),
+and optionally removes full days with no data at the start or end.</p>
 </div>
 
 
@@ -2413,7 +3837,11 @@ local time days. Any partial days are discarded.</p>
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -2421,6 +3849,41 @@ local time days. Any partial days are discarded.</p>
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The Monitor instance with datetime-sorted, hourly-interval data.</p></td>
+        </tr>
+
     
 
         <tr>
@@ -2438,10 +3901,61 @@ local time days. Any partial days are discarded.</p>
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>Olsen timezone for the time series</p></td>
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>An IANA timezone string (e.g., &quot;America/New_York&quot;).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>trimEmptyDays</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether to remove fully-missing days at edges.</p></td>
         </tr>
 
     
@@ -2482,7 +3996,445 @@ local time days. Any partial days are discarded.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="index.js.html">index.js</a>, <a href="index.js.html#line267">line 267</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line277">line 277</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If the datetime column is missing, empty, or timezone is invalid.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A subset of the monitor with trimmed data.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="loadWithRetry"><span class="type-signature">(async) </span>loadWithRetry<span class="signature">(url, maxAttempts<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;aq.Table>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Attempts to load a CSV file using aq.loadCSV(), retrying on failure.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The URL of the CSV file to load.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>maxAttempts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    2
+                
+                </td>
+            
+
+            <td class="description last"><p>The maximum number of attempts to try loading the file.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line79">line 79</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If all attempts to load the CSV fail.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A promise that resolves to an Arquero Table if loading succeeds.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;aq.Table></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="parseData"><span class="type-signature"></span>parseData<span class="signature">(dt)</span><span class="type-signature"> &rarr; {aq.Table}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Parses and cleans a time-series measurement table.</p>
+<ul>
+<li>Skips the first column (assumed to be <code>datetime</code>)</li>
+<li>Replaces string <code>'NA'</code> with <code>null</code></li>
+<li>Converts all values to floats</li>
+<li>Replaces negative values with zero</li>
+<li>Replaces non-finite values (e.g. NaN, Infinity) with null</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>dt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">aq.Table</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Raw Arquero table from CSV.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_parse.js.html">utils/parse.js</a>, <a href="utils_parse.js.html#line62">line 62</a>
     </li></ul></dd>
     
 
@@ -2511,7 +4463,7 @@ local time days. Any partial days are discarded.</p>
 
         
 <div class="param-desc">
-    <p>A subset of the incoming Monitor object.</p>
+    <p>Cleaned data table suitable for use in a Monitor object.</p>
 </div>
 
 
@@ -2522,7 +4474,1035 @@ local time days. Any partial days are discarded.</p>
     </dt>
     <dd>
         
-<span class="param-type">Object</span>
+<span class="param-type">aq.Table</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="parseMeta"><span class="type-signature"></span>parseMeta<span class="signature">(dt, useAllColumns<span class="signature-attributes">opt</span>, metadataNames<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {aq.Table}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Parses and cleans a metadata table.</p>
+<ul>
+<li>Replaces string <code>'NA'</code> values with <code>null</code></li>
+<li>Converts longitude, latitude, and elevation to floats</li>
+<li>Restricts output columns to <code>metadataNames</code> unless <code>useAllColumns</code> is true</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>dt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">aq.Table</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Raw Arquero table from CSV.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>useAllColumns</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether to retain all columns.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>metadataNames</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    []
+                
+                </td>
+            
+
+            <td class="description last"><p>Subset of columns to keep if <code>useAllColumns</code> is false.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_parse.js.html">utils/parse.js</a>, <a href="utils_parse.js.html#line31">line 31</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Cleaned and optionally filtered metadata table.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">aq.Table</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="providerLoad"><span class="type-signature">(async) </span>providerLoad<span class="signature">(monitor, provider, timespan, archiveBaseUrl)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Loads metadata and data CSVs for the specified provider and timespan,
+and updates the given Monitor object in place.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance to populate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>provider</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>One of &quot;airnow&quot;, &quot;airsis&quot;, or &quot;wrcc&quot;.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timespan</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>One of &quot;latest&quot; or &quot;daily&quot;.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>archiveBaseUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Base URL to retrieve files from.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line115">line 115</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="providerLoadAnnual"><span class="type-signature">(async) </span>providerLoadAnnual<span class="signature">(monitor, year, archiveBaseUrl)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Loads annual metadata and data CSVs for a given year and updates the
+given Monitor object in place.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance to populate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>year</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Four-digit year string.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>archiveBaseUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Base URL to retrieve files from.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_load.js.html">utils/load.js</a>, <a href="utils_load.js.html#line157">line 157</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="round1"><span class="type-signature"></span>round1<span class="signature">(table)</span><span class="type-signature"> &rarr; {aq.Table}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>round1</p>
+<p>Round all numeric columns (except 'datetime') to 1 decimal place.
+Converts non-finite values (NaN, Infinity, undefined) to <code>null</code>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>table</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">aq.Table</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Input table with 'datetime' as the first column.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <ul>
+<li>New table with rounded numeric values and nulls.</li>
+</ul>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">aq.Table</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="validateDeviceID"><span class="type-signature"></span>validateDeviceID<span class="signature">(monitor, id)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Validates and resolves a deviceDeploymentID.
+Accepts either a string or a single-element string array.
+Verifies that the resolved ID exists in monitor.data.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance containing time-series data.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A single string or a single-element array.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line81">line 81</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If input is invalid or the ID does not exist in monitor.data.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A validated deviceDeploymentID string.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
 
 
     </dd>
@@ -2550,13 +5530,13 @@ local time days. Any partial days are discarded.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#combine">combine</a></li><li><a href="global.html#count">count</a></li><li><a href="global.html#dropEmpty">dropEmpty</a></li><li><a href="global.html#getCurrentStatus">getCurrentStatus</a></li><li><a href="global.html#getDailyStats">getDailyStats</a></li><li><a href="global.html#getDatetime">getDatetime</a></li><li><a href="global.html#getDiurnalStats">getDiurnalStats</a></li><li><a href="global.html#getIDs">getIDs</a></li><li><a href="global.html#getMetaObject">getMetaObject</a></li><li><a href="global.html#getMetadata">getMetadata</a></li><li><a href="global.html#getNowcast">getNowcast</a></li><li><a href="global.html#getPM25">getPM25</a></li><li><a href="global.html#loadDaily">loadDaily</a></li><li><a href="global.html#loadLatest">loadLatest</a></li><li><a href="global.html#select">select</a></li><li><a href="global.html#trimDate">trimDate</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Fri Jan 27 2023 08:41:24 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 02 2025 12:11:24 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

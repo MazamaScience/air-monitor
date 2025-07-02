@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: utils/load.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: utils/load.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * Utility functions for loading air quality monitoring data into Monitor objects.
  *
  * This module provides internal asynchronous functions that populate a Monitor
@@ -83,12 +111,12 @@ const annual_coreMetadataNames = [
  * @function loadWithRetry
  * @param {string} url - The URL of the CSV file to load.
  * @param {number} [maxAttempts=2] - The maximum number of attempts to try loading the file.
- * @returns {Promise<aq.Table>} A promise that resolves to an Arquero Table if loading succeeds.
+ * @returns {Promise&lt;aq.Table>} A promise that resolves to an Arquero Table if loading succeeds.
  * @throws {Error} If all attempts to load the CSV fail.
  */
 async function loadWithRetry(url, maxAttempts = 2) {
   let attempt = 0;
-  while (attempt < maxAttempts) {
+  while (attempt &lt; maxAttempts) {
     try {
       return await aq.loadCSV(url);
     } catch (err) {
@@ -126,7 +154,7 @@ async function providerLoad(monitor, provider, timespan, archiveBaseUrl) {
   const [metaResult, dataResult] = results;
 
   // Check if both loads succeeded
-  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
+  if (metaResult.status === 'fulfilled' &amp;&amp; dataResult.status === 'fulfilled') {
     const metaCSV = metaResult.value;
     const dataCSV = dataResult.value;
     // Proceed with processing
@@ -168,7 +196,7 @@ async function providerLoadAnnual(monitor, year, archiveBaseUrl) {
   const [metaResult, dataResult] = results;
 
   // Check if both loads succeeded
-  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
+  if (metaResult.status === 'fulfilled' &amp;&amp; dataResult.status === 'fulfilled') {
     const metaCSV = metaResult.value;
     const dataCSV = dataResult.value;
     // Proceed with processing
@@ -200,7 +228,7 @@ async function providerLoadAnnual(monitor, year, archiveBaseUrl) {
  * @param {Monitor} monitor - Monitor object.
  * @param {string} provider - One of "airnow|airsis|wrcc"
  * @param {string} baseUrl - Base URL for monitoring v2 data files.
- * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @returns {Promise&lt;void>} Resolves when the monitor's .meta and .data fields have been populated.
  * @throws {Error} If there's an issue loading the data.
  * @example
  * await internal_loadLatest(monitor, 'airnow'); * @async
@@ -221,7 +249,7 @@ export async function internal_loadLatest(monitor, provider = 'airnow', baseUrl 
  * @param {Monitor} monitor - Monitor object.
  * @param {string} provider - One of "airnow|airsis|wrcc".
  * @param {string} baseUrl - Base URL for monitoring v2 data files.
- * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @returns {Promise&lt;void>} Resolves when the monitor's .meta and .data fields have been populated.
  * @throws {Error} If there's an issue loading the data.
  */
 export async function internal_loadDaily(monitor, provider = 'airnow', baseUrl = DEFAULT_URL) {
@@ -240,7 +268,7 @@ export async function internal_loadDaily(monitor, provider = 'airnow', baseUrl =
  * @param {Monitor} monitor - Monitor object.
  * @param {string} year - Year of interest.
  * @param {string} baseUrl - Base URL for monitoring v2 data files.
- * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @returns {Promise&lt;void>} Resolves when the monitor's .meta and .data fields have been populated.
  * @throws {Error} If there's an issue loading the data.
  */
 export async function internal_loadAnnual(monitor, year = String(new Date().getFullYear()), baseUrl = DEFAULT_URL) {
@@ -250,16 +278,16 @@ export async function internal_loadAnnual(monitor, year = String(new Date().getF
 /**
  * Asynchronously loads custom monitoring data.
  *
- * Two files will be loaded from <baseUrl>:
- *   1. <baseName>_data.csv
- *   2. <baseName>_meta.csv
+ * Two files will be loaded from &lt;baseUrl>:
+ *   1. &lt;baseName>_data.csv
+ *   2. &lt;baseName>_meta.csv
  *
  * @async
  * @param {Monitor} monitor - Monitor object.
  * @param {string} baseName - File name base.
  * @param {string} baseUrl - URL path under which data files are found.
  * @param {boolean} useAllColumns - Whether to retain all available columns in the metadata.
- * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
+ * @returns {Promise&lt;void>} Resolves when the monitor's .meta and .data fields have been populated.
  * @throws {Error} If there's an issue loading the data.
  */
 export async function internal_loadCustom(monitor, baseName = '', baseUrl = '', useAllColumns = true) {
@@ -276,7 +304,7 @@ export async function internal_loadCustom(monitor, baseName = '', baseUrl = '', 
   const [metaResult, dataResult] = results;
 
   // Check if both loads succeeded
-  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
+  if (metaResult.status === 'fulfilled' &amp;&amp; dataResult.status === 'fulfilled') {
     const metaCSV = metaResult.value;
     const dataCSV = dataResult.value;
     // Proceed with processing
@@ -294,3 +322,26 @@ export async function internal_loadCustom(monitor, baseName = '', baseUrl = '', 
   }
 }
 
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 02 2025 12:11:24 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

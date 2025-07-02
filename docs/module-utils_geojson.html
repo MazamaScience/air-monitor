@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Module: utils/geojson</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Module: utils/geojson</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+            
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description"><p>Utility functions for computing current status summaries and generating GeoJSON
+FeatureCollections from Monitor metadata. These are used to spatially visualize the
+most recent valid air quality measurements and data latencies from each deployed sensor.</p>
+<p>Internal functions:</p>
+<ul>
+<li>internal_getCurrentStatus – Appends current data statistics to the Monitor's metadata table.</li>
+<li>internal_createGeoJSON – Creates a .geojson file with current data statistics for each time series.</li>
+</ul></div>
+        
+
+        
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_geojson.js.html">utils/geojson.js</a>, <a href="utils_geojson.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".internal_createGeoJSON"><span class="type-signature">(static) </span>internal_createGeoJSON<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Convert the current metadata table to a GeoJSON FeatureCollection.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_geojson.js.html">utils/geojson.js</a>, <a href="utils_geojson.js.html#line64">line 64</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A GeoJSON FeatureCollection object.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".internal_getCurrentStatus"><span class="type-signature">(static) </span>internal_getCurrentStatus<span class="signature">(monitor)</span><span class="type-signature"> &rarr; {aq.Table}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Compute the most recent valid timestamp and value for each deviceDeploymentID,
+and append them to the metadata table.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Monitor instance.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_geojson.js.html">utils/geojson.js</a>, <a href="utils_geojson.js.html#line23">line 23</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An enhanced metadata table with last valid datetime and value.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">aq.Table</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils_geojson.html">utils/geojson</a></li><li><a href="module-utils_helpers.html">utils/helpers</a></li><li><a href="utils_analysis%250A%250AInternal%2520statistical%2520and%2520time-based%2520analysis%2520functions%2520for%2520the%2520%2560air-monitor%2560%2520package.%250AThese%2520functions%2520operate%2520on%2520%2560Monitor%2560%2520instances%2520and%2520are%2520intended%2520for%2520use%2520within%2520the%250Apackage%2520or%2520by%2520advanced%2520users%2520who%2520understand%2520the%2520internal%2520data%2520model.%250A%250AExports_%250A-%2520%257B@link%2520internal_getTimezone%257D_%2520Retrieves%2520the%2520IANA%2520timezone%2520string%2520for%2520a%2520given%2520device.%250A-%2520%257B@link%2520internal_getPM25%257D_%2520Cleans%2520and%2520rounds%2520the%2520PM2.5%2520time%2520series%2520for%2520a%2520device.%250A-%2520%257B@link%2520internal_getNowcast%257D_%2520Computes%2520the%2520NowCast%2520value%2520for%2520recent%2520PM2.5%2520readings.%250A-%2520%257B@link%2520internal_getDailyStats%257D_%2520Computes%2520per-day%2520min,%2520max,%2520mean,%2520and%2520count%2520values.%250A-%2520%257B@link%2520internal_getDiurnalStats%257D_%2520Computes%2520average%2520values%2520by%2520hour%2520of%2520day%2520across%2520multiple%2520days.%250A%250AAll%2520functions%2520assume%2520that%2520%2560Monitor.meta%2560%2520and%2520%2560Monitor.data%2560%2520have%2520been%2520properly%2520parsed%2520and%250Athat%2520each%2520%2560deviceDeploymentID%2560%2520is%2520unique%2520within%2520the%2520metadata%2520table.module_.html">utils/analysis
+
+Internal statistical and time-based analysis functions for the `air-monitor` package.
+These functions operate on `Monitor` instances and are intended for use within the
+package or by advanced users who understand the internal data model.
+
+Exports:
+- internal_getTimezone: Retrieves the IANA timezone string for a given device.
+- internal_getPM25: Cleans and rounds the PM2.5 time series for a device.
+- internal_getNowcast: Computes the NowCast value for recent PM2.5 readings.
+- internal_getDailyStats: Computes per-day min, max, mean, and count values.
+- internal_getDiurnalStats: Computes average values by hour of day across multiple days.
+
+All functions assume that `Monitor.meta` and `Monitor.data` have been properly parsed and
+that each `deviceDeploymentID` is unique within the metadata table.</a></li></ul><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#annual_coreMetadataNames">annual_coreMetadataNames</a></li><li><a href="global.html#coreMetadataNames">coreMetadataNames</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#minimalMetadataNames">minimalMetadataNames</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 02 2025 11:51:38 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
