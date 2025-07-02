@@ -25,12 +25,34 @@ export function arrayMean(arr) {
   return valid.length > 0 ? sum / valid.length : null;
 }
 
+// /**
+//  * Rounds all numeric columns in an Arquero time-series `data` table to 1 decimal place,
+//  * skipping the 'datetime' column.
+//  *
+//  * @param {aq.Table} table - The canonical data table with a 'datetime' column and one or more numeric series.
+//  * @returns {aq.Table} A new table with rounded values (to 1 decimal place) for all measurement columns.
+//  */
+// export function round1(table) {
+//   const columns = table.columnNames().filter(name => name !== 'datetime');
+
+//   const expressions = Object.fromEntries(
+//     columns.map(col => [
+//       col,
+//       `d => op.round(d['${col}'] * 10) / 10`
+//     ])
+//   );
+
+//   return table.derive(expressions);
+// }
+
 /**
- * Rounds all numeric columns in an Arquero time-series `data` table to 1 decimal place,
- * skipping the 'datetime' column.
+ * round1
  *
- * @param {aq.Table} table - The canonical data table with a 'datetime' column and one or more numeric series.
- * @returns {aq.Table} A new table with rounded values (to 1 decimal place) for all measurement columns.
+ * Round all numeric columns (except 'datetime') to 1 decimal place.
+ * Converts non-finite values (NaN, Infinity, undefined) to `null`.
+ *
+ * @param {aq.Table} table - Input table with 'datetime' as the first column.
+ * @returns {aq.Table} - New table with rounded numeric values and nulls.
  */
 export function round1(table) {
   const columns = table.columnNames().filter(name => name !== 'datetime');
@@ -38,7 +60,8 @@ export function round1(table) {
   const expressions = Object.fromEntries(
     columns.map(col => [
       col,
-      `d => op.round(d['${col}'] * 10) / 10`
+      // Wrap in finite check — if not finite, return null
+      `d => op.is_finite(d['${col}']) ? op.round(d['${col}'] * 10) / 10 : null`
     ])
   );
 

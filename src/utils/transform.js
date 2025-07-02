@@ -168,6 +168,10 @@ export function internal_select(monitor, ids) {
     throw new Error('ids must be a non-empty string or array of deviceDeploymentIDs');
   }
 
+  if (new Set(ids).size !== ids.length) {
+    throw new Error('Duplicate deviceDeploymentID values are not allowed in select()');
+  }
+
   // Reorder meta rows to match the order of `ids`
   const metaRows = ids.map(id => {
     const row = monitor.meta.objects().find(r => r.deviceDeploymentID === id);
