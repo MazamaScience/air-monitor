@@ -1,0 +1,326 @@
+/**
+ * @module utils/transform
+ *
+ * Utility functions for transforming and restructuring Monitor objects.
+ * These internal functions operate on the underlying `meta` and `data` tables
+ * and return plain `{ meta, data }` objects, enabling consistent post-processing.
+ *
+ * Internal functions:
+ * - {@link internal_collapse} – Collapses multiple time series into a single column using aggregation.
+ * - {@link internal_combine} – Merges two monitor objects, dropping duplicated IDs in the second.
+ * - {@link internal_select} – Subsets a monitor by selected deviceDeploymentIDs.
+ * - {@link internal_filterByValue} – Filters by a metadata field and matching value.
+ * - {@link internal_dropEmpty} – Removes time series columns with no valid data.
+ * - {@link internal_trimDate} – Trims time series to full local-time days.
+ *
+ * Helper functions:
+ * - {@link arrayMean} – Computes the mean of an array, skipping null/NaN/invalid values.
+ * - {@link round1} – Rounds all non-datetime columns in a data table to 1 decimal place.
+ */
+
+import * as aq from 'arquero';
+const op = aq.op;
+
+import { DateTime } from 'luxon';
+
+import { arrayMean, round1 } from './helpers.js';
+
+/**
+ * Collapse a Monitor object into a single time series.
+ *
+ * Collapses data from all time series into a single time series using the
+ * function provided in the `FUN` argument (typically 'mean'). The single time
+ * series result will be located at the mean longitude and latitude.
+ *
+ * When `FUN === "quantile"`, the `FUN_arg` argument specifies the quantile
+ * probability.
+ *
+ * Available function names are those defined at:
+ * https://uwdata.github.io/arquero/api/op#aggregate-functions
+ *
+ * @param {Monitor} monitor - The Monitor instance to collapse.
+ * @param {string} deviceID - The name of the resulting time series column.
+ * @param {string} FUN - The aggregate function name (e.g. "mean", "sum", "quantile").
+ * @param {number} FUN_arg - An optional argument for the aggregator (e.g. quantile prob).
+ * @returns {{ meta: aq.Table, data: aq.Table }} A Monitor object with a single time series.
+ */
+export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean", FUN_arg = 0.8) {
+  const meta = monitor.meta;
+  const data = monitor.data;
+
+  // ----- Create new_meta ---------------------------------------------------
+
+  const longitude = arrayMean(meta.array("longitude"));
+  const latitude = arrayMean(meta.array("latitude"));
+  // TODO:  Could create new locationID based on geohash
+  const locationID = "xxx";
+  const deviceDeploymentID = `xxx_${deviceID}`;
+
+  // Start with first row and override key fields
+  let new_meta = meta.slice(0, 1).derive({
+    locationID: aq.escape(locationID),
+    locationName: aq.escape(deviceID),
+    longitude: aq.escape(longitude),
+    latitude: aq.escape(latitude),
+    elevation: aq.escape(null),
+    houseNumber: aq.escape(null),
+    street: aq.escape(null),
+    city: aq.escape(null),
+    zip: aq.escape(null),
+    deviceDeploymentID: aq.escape(deviceDeploymentID),
+    deviceType: aq.escape(null),
+    deploymentType: aq.escape(null),
+  });
+
+  // ----- Create new_data ---------------------------------------------------
+
+  // NOTE:  Arquero provides no functionality for row-operations, nor for
+  // NOTE:  transpose. So we have to perform the following operations:
+  // NOTE:    - fold the data into a dataframe with timestamp and id columns
+  // NOTE:    - pivot the data based on timestamp while summing data columns
+  // NOTE:    - fold the result into a dataframe with timestamp and value columns
+
+  const ids = monitor.getIDs();
+  const datetime = monitor.getDatetime();
+
+  let transformed = data
+    .derive({ utcDatestamp: 'd => op.format_utcdate(d.datetime)' })
+    .select(aq.not('datetime'));
+
+  const datetimeColumns = transformed.array('utcDatestamp');
+
+  // Build aggregation function string
+  let valueExpression;
+  if (FUN === 'count') {
+    valueExpression = '() => op.count()';
+  } else if (FUN === 'quantile') {
+    valueExpression = `d => op.quantile(d.value, ${FUN_arg})`;
+  } else {
+    valueExpression = `d => op.${FUN}(d.value)`;
+  }
+
+  const new_data = transformed
+    .fold(ids)
+    .pivot(
+      { key: 'd => d.utcDatestamp' },
+      { value: valueExpression }
+    )
+    .fold(datetimeColumns)
+    .derive({ datetime: 'd => op.parse_date(d.key)' })
+    .rename({ value: deviceID })
+    .select(['datetime', deviceID]);
+
+  return { meta: new_meta, data: round1(new_data) };
+}
+
+/**
+ * Combines two Monitor objects by merging their metadata and time series data.
+ * If any deviceDeploymentIDs in `monitorB` are already present in `monitorA`,
+ * they will be dropped from `monitorB` before merging.
+ *
+ * Data are combined with 'join_full' to guarantee that all times from either
+ * Monitor object will be retained.
+ *
+ * @param {Monitor} monitorA - The base Monitor instance.
+ * @param {Monitor} monitorB - The Monitor instance to merge in.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A combined monitor object.
+ */
+export function internal_combine(monitorA, monitorB) {
+  const idsA = new Set(monitorA.meta.array('deviceDeploymentID'));
+  const idsB = monitorB.meta.array('deviceDeploymentID');
+
+  // Identify overlapping and unique IDs
+  const overlappingIDs = idsB.filter(id => idsA.has(id));
+  const uniqueIDs = idsB.filter(id => !idsA.has(id));
+
+  // Filter monitorB's meta and data to include only unique IDs
+  const metaB = monitorB.meta
+    .params({ ids: uniqueIDs })
+    .filter('op.includes(ids, d.deviceDeploymentID)');
+
+  const dataB = monitorB.data.select(['datetime', ...uniqueIDs]);
+
+  // Combine everything
+  const combinedMeta = monitorA.meta.concat(metaB);
+  const combinedData = monitorA.data
+    .join_full(dataB, "datetime")
+    .orderby("datetime");
+
+  return { meta: combinedMeta, data: round1(combinedData) };
+}
+
+
+/**
+ * Subsets and reorders time series columns and corresponding metadata
+ * for the specified deviceDeploymentIDs.
+ *
+ * Ensures that the returned `meta` rows appear in the same order as `ids`,
+ * and that all specified columns are included in the `data` table.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing metadata and data.
+ * @param {string[]} ids - An array of deviceDeploymentIDs to select and order.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A subset of the monitor with selected columns.
+ *
+ * @throws {Error} If `ids` is not a non-empty array.
+ */
+export function internal_select(monitor, ids) {
+  // Normalize to array if a single string is passed
+  if (typeof ids === 'string') {
+    ids = [ids];
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new Error('ids must be a non-empty string or array of deviceDeploymentIDs');
+  }
+
+  if (new Set(ids).size !== ids.length) {
+    throw new Error('Duplicate deviceDeploymentID values are not allowed in select()');
+  }
+
+  // Reorder meta rows to match the order of `ids`
+  const metaRows = ids.map(id => {
+    const row = monitor.meta.objects().find(r => r.deviceDeploymentID === id);
+    if (!row) {
+      throw new Error(`deviceDeploymentID '${id}' not found in metadata`);
+    }
+    return row;
+  });
+  const meta = aq.from(metaRows);
+
+  // Subset and reorder columns in the data table
+  const data = monitor.data.select(['datetime', ...ids]);
+
+  return { meta: meta, data: round1(data) };
+}
+
+/**
+ * Filters a monitor object to include only records where a given metadata field equals the specified value.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing metadata and data.
+ * @param {string} columnName - Name of the metadata column to filter on.
+ * @param {string|number} value - Value to match in the specified column.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A filtered monitor object.
+ *
+ * @throws {Error} If the specified column does not exist in monitor.meta.
+ */
+export function internal_filterByValue(monitor, columnName, value) {
+  if (!monitor.meta.columnNames().includes(columnName)) {
+    throw new Error(`Column '${columnName}' not found in metadata`);
+  }
+
+  const colType = typeof monitor.meta.get(columnName);
+  let filterExpression;
+
+  if (colType === 'number') {
+    const parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      throw new Error(`Value '${value}' could not be parsed as a number`);
+    }
+    filterExpression = `d => op.equal(d.${columnName}, ${parsedValue})`;
+  } else if (colType === 'string') {
+    const escaped = value.toString().replace(/'/g, "\\'");
+    filterExpression = `d => op.equal(d.${columnName}, '${escaped}')`;
+  } else {
+    throw new Error(`Unsupported column type for filtering: ${colType}`);
+  }
+
+  const meta = monitor.meta.filter(filterExpression);
+  const ids = meta.array('deviceDeploymentID');
+  const data = monitor.data.select(['datetime', ...ids]);
+
+  return { meta: meta, data: round1(data) };
+}
+
+/**
+ * Drops time series from the monitor that contain only missing values.
+ *
+ * A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
+ * The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing metadata and data.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A new monitor object with empty time series removed.
+ */
+export function internal_dropEmpty(monitor) {
+  const data = monitor.data;
+  const ids = data.columnNames().filter(c => c !== 'datetime');
+
+  // Count valid (non-null, non-NaN, non-'NA') values for each time series column
+  const countRow = data
+    // arquero pattern to compute column-wise aggregations
+    .rollup(Object.fromEntries(ids.map(id => [id, "d => op.valid(d['" + id + "'])"])))
+    .object(0); // Get the single row as an object
+
+
+  // Keep only the IDs with at least one valid value
+  const validIDs = Object.entries(countRow)
+    .filter(([_, count]) => count > 0)
+    .map(([id]) => id);
+
+  const filteredData = data.select(['datetime', ...validIDs]);
+
+  const filteredMeta = monitor.meta
+    .params({ ids: validIDs })
+    .filter((d, $) => op.includes($.ids, d.deviceDeploymentID));
+
+  return { meta: filteredMeta, data: round1(filteredData) };
+}
+
+/**
+ * Trims time-series data to full local-time days (00:00–23:00),
+ * and optionally removes full days with no data at the start or end.
+ *
+ * @param {Monitor} monitor - The Monitor instance with datetime-sorted, hourly-interval data.
+ * @param {string} timezone - An IANA timezone string (e.g., "America/New_York").
+ * @param {boolean} [trimEmptyDays=true] - Whether to remove fully-missing days at edges.
+ * @returns {{ meta: aq.Table, data: aq.Table }} A subset of the monitor with trimmed data.
+ *
+ * @throws {Error} If the datetime column is missing, empty, or timezone is invalid.
+ */
+export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
+  // NOTE:  monitor.data.datetime is an array of JS 'Date' objects.
+  // NOTE:  They are stored in 'UTC' internally but displayed in your
+  // NOTE:  computer's system timezone by default.
+  // NOTE:  We use the luxon 'DateTime' object for timezone-aware manipulations.
+  const datetime = monitor.data.array('datetime');
+  if (!datetime || datetime.length === 0) {
+    throw new Error('No datetime values found in monitor.data');
+  }
+
+  // Validate timezone
+  const test = DateTime.fromJSDate(datetime[0], { zone: timezone });
+  if (!test.isValid || test.zoneName !== timezone) {
+    throw new Error(`Invalid or unrecognized timezone: '${timezone}'`);
+  }
+
+  // Convert first and last timestamps to local time
+  const startLocal = DateTime.fromJSDate(datetime[0], { zone: timezone });
+  const endLocal = DateTime.fromJSDate(datetime[datetime.length - 1], { zone: timezone });
+
+  // Compute number of hours to trim at start and end
+  const startTrim = startLocal.hour === 0 ? 0 : 24 - startLocal.hour;
+  const endTrim = endLocal.hour === 23 ? 0 : endLocal.hour + 1;
+
+  let start = startTrim;
+  let end = datetime.length - endTrim;
+
+  if (trimEmptyDays) {
+    const dataCols = monitor.data.columnNames().filter(c => c !== 'datetime');
+
+    // Check if first full day (first 24 rows after trim) is all missing
+    const firstDay = monitor.data.slice(start, start + 24);
+    const allInvalidStart = dataCols.every(col =>
+      firstDay.array(col).every(v => v == null)
+    );
+    if (allInvalidStart) start += 24;
+
+    // Check if last full day (last 24 rows before trim) is all missing
+    const lastDay = monitor.data.slice(end - 24, end);
+    const allInvalidEnd = dataCols.every(col =>
+      lastDay.array(col).every(v => v == null)
+    );
+    if (allInvalidEnd) end -= 24;
+  }
+
+  const trimmed = monitor.data.slice(start, end);
+  return { meta: monitor.meta, data: round1(trimmed) };
+}
