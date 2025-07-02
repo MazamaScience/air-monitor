@@ -18,6 +18,8 @@
 
 import { pm_nowcast, dailyStats, diurnalStats } from 'air-monitor-algorithms';
 
+import { validateDeviceID } from './helpers.js';
+
 /**
  * Returns the Olson timezone string for a single deviceDeploymentID.
  * @param {object} monitor - Monitor instance with `.meta` table.
@@ -56,27 +58,17 @@ export function internal_getTimezone(monitor, id) {
  * Ensures all non-null values are numeric before applying rounding.
  *
  * @param {Monitor} monitor - The Monitor instance containing time-series data.
- * @param {string} id - The deviceDeploymentID identifying the desired time series.
+ * @param {string | string[]} id - A single deviceDeploymentID or array of length 1.
  * @returns {Array<number|null>} Cleaned PM2.5 values rounded to 1 decimal place.
  *
  * @throws {Error} If the device ID is not found or is not a string.
  */
 export function internal_getPM25(monitor, id) {
-  if (typeof id !== 'string') {
-    throw new Error(
-      `Expected deviceDeploymentID to be a string. Received: ${JSON.stringify(id)}`
-    );
-  }
-
-  const availableIDs = monitor.data.columnNames();
-  if (!availableIDs.includes(id)) {
-    throw new Error(`Device ID '${id}' not found in monitor.data`);
-  }
-
-  const data = monitor.data.array(id);
+  const deviceID = validateDeviceID(monitor, id);
+  const data = monitor.data.array(deviceID);
 
   if (!Array.isArray(data)) {
-    throw new Error(`Device ID '${id}' not found in monitor.data`);
+    throw new Error(`Device ID '${deviceID}' not found in monitor.data`);
   }
 
   return data.map(v =>
@@ -86,25 +78,26 @@ export function internal_getPM25(monitor, id) {
   );
 }
 
-
 /**
  * Computes the NowCast PM2.5 value for a specified device.
  *
  * @param {Monitor} monitor - The Monitor instance containing parsed time-series data.
- * @param {string} id - The deviceDeploymentID identifying the desired time series.
+ * @param {string | string[]} id - A single deviceDeploymentID or array of length 1.
  * @returns {number|null} The NowCast PM2.5 value, or null if input data is invalid or missing.
  *
- * @throws {Error} If the device ID is not found.
+ * @throws {Error} If the device ID is not found or is not a string.
  */
 export function internal_getNowcast(monitor, id) {
-  const pm25 = monitor.data.array(id);
+  const deviceID = validateDeviceID(monitor, id);
+  const pm25 = monitor.data.array(deviceID);
 
   if (!Array.isArray(pm25)) {
-    throw new Error(`Device ID '${id}' not found in monitor.data`);
+    throw new Error(`Column for device ID '${deviceID}' is not a valid array`);
   }
 
   return pm_nowcast(pm25);
 }
+
 
 /**
  * Calculates daily statistics for the time series identified by id after the
@@ -114,17 +107,18 @@ export function internal_getNowcast(monitor, id) {
  * properties.
  *
  * @param {Monitor} monitor - The Monitor instance containing parsed time-series data.
- * @param {string} id - The deviceDeploymentID identifying the desired time series.
+ * @param {string | string[]} id - A single deviceDeploymentID or array of length 1.
  * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max` properties.
  */
 export function internal_getDailyStats(monitor, id) {
+  const deviceID = validateDeviceID(monitor, id);
   const datetime = monitor.data.array('datetime');
-  const pm25 = internal_getPM25(monitor, id);
-  const timezone = internal_getTimezone(monitor, id);
+  const pm25 = internal_getPM25(monitor, deviceID);
+  const timezone = internal_getTimezone(monitor, deviceID);
 
   // Assert aligned input lengths
   if (datetime.length !== pm25.length) {
-    throw new Error(`Datetime and PM2.5 arrays are misaligned for device '${id}'`);
+    throw new Error(`Datetime and PM2.5 arrays are misaligned for device '${deviceID}'`);
   }
 
   const daily = dailyStats(datetime, pm25, timezone);

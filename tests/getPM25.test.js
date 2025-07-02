@@ -52,10 +52,10 @@ test('throws an error for null deviceDeploymentID', () => {
   }, /Expected deviceDeploymentID to be a string/, 'Throws error for null ID');
 });
 
-test('throws an error for array as deviceDeploymentID', () => {
+test('throws an error for object as deviceDeploymentID', () => {
   assert.throws(() => {
-    monitor.getPM25(['some-id']);
-  }, /Expected deviceDeploymentID to be a string/, 'Throws error for array input');
+    monitor.getPM25({ id: 'abc' });
+  }, /Expected deviceDeploymentID/, 'Throws error for object input');
 });
 
 test.run();

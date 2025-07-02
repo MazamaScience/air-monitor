@@ -7,6 +7,7 @@
  *
  * - `arrayMean(arr)`: Computes the arithmetic mean of valid numeric entries in an array.
  * - `round1(table)`: Rounds numeric measurement columns in an Arquero table to 1 decimal place.
+ * - `validateDeviceID(monitor, id)`: Verifies that a single ID exists in the monitor object.
  *
  * All functions in this file are pure and side-effect-free.
  * Intended for internal use within the package.
@@ -43,3 +44,36 @@ export function round1(table) {
 
   return table.derive(expressions);
 }
+
+/**
+ * Validates and resolves a deviceDeploymentID.
+ * Accepts either a string or a single-element string array.
+ * Verifies that the resolved ID exists in monitor.data.
+ *
+ * @param {Monitor} monitor - The Monitor instance containing time-series data.
+ * @param {string | string[]} id - A single string or a single-element array.
+ * @returns {string} A validated deviceDeploymentID string.
+ *
+ * @throws {Error} If input is invalid or the ID does not exist in monitor.data.
+ */
+export function validateDeviceID(monitor, id) {
+  let deviceID;
+
+  if (typeof id === 'string') {
+    deviceID = id;
+  } else if (Array.isArray(id) && id.length === 1 && typeof id[0] === 'string') {
+    deviceID = id[0];
+  } else {
+    throw new Error(
+      `Expected deviceDeploymentID to be a string or a single-element string array. Received: ${JSON.stringify(id)}`
+    );
+  }
+
+  const availableIDs = monitor.data.columnNames();
+  if (!availableIDs.includes(deviceID)) {
+    throw new Error(`Device ID '${deviceID}' not found in monitor.data`);
+  }
+
+  return deviceID;
+}
+
