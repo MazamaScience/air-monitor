@@ -1,3 +1,7 @@
+# air-monitor 1.1.0
+
+- Major non-breaking refactor and publication to npm.
+
 # air-monitor 1.0.11
 
 - 'combine' now uses "join_full" to retain all times from either Monitor object.
