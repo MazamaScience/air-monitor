@@ -19,25 +19,37 @@
 import { pm_nowcast, dailyStats, diurnalStats } from 'air-monitor-algorithms';
 
 /**
- * Returns the timezone associated with a given device deployment ID.
- *
- * @param {Monitor} monitor - The Monitor instance containing metadata.
- * @param {string} id - The deviceDeploymentID identifying the desired time series.
- * @returns {string} The timezone name (e.g., "America/New_York").
- *
- * @throws {Error} If the deviceDeploymentID is not found in the metadata.
+ * Returns the Olson timezone string for a single deviceDeploymentID.
+ * @param {object} monitor - Monitor instance with `.meta` table.
+ * @param {string | string[]} id - A single deviceDeploymentID or array of length 1.
+ * @returns {string} Olson timezone.
+ * @throws {Error} If ID is not found or is invalid.
  */
 export function internal_getTimezone(monitor, id) {
+  // Accept either a single string or an array of length 1
+  let deviceID;
+
+  if (typeof id === 'string') {
+    deviceID = id;
+  } else if (Array.isArray(id) && id.length === 1 && typeof id[0] === 'string') {
+    deviceID = id[0];
+  } else {
+    throw new Error(
+      `Expected deviceDeploymentID to be a string or a single-element string array. Received: ${JSON.stringify(id)}`
+    );
+  }
+
   const ids = monitor.meta.array('deviceDeploymentID');
   const timezones = monitor.meta.array('timezone');
 
-  const index = ids.indexOf(id);
+  const index = ids.indexOf(deviceID);
   if (index === -1) {
-    throw new Error(`Device ID '${id}' not found in metadata.`);
+    throw new Error(`Device ID '${deviceID}' not found in metadata.`);
   }
 
   return timezones[index];
 }
+
 
 /**
  * Retrieves and rounds the PM2.5 time series for a given device ID.
@@ -47,9 +59,20 @@ export function internal_getTimezone(monitor, id) {
  * @param {string} id - The deviceDeploymentID identifying the desired time series.
  * @returns {Array<number|null>} Cleaned PM2.5 values rounded to 1 decimal place.
  *
- * @throws {Error} If the device ID is not found.
+ * @throws {Error} If the device ID is not found or is not a string.
  */
 export function internal_getPM25(monitor, id) {
+  if (typeof id !== 'string') {
+    throw new Error(
+      `Expected deviceDeploymentID to be a string. Received: ${JSON.stringify(id)}`
+    );
+  }
+
+  const availableIDs = monitor.data.columnNames();
+  if (!availableIDs.includes(id)) {
+    throw new Error(`Device ID '${id}' not found in monitor.data`);
+  }
+
   const data = monitor.data.array(id);
 
   if (!Array.isArray(data)) {
@@ -62,6 +85,7 @@ export function internal_getPM25(monitor, id) {
       : Math.round(v * 10) / 10
   );
 }
+
 
 /**
  * Computes the NowCast PM2.5 value for a specified device.

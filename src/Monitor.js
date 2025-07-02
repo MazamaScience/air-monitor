@@ -218,6 +218,7 @@ class Monitor {
   getTimezone(id) {
     return internal_getTimezone(this, id);
   }
+
   /**
    * Returns the PM2.5 time series for the specified device.
    * @param {string} id - The deviceDeploymentID of the time series to select.

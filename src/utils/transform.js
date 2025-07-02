@@ -159,8 +159,13 @@ export function internal_combine(monitorA, monitorB) {
  * @throws {Error} If `ids` is not a non-empty array.
  */
 export function internal_select(monitor, ids) {
+  // Normalize to array if a single string is passed
+  if (typeof ids === 'string') {
+    ids = [ids];
+  }
+
   if (!Array.isArray(ids) || ids.length === 0) {
-    throw new Error('ids must be a non-empty array of deviceDeploymentIDs');
+    throw new Error('ids must be a non-empty string or array of deviceDeploymentIDs');
   }
 
   // Reorder meta rows to match the order of `ids`
