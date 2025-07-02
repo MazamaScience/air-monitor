@@ -54,29 +54,31 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
  * - Replaces string `'NA'` with `null`
  * - Converts all values to floats
  * - Replaces negative values with zero
+ * - Replaces non-finite values (e.g. NaN, Infinity) with null
  *
  * @param {aq.Table} dt - Raw Arquero table from CSV.
  * @returns {aq.Table} Cleaned data table suitable for use in a Monitor object.
  */
 export function parseData(dt) {
-  const ids = dt.columnNames().splice(1); // remove 'datetime'
+  const ids = dt.columnNames().slice(1); // skip 'datetime'
 
-  // NOTE:  2025-06-25
-  // NOTE:  I tried replacing the string expressions with aq.escape() but never
-  // NOTE:  got it to work. For now, we'll stick with the string expressions.
-
-  // Replace 'NA' with null, and parse as float
-  let values1 = {};
+  // Replace 'NA' with null, then parse as float
+  const values1 = {};
   ids.forEach(id => {
     values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`;
   });
 
   // Replace negative values with zero
-  let values2 = {};
+  const values2 = {};
   ids.forEach(id => {
     values2[id] = `d => d['${id}'] < 0 ? 0 : d['${id}']`;
   });
 
-  // Return the modified data table
-  return dt.derive(values1).derive(values2);
+  // Replace non-finite values (e.g. NaN, Infinity) with null
+  const values3 = {};
+  ids.forEach(id => {
+    values3[id] = `d => d['${id}'] != null && !op.is_finite(d['${id}']) ? null : d['${id}']`;
+  });
+
+  return dt.derive(values1).derive(values2).derive(values3);
 }

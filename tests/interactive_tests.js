@@ -6,6 +6,8 @@
 
 // console.log(monitor.count());
 
+// let trimmed = monitor.trimDate("America/Los_Angeles")
+
 // // ----- test subset -----------------------------------------------------------
 
 // // const WA = monitor.filterByValue('stateCode', 'WA');

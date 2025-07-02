@@ -261,35 +261,61 @@ export function internal_dropEmpty(monitor) {
 }
 
 /**
- * Trims the time-series data to full local-time days using Luxon.
- * Removes partial days at the start and end of the series.
+ * Trims time-series data to full local-time days (00:00–23:00),
+ * and optionally removes full days with no data at the start or end.
  *
- * @param {Monitor} monitor - The Monitor instance with datetime-ordered data.
+ * @param {Monitor} monitor - The Monitor instance with datetime-sorted, hourly-interval data.
  * @param {string} timezone - An IANA timezone string (e.g., "America/New_York").
+ * @param {boolean} [trimEmptyDays=true] - Whether to remove fully-missing days at edges.
  * @returns {{ meta: aq.Table, data: aq.Table }} A subset of the monitor with trimmed data.
  *
- * @throws {Error} If the datetime column is missing or empty.
+ * @throws {Error} If the datetime column is missing, empty, or timezone is invalid.
  */
-export function internal_trimDate(monitor, timezone) {
+export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
+  // NOTE:  monitor.data.datetime is an array of JS 'Date' objects.
+  // NOTE:  They are stored in 'UTC' internally but displayed in your
+  // NOTE:  computer's system timezone by default.
+  // NOTE:  We use the luxon 'DateTime' object for timezone-aware manipulations.
   const datetime = monitor.data.array('datetime');
   if (!datetime || datetime.length === 0) {
     throw new Error('No datetime values found in monitor.data');
   }
 
-  const localTime = datetime.map((jsDate) =>
-    DateTime.fromJSDate(jsDate, { zone: timezone })
-  );
+  // Validate timezone
+  const test = DateTime.fromJSDate(datetime[0], { zone: timezone });
+  if (!test.isValid || test.zoneName !== timezone) {
+    throw new Error(`Invalid or unrecognized timezone: '${timezone}'`);
+  }
 
-  const hours = localTime.map((t) => t.hour);
+  // Convert first and last timestamps to local time
+  const startLocal = DateTime.fromJSDate(datetime[0], { zone: timezone });
+  const endLocal = DateTime.fromJSDate(datetime[datetime.length - 1], { zone: timezone });
 
-  const start = hours[0] === 0 ? 0 : 24 - hours[0];
-  const end = hours[hours.length - 1] === 23
-    ? hours.length - 1
-    : hours.length - hours[hours.length - 1] - 1;
+  // Compute number of hours to trim at start and end
+  const startTrim = startLocal.hour === 0 ? 0 : 24 - startLocal.hour;
+  const endTrim = endLocal.hour === 23 ? 0 : endLocal.hour + 1;
 
-  const data = monitor.data.slice(start, end);
-  const meta = monitor.meta;
+  let start = startTrim;
+  let end = datetime.length - endTrim;
 
-  return { meta: meta, data: round1(data) };
+  if (trimEmptyDays) {
+    const dataCols = monitor.data.columnNames().filter(c => c !== 'datetime');
+
+    // Check if first full day (first 24 rows after trim) is all missing
+    const firstDay = monitor.data.slice(start, start + 24);
+    const allInvalidStart = dataCols.every(col =>
+      firstDay.array(col).every(v => v == null)
+    );
+    if (allInvalidStart) start += 24;
+
+    // Check if last full day (last 24 rows before trim) is all missing
+    const lastDay = monitor.data.slice(end - 24, end);
+    const allInvalidEnd = dataCols.every(col =>
+      lastDay.array(col).every(v => v == null)
+    );
+    if (allInvalidEnd) end -= 24;
+  }
+
+  const trimmed = monitor.data.slice(start, end);
+  return { meta: monitor.meta, data: round1(trimmed) };
 }
-
