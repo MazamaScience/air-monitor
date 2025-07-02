@@ -1,3 +1,5 @@
+import Monitor from '../index.js';
+
 /**
  * @module utils/helpers
  *
@@ -100,3 +102,14 @@ export function validateDeviceID(monitor, id) {
   return deviceID;
 }
 
+/**
+ * Asserts that the value is a Monitor instance.
+ * Useful for verifying return types of public methods.
+ * @param {*} result - The value to check.
+ * @param {string} methodName - Name of the method returning the value (for error messages).
+ */
+export function assertIsMonitor(result, methodName = 'unknown') {
+  if (!(result instanceof Monitor)) {
+    throw new Error(`${methodName}() must return a Monitor instance`);
+  }
+}

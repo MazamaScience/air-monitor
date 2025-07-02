@@ -1,4 +1,8 @@
-// tests/getPM25.test.js
+// This test uses:
+// - test.before(...) to load a Monitor instance from 'test.meta.csv' and 'test.data.csv'
+// - a consistent layout for assert checks
+// - standard ES module setup with __dirname and file:// URLs
+
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import path from 'path';

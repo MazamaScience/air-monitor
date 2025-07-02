@@ -1,26 +1,27 @@
-// tests/getTimezone.test.js
+// This test uses:
+// - test.before(...) to load a Monitor instance from 'test.meta.csv' and 'test.data.csv'
+// - a consistent layout for assert checks
+// - standard ES module setup with __dirname and file:// URLs
+
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
 
-// Setup __dirname for ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Test file location
-const baseName = 'test';
-const baseUrl = `file://${path.resolve(__dirname)}`;
-
-// Fresh monitor instance per test
-let monitor;
-
 // test.before.each(async () => {
 test.before(async () => {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  const baseName = 'test';
+  const baseUrl = `file://${path.resolve(__dirname)}`;
+
   monitor = new Monitor();
   await monitor.loadCustom(baseName, baseUrl);
 });
+
+let monitor;
 
 test('returns the correct Olson timezone for a valid deviceDeploymentID', () => {
   const id = monitor.meta.get('deviceDeploymentID', 0);

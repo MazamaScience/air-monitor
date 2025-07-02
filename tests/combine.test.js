@@ -1,10 +1,13 @@
+// This test uses:
+// - test.before(...) to load a Monitor instance from 'test.meta.csv' and 'test.data.csv'
+// - a consistent layout for assert checks
+// - standard ES module setup with __dirname and file:// URLs
+
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
-
-let fullMonitor;
 
 test.before(async () => {
   const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +19,8 @@ test.before(async () => {
   fullMonitor = new Monitor();
   await fullMonitor.loadCustom(baseName, baseUrl);
 });
+
+let fullMonitor;
 
 test('combine() merges metadata and time series correctly', () => {
   const allIDs = fullMonitor.getIDs();

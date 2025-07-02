@@ -40,6 +40,9 @@ import {
   internal_getCurrentStatus,
   internal_createGeoJSON
 } from './utils/geojson.js';
+import {
+  assertIsMonitor
+} from './utils/helpers.js';
 
 // ----- Monitor Class ---------------------------------------------------------
 
@@ -289,7 +292,9 @@ class Monitor {
    */
   collapse(deviceID, FUN, FUN_arg) {
     const { meta, data } = internal_collapse(this, deviceID, FUN, FUN_arg);
-    return new Monitor(meta, data);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'collapse');
+    return result;
   }
 
   /**
@@ -297,11 +302,13 @@ class Monitor {
    * from the second monitor to avoid collisions.
    *
    * @param {Monitor} monitor - Another Monitor instance to combine with this one.
-   * @returns {Monitor} A new combined Monitor instance.
+   * @returns {Monitor} New Monitor with combined time series.
    */
   combine(monitor) {
     const { meta, data } = internal_combine(this, monitor);
-    return new Monitor(meta, data);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'combine');
+    return result;
   }
 
   /**
@@ -312,7 +319,9 @@ class Monitor {
    */
   select(ids) {
     const { meta, data } = internal_select(this, ids);
-    return new Monitor(meta, data);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'select');
+    return result;
   }
 
   /**
@@ -325,7 +334,9 @@ class Monitor {
    */
   filterByValue(column, value) {
     const { meta, data } = internal_filterByValue(this, column, value);
-    return new Monitor(meta, data);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'filterByValue');
+    return result;
   }
 
   /**
@@ -333,11 +344,13 @@ class Monitor {
    *
    * A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
    * The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.
-   * @returns {{ meta: aq.Table, data: aq.Table }} A new monitor object with empty time series removed.
+   * @returns {Monitor} New Monitor with empty time series removed.
    */
   dropEmpty() {
     const { meta, data } = internal_dropEmpty(this);
-    return new Monitor(meta, data);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'dropEmpty');
+    return result;
   }
 
   /**
@@ -348,7 +361,9 @@ class Monitor {
    */
   trimDate(timezone) {
     const { meta, data } = internal_trimDate(this, timezone);
-    return new Monitor(meta, data);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'trimDate');
+    return result;
   }
 
   // ----- Other functions -----------------------------------------------------

@@ -1,12 +1,14 @@
+// This test uses:
+// - test.before(...) to load a Monitor instance from 'test.meta.csv' and 'test.data.csv'
+// - a consistent layout for assert checks
+// - standard ES module setup with __dirname and file:// URLs
+
 import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
 
-let monitor;
-
-// Load test data once before all tests
 // test.before.each(async () => {
 test.before(async () => {
   const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +20,8 @@ test.before(async () => {
   monitor = new Monitor();
   await monitor.loadCustom(baseName, baseUrl);
 });
+
+let monitor;
 
 test('collapse() reduces all time series into one with correct values and structure', () => {
   const collapsed = monitor.collapse('collapsedID', 'mean');
@@ -53,6 +57,11 @@ test('collapse() reduces all time series into one with correct values and struct
       );
     }
   }
+});
+
+test('collapse returns a Monitor instance', () => {
+  const result = monitor.collapse('collapsedID', 'mean');
+  assert.instance(result, Monitor, 'collapse returns a Monitor');
 });
 
 test.run();
