@@ -13,6 +13,7 @@
 
 import * as aq from 'arquero';
 import { parseMeta, parseData } from './parse.js';
+import { DateTime } from 'luxon';
 
 // ----- Constants -----------------------------------------------------------
 
@@ -90,7 +91,14 @@ async function loadWithRetry(url, maxAttempts = 2) {
   let attempt = 0;
   while (attempt < maxAttempts) {
     try {
-      return await aq.loadCSV(url);
+      return await aq.loadCSV(url, {
+        // IMPORTANT! Always parse any 'datetime' field as timezone-aware luxon DateTime.
+        // IMPORTANT! Specifying "zone: 'UTC'" is only required in cases where
+        // IMPORTANT! the time string may not end with 'Z'.
+        parse: {
+          datetime: (s) => DateTime.fromISO(s, { zone: 'UTC' }),
+        },
+      });
     } catch (err) {
       attempt++;
       if (attempt >= maxAttempts) {

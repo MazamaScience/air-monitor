@@ -1,3 +1,6 @@
+import { DateTime } from 'luxon';
+import assert from 'node:assert';
+
 import Monitor from '../index.js';
 
 /**
@@ -23,26 +26,6 @@ export function arrayMean(arr) {
   const sum = valid.reduce((acc, v) => acc + v, 0);
   return valid.length > 0 ? sum / valid.length : null;
 }
-
-// /**
-//  * Rounds all numeric columns in an Arquero time-series `data` table to 1 decimal place,
-//  * skipping the 'datetime' column.
-//  *
-//  * @param {aq.Table} table - The canonical data table with a 'datetime' column and one or more numeric series.
-//  * @returns {aq.Table} A new table with rounded values (to 1 decimal place) for all measurement columns.
-//  */
-// export function round1(table) {
-//   const columns = table.columnNames().filter(name => name !== 'datetime');
-
-//   const expressions = Object.fromEntries(
-//     columns.map(col => [
-//       col,
-//       `d => op.round(d['${col}'] * 10) / 10`
-//     ])
-//   );
-
-//   return table.derive(expressions);
-// }
 
 /**
  * round1
@@ -108,5 +91,49 @@ export function validateDeviceID(monitor, id) {
 export function assertIsMonitor(result, methodName = 'unknown') {
   if (!(result instanceof Monitor)) {
     throw new Error(`${methodName}() must return a Monitor instance`);
+  }
+}
+
+/**
+ * Validates a Monitor data table with the following requirements:
+ * - Must contain a 'datetime' column with only valid Luxon UTC DateTime objects
+ * - Datetimes must be in strictly increasing order, spaced exactly 1 hour apart
+ * - All other columns must be numeric
+ *
+ * @param {aq.Table} table - The Arquero table to validate.
+ * @throws {Error} If validation fails.
+ */
+export function validateDataTable(table) {
+  assert(table.columnNames().includes('datetime'), `'datetime' column is missing`);
+
+  const datetimes = table.array('datetime');
+  const n = datetimes.length;
+
+  for (let i = 0; i < n; i++) {
+    const dt = datetimes[i];
+    assert(DateTime.isDateTime(dt), `Row ${i}: datetime is not a Luxon DateTime`);
+    assert(dt.isValid, `Row ${i}: datetime is invalid: ${dt.invalidReason}`);
+    assert(dt.zoneName === 'UTC', `Row ${i}: datetime is not in UTC`);
+  }
+
+  for (let i = 1; i < n; i++) {
+    const prev = datetimes[i - 1];
+    const curr = datetimes[i];
+    const diff = curr.diff(prev, 'hours').hours;
+    assert(diff === 1, `Row ${i}: datetime gap is ${diff} hours (expected 1 hour)`);
+  }
+
+  for (const col of table.columnNames()) {
+    if (col === 'datetime') continue;
+
+    const colData = table.array(col);
+    for (let i = 0; i < colData.length; i++) {
+      const val = colData[i];
+      const isValid =
+        val === null ||
+        (typeof val === 'number' && Number.isFinite(val));
+
+      assert(isValid, `Row ${i}, column '${col}': value is not numeric or null`);
+    }
   }
 }

@@ -14,6 +14,8 @@
 import * as aq from 'arquero';
 const op = aq.op;
 
+import { validateDataTable } from './helpers.js';
+
 const FLOAT_COLUMNS = ['longitude', 'latitude', 'elevation'];
 
 /**
@@ -55,9 +57,11 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
  * - Converts all values to floats
  * - Replaces negative values with zero
  * - Replaces non-finite values (e.g. NaN, Infinity) with null
+ * - Validates the final table using validateDataTable()
  *
  * @param {aq.Table} dt - Raw Arquero table from CSV.
  * @returns {aq.Table} Cleaned data table suitable for use in a Monitor object.
+ * @throws {Error} If validation fails after cleaning.
  */
 export function parseData(dt) {
   const ids = dt.columnNames().slice(1); // skip 'datetime'
@@ -80,5 +84,10 @@ export function parseData(dt) {
     values3[id] = `d => d['${id}'] != null && !op.is_finite(d['${id}']) ? null : d['${id}']`;
   });
 
-  return dt.derive(values1).derive(values2).derive(values3);
+  const cleaned = dt.derive(values1).derive(values2).derive(values3);
+
+  // Final check: ensure datetime is valid + hourly, and all data are numeric or null
+  validateDataTable(cleaned);
+
+  return cleaned;
 }

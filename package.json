@@ -1,6 +1,6 @@
 {
   "name": "air-monitor",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Utilities for working with air quality monitoring data.",
   "type": "module",
   "exports": "./src/index.js",
@@ -32,7 +32,7 @@
   },
   "homepage": "https://mazamascience.github.io/air-monitor",
   "dependencies": {
-    "air-monitor-algorithms": "1.1.1",
+    "air-monitor-algorithms": "1.2.1",
     "arquero": "7.2.1",
     "luxon": "3.6.1"
   },
