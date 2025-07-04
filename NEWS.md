@@ -1,6 +1,10 @@
+# air-monitor 1.2.0
+
+Refactoring to require luxon DateTime objects in UTC for all timestamps.
+
 # air-monitor 1.1.0
 
-- Major non-breaking refactor and publication to npm.
+Major non-breaking refactor and publication to npm.
 
 # air-monitor 1.0.11
 

@@ -8,6 +8,8 @@ import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
+import { DateTime } from 'luxon';
+
 
 // test.before.each(async () => {
 test.before(async () => {
@@ -36,8 +38,12 @@ test('Accessors and Utilities work as expected', async () => {
   // Test getDatetime
   const datetimes = monitor.getDatetime();
   assert.ok(Array.isArray(datetimes), 'getDatetime returns an array');
-  assert.ok(datetimes[0] instanceof Date, 'getDatetime returns Date objects');
+  assert.ok(DateTime.isDateTime(datetimes[0]), 'getDatetime returns Luxon DateTime objects');
   assert.is(datetimes.length, 241, 'getDatetime returns correct number of rows');
+
+  // Check that all DateTime objects are in UTC
+  const allUTC = datetimes.every(dt => dt.zoneName === 'UTC');
+  assert.ok(allUTC, 'All datetimes are in UTC');
 
   // Test getMetadata
   const testID = ids[0];

@@ -1,55 +1,56 @@
-// import Monitor from "../src/index.js";
+// ----- README.md example -----------------------------------------------------
 
+// import Monitor from 'air-monitor';
 // const monitor = new Monitor();
+// await monitor.loadLatest("airnow");
+// console.log(`airnow has ${monitor.count()} monitors`);
 
+// // Filter to a single state
+// const wa = monitor.filterByValue('stateCode', 'WA');
+// console.log(`washington has ${wa.count()} monitors`);
+
+// const id = wa
+// .filterByValue('locationName', 'Entiat')
+// .getIDs();
+// const pm25 = wa.getPM25(id);
+// const meta = wa.getMetaObject(id);
+
+// console.log(pm25);
+// console.log(JSON.stringify(meta, null, 2));
+
+// ----- test subset -----------------------------------------------------------
+
+// import Monitor from "../src/index.js";
+// const monitor = new Monitor();
 // await monitor.loadLatest("airnow");
 
+// const WA = monitor.filterByValue('stateCode', 'WA');
+// console.log(`WA has %d monitors`, WA.count());
+// const WA_meta = WA.meta;
+// const WA_data = WA.data;
+
+// import fs from 'fs';
+
+// // Export `meta` and `data` to a JSON file
+// fs.writeFileSync(
+//   './tests/WA_test_data.json',
+//   JSON.stringify({ WA_meta, WA_data }, null, 2)
+// );
+
+// // -----------------------------------------------------------------------------
+
+import Monitor from "../src/index.js";
+const monitor = new Monitor();
+
+// await monitor.loadLatest("airnow");
 // console.log(monitor.count());
 
 // let trimmed = monitor.trimDate("America/Los_Angeles")
 
-// ----- README.md example -----------------------------------------------------
-
-    // // import Monitor from 'air-monitor';
-
-    // const monitor = new Monitor();
-    // await monitor.loadLatest("airnow");
-    // console.log(`airnow has ${monitor.count()} monitors`);
-
-    // // Filter to a single state
-    // const wa = monitor.filterByValue('stateCode', 'WA');
-    // console.log(`washington has ${wa.count()} monitors`);
-
-    // const id = wa
-    //   .filterByValue('locationName', 'Entiat')
-    //   .getIDs();
-    // const pm25 = wa.getPM25(id);
-    // const meta = wa.getMetaObject(id);
-
-    // console.log(pm25);
-    // console.log(JSON.stringify(meta, null, 2));
-
-// // ----- test subset -----------------------------------------------------------
-
-// // const WA = monitor.filterByValue('stateCode', 'WA');
-// // console.log(`WA has %d monitors`, WA.count());
-// // const WA_meta = WA.meta;
-// // const WA_data = WA.data;
-
-// // import fs from 'fs';
-
-// // // Export `meta` and `data` to a JSON file
-// // fs.writeFileSync(
-// //   './tests/WA_test_data.json',
-// //   JSON.stringify({ WA_meta, WA_data }, null, 2)
-// // );
-
-// // -----------------------------------------------------------------------------
-
 
 // let bop; // Generic variable for reuse
 
-// // await monitor.loadAnnual("2021");
+// // // await monitor.loadAnnual("2021");
 
 // // console.log(monitor.count());
 
@@ -58,15 +59,17 @@
 
 // console.log(`id: %s, timezone = %s`, id, timezone);
 
-// // const idsArray = monitor.getIDs();
-// // const ids = [idsArray[234], idsArray[512]];
-// // let sub = monitor.select(ids);
-// // sub.data.print();
+// const idsArray = monitor.getIDs();
+// const ids = [idsArray[234], idsArray[512]];
+// let sub = monitor.select(ids);
+// sub.data.print();
 
-// // bop = monitor.dropEmpty();
+// bop = monitor.dropEmpty();
 
+// let WA_trimmed = monitor
+//   .filterByValue('stateCode', 'WA')
+//   .trimDate("America/Los_Angeles");
 
-// let WA_trimmed = WA.trimDate("America/Los_Angeles");
 // let OR_trimmed = monitor
 //   .filterByValue('stateCode', 'OR')
 //   .trimDate("America/Los_Angeles");
@@ -77,61 +80,44 @@
 
 // console.log(`PNW has %d monitors`, PNW.count());
 
-// // bop = PNW.combine(OR_trimmed); // This should drop the duplicate sites
+// bop = PNW.combine(OR_trimmed); // This should drop the duplicate sites
 
-// // let OR_1 = OR_trimmed.collapse('mean')
-// // OR_1.data.print()
+// let OR_1 = OR_trimmed.collapse('mean')
+// OR_1.data.print()
 
-// // let pm25 = monitor.getPM25(id);
+// let pm25 = monitor.getPM25(id);
 
-// // let nowcast = monitor.getNowcast(id);
+// let nowcast = monitor.getNowcast(id);
 
-// // let daily = monitor.getDailyStats(id);
+// let daily = monitor.getDailyStats(id);
 
-// // let diurnal = monitor.getDiurnalStats(id);
+// let diurnal = monitor.getDiurnalStats(id);
 
 // let geojson = monitor.createGeoJSON();
 
-// let z = 1;
+// ----- Methow Valley Monitors ------------------------------------------------
 
-// // ----- Methow Valley Monitors ------------------------------------------------
+await monitor.loadCustom(
+  "PM2.5",
+  "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor"
+);
 
-// // await monitor.loadCustom(
-// //   "PM2.5",
-// //   "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor"
-// // );
+console.log(monitor.meta.array('locationName'));
 
-// // monitor.meta.columnNames();
+// ----- Methow Valley Sensors ------------------------------------------------
 
-// // let a = 1;
+await monitor.loadCustom(
+  "PM2.5",
+  "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/sensor"
+);
 
-// // let id = monitor.getIDs()[1];
+let huc = monitor.filterByValue("HUC", "1702000805");
+huc.data.print();
 
-// // let daily = monitor.getDailyStats(id);
+let huc_max = huc.collapse("max", "max");
+huc_max.data.print();
 
-// // let diurnal = monitor.getDiurnalStats(id);
+let huc_quantile = huc.collapse("quantile_08", "quantile", 0.8);
+huc_quantile.data.print();
 
-// // let geojson = monitor.createGeoJSON();
-
-// // let z = 1;
-
-// // ----- filterByValue ---------------------------------------------------------
-
-// // let WA = monitor.filterByValue("stateCode", "WA");
-
-// // let z = 1;
-
-// // ----- Methow Valley Sensors ------------------------------------------------
-
-// // await monitor.loadCustom(
-// //   "PM2.5",
-// //   "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/sensor"
-// // );
-
-// // let a = monitor.filterByValue("HUC", "1702000805");
-
-// // let b = a.collapse("max", "max");
-
-// // let c = a.collapse("quantile_08", "quantile", 0.8);
-
-// // let z = 1;
+let z = 1;

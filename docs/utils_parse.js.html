@@ -42,6 +42,8 @@
 import * as aq from 'arquero';
 const op = aq.op;
 
+import { validateDataTable } from './helpers.js';
+
 const FLOAT_COLUMNS = ['longitude', 'latitude', 'elevation'];
 
 /**
@@ -83,9 +85,11 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
  * - Converts all values to floats
  * - Replaces negative values with zero
  * - Replaces non-finite values (e.g. NaN, Infinity) with null
+ * - Validates the final table using validateDataTable()
  *
  * @param {aq.Table} dt - Raw Arquero table from CSV.
  * @returns {aq.Table} Cleaned data table suitable for use in a Monitor object.
+ * @throws {Error} If validation fails after cleaning.
  */
 export function parseData(dt) {
   const ids = dt.columnNames().slice(1); // skip 'datetime'
@@ -108,7 +112,12 @@ export function parseData(dt) {
     values3[id] = `d => d['${id}'] != null &amp;&amp; !op.is_finite(d['${id}']) ? null : d['${id}']`;
   });
 
-  return dt.derive(values1).derive(values2).derive(values3);
+  const cleaned = dt.derive(values1).derive(values2).derive(values3);
+
+  // Final check: ensure datetime is valid + hourly, and all data are numeric or null
+  validateDataTable(cleaned);
+
+  return cleaned;
 }
 </code></pre>
         </article>
@@ -120,13 +129,13 @@ export function parseData(dt) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 02 2025 12:27:52 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Fri Jul 04 2025 07:40:06 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -8,6 +8,7 @@ import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
+import { DateTime } from 'luxon';
 
 // test.before.each(async () => {
 test.before(async () => {
@@ -37,11 +38,19 @@ test('getCurrentStatus includes lastValidDatetime and lastValidPM_25 columns', (
   assert.ok(columns.includes('lastValidPM_25'), 'Includes lastValidPM_25 column');
 });
 
-test('lastValidDatetime values are Date instances', () => {
+test('lastValidDatetime values are Luxon UTC DateTime instances', () => {
   const status = monitor.getCurrentStatus();
   const datetimes = status.array('lastValidDatetime');
 
-  assert.ok(datetimes.every(dt => dt instanceof Date), 'All lastValidDatetime values are Date objects');
+  assert.ok(
+    datetimes.every(dt => DateTime.isDateTime(dt)),
+    'All lastValidDatetime values are Luxon DateTime objects'
+  );
+
+  assert.ok(
+    datetimes.every(dt => dt.zoneName === 'UTC'),
+    'All lastValidDatetime values are in UTC'
+  );
 });
 
 test('lastValidPM_25 values are finite or null', () => {

@@ -50,19 +50,30 @@ test('each feature has valid geometry and properties', () => {
     assert.ok(props, 'Feature has properties');
     assert.type(props.deviceDeploymentID, 'string', 'deviceDeploymentID is present');
     assert.type(props.locationName, 'string', 'locationName is present');
-    assert.ok(
-      props.last_time instanceof Date || props.last_time === null,
-      'last_time is Date or null'
-    );
-    assert.ok(
-      typeof props.last_pm25 === 'number' || props.last_pm25 === null,
-      'last_pm25 is number or null'
-    );
+
+    // Check that last_time is either null or a formatted string with timezone
+    if (props.last_time !== null) {
+      assert.type(props.last_time, 'string', 'last_time is a string');
+      assert.match(
+        props.last_time,
+        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [A-Z]{2,4}$/,
+        'last_time has expected format with timezone'
+      );
+    }
+
+    // last_pm25 is serialized as string or null
+    if (props.last_pm25 !== null) {
+      assert.type(props.last_pm25, 'string', 'last_pm25 is a string');
+      assert.match(props.last_pm25, /^-?\d+(\.\d+)?$/, 'last_pm25 is a numeric string');
+    }
   }
 });
+
 
 test('number of features matches number of metadata rows', () => {
   const geojson = monitor.createGeoJSON();
   const nMeta = monitor.meta.numRows();
   assert.is(geojson.features.length, nMeta, 'Feature count matches metadata row count');
 });
+
+test.run();

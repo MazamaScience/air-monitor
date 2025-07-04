@@ -8,7 +8,6 @@ import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
-
 import { DateTime } from 'luxon';
 
 // test.before.each(async () => {
@@ -32,10 +31,8 @@ test('trimDate returns a Monitor instance', () => {
 });
 
 test('trimDate trims incomplete days across timezones', () => {
-  // NOTE:  'originalDates' and 'trimmedDates' are JS 'Date' objects.
-  // NOTE:  They are stored in 'UTC' internally but displayed in your
-  // NOTE:  computer's system timezone by default.
-  // NOTE:  We use the luxon 'DateTime' object for timezone-aware manipulations.
+  // 'originalDates' and 'trimmedDates' are Luxon DateTime objects in UTC.
+  // We convert them to the desired timezone for checking 00:00–23:00 bounds.
   const timezones = [
     'America/Los_Angeles',
     'America/Denver',
@@ -49,8 +46,8 @@ test('trimDate trims incomplete days across timezones', () => {
     const trimmed = monitor.trimDate(tz);
     const trimmedDates = trimmed.data.array('datetime');
 
-    const startLocal = DateTime.fromJSDate(trimmedDates[0], { zone: tz });
-    const endLocal = DateTime.fromJSDate(trimmedDates.at(-1), { zone: tz });
+    const startLocal = trimmedDates[0].setZone(tz);
+    const endLocal = trimmedDates.at(-1).setZone(tz);
 
     assert.is(startLocal.hour, 0, `Start of trimmed data is 00:00 in ${tz}`);
     assert.is(endLocal.hour, 23, `End of trimmed data is 23:00 in ${tz}`);

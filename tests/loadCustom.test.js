@@ -4,6 +4,7 @@ import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 
 import Monitor from "../src/index.js";
+import { validateDataTable } from '../src/utils/helpers.js';
 
 // Setup __dirname equivalent for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -34,6 +35,7 @@ test('loadCustom successfully loads data from a local directory', async () => {
   assert.ok(ids.length > 0, 'getIDs returns some devices');
   assert.is(monitor.getTimezone(ids[0]), 'America/Denver', 'getTimezone works');
   assert.ok(Array.isArray(monitor.getPM25(ids[0])), 'getPM25 returns an array');
+  assert.not.throws(() => validateDataTable(monitor.data), 'monitor.data is valid');
 });
 
 test.run();

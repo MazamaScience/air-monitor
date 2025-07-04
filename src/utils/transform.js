@@ -104,7 +104,11 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
       { value: valueExpression }
     )
     .fold(datetimeColumns)
-    .derive({ datetime: 'd => op.parse_date(d.key)' })
+    // NOTE:  We don't use op.parse_date() because we require luxon DateTime
+    //.derive({ datetime: 'd => op.parse_date(d.key)' })
+    .derive({
+      datetime: aq.escape(d => DateTime.fromISO(d.key, { zone: 'utc' }))
+    })
     .rename({ value: deviceID })
     .select(['datetime', deviceID]);
 
@@ -275,24 +279,20 @@ export function internal_dropEmpty(monitor) {
  * @throws {Error} If the datetime column is missing, empty, or timezone is invalid.
  */
 export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
-  // NOTE:  monitor.data.datetime is an array of JS 'Date' objects.
-  // NOTE:  They are stored in 'UTC' internally but displayed in your
-  // NOTE:  computer's system timezone by default.
-  // NOTE:  We use the luxon 'DateTime' object for timezone-aware manipulations.
   const datetime = monitor.data.array('datetime');
   if (!datetime || datetime.length === 0) {
     throw new Error('No datetime values found in monitor.data');
   }
 
   // Validate timezone
-  const test = DateTime.fromJSDate(datetime[0], { zone: timezone });
+  const test = datetime[0].setZone(timezone);
   if (!test.isValid || test.zoneName !== timezone) {
     throw new Error(`Invalid or unrecognized timezone: '${timezone}'`);
   }
 
   // Convert first and last timestamps to local time
-  const startLocal = DateTime.fromJSDate(datetime[0], { zone: timezone });
-  const endLocal = DateTime.fromJSDate(datetime[datetime.length - 1], { zone: timezone });
+  const startLocal = datetime[0].setZone(timezone);
+  const endLocal = datetime[datetime.length - 1].setZone(timezone);
 
   // Compute number of hours to trim at start and end
   const startTrim = startLocal.hour === 0 ? 0 : 24 - startLocal.hour;
@@ -304,14 +304,12 @@ export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
   if (trimEmptyDays) {
     const dataCols = monitor.data.columnNames().filter(c => c !== 'datetime');
 
-    // Check if first full day (first 24 rows after trim) is all missing
     const firstDay = monitor.data.slice(start, start + 24);
     const allInvalidStart = dataCols.every(col =>
       firstDay.array(col).every(v => v == null)
     );
     if (allInvalidStart) start += 24;
 
-    // Check if last full day (last 24 rows before trim) is all missing
     const lastDay = monitor.data.slice(end - 24, end);
     const allInvalidEnd = dataCols.every(col =>
       lastDay.array(col).every(v => v == null)
@@ -322,3 +320,4 @@ export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
   const trimmed = monitor.data.slice(start, end);
   return { meta: monitor.meta, data: round1(trimmed) };
 }
+

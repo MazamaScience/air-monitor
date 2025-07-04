@@ -80,3 +80,5 @@ test('dropEmpty keeps datetime column', () => {
   const dropped = monitor.dropEmpty();
   assert.ok(dropped.data.columnNames().includes('datetime'), 'datetime column is preserved');
 });
+
+test.run();

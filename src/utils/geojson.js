@@ -92,8 +92,13 @@ export function internal_createGeoJSON(monitor) {
   //   ]
   // }
 
+  // Format any DateTime objects to human-readable strings with timezone
+  const formatDT = (dt) =>
+    dt?.toFormat?.('yyyy-MM-dd HH:mm:ss ZZZZ') ?? null;
+
   for (let i = 0; i < meta.numRows(); i++) {
     const site = meta.slice(i, i + 1).object();
+
     features.push({
       type: "Feature",
       geometry: {
@@ -103,8 +108,20 @@ export function internal_createGeoJSON(monitor) {
       properties: {
         deviceDeploymentID: site.deviceDeploymentID,
         locationName: site.locationName,
-        last_time: site.lastValidDatetime,
-        last_pm25: site.lastValidPM_25,
+        last_time: formatDT(site.lastValidDatetime),
+        last_pm25: site.lastValidPM_25?.toString() ?? null,
+        // timezone: site.timezone,
+        // dataIngestSource: site.dataIngestSource,
+        // dataIngestUnitID: site.dataIngestUnitID,
+
+        // currentStatus_processingTime: formatDT(site.currentStatus_processingTime),
+        // last_validTime: formatDT(site.lastValidDatetime),
+        // last_validLocalTimestamp: formatDT(site.lastValidLocalTimestamp),
+
+        // last_nowcast: site.lastNowcast?.toString() ?? null,
+        // last_PM2_5: site.lastValidPM_25?.toString() ?? null,
+        // last_latency: site.lastLatency?.toString() ?? null,
+        // yesterday_PM2_5_avg: site.yesterdayAvgPM_25?.toString() ?? null,
       },
     });
   }

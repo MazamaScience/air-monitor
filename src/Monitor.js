@@ -22,6 +22,13 @@ import {
   internal_loadCustom
 } from './utils/load.js';
 import {
+  internal_getTimezone,
+  internal_getPM25,
+  internal_getNowcast,
+  internal_getDailyStats,
+  internal_getDiurnalStats
+} from './utils/analysis.js';
+import {
   internal_collapse,
   internal_combine,
   internal_select,
@@ -29,13 +36,6 @@ import {
   internal_dropEmpty,
   internal_trimDate
 } from './utils/transform.js';
-import {
-  internal_getTimezone,
-  internal_getPM25,
-  internal_getNowcast,
-  internal_getDailyStats,
-  internal_getDiurnalStats
-} from './utils/analysis.js';
 import {
   internal_getCurrentStatus,
   internal_createGeoJSON
