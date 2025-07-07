@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon';
-import assert from 'node:assert';
 
 import Monitor from '../index.js';
 
@@ -91,6 +90,16 @@ export function validateDeviceID(monitor, id) {
 export function assertIsMonitor(result, methodName = 'unknown') {
   if (!(result instanceof Monitor)) {
     throw new Error(`${methodName}() must return a Monitor instance`);
+  }
+}
+
+/**
+ * Browser-safe assert function.
+ * Throws an Error if the condition is false.
+ */
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message);
   }
 }
 

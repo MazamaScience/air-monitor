@@ -3,12 +3,8 @@
 // arquero provides dplyr-like operations for manipulating tables
 import * as aq from 'arquero';
 
-// First: npm install moment-timezone --save
-// import moment from "moment-timezone";
-
 // npm install github:MazamaScience/air-monitor-algorithms
 import {
-  arrayMean,
   dailyStats,
   diurnalStats,
   pm_nowcast
@@ -386,4 +382,4 @@ class Monitor {
 
 }
 
-export { Monitor };
+export default Monitor ;

@@ -1,3 +1,7 @@
+# air-monitor 1.2.1
+
+Creating .esm.js and .umd.js versions with rollup.
+
 # air-monitor 1.2.0
 
 Refactoring to require luxon DateTime objects in UTC for all timestamps.

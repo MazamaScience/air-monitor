@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Air Monitor (UMD) Example</title>
+  <style>
+    body { font-family: sans-serif; }
+    pre { background: #f4f4f4; padding: 1em; max-width: 80ch; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Air Monitor (UMD) Example</h1>
+  <pre id="output">Loading...</pre>
+
+  <!-- External dependency -->
+  <script src="https://cdn.jsdelivr.net/npm/arquero@7.2.1/dist/arquero.min.js"></script>
+
+  <!-- UMD build of air-monitor-algorithms -->
+  <script src="./vendor/air-monitor-algorithms.umd.js"></script>
+
+  <!-- UMD build of air-monitor -->
+  <script src="../dist/air-monitor.umd.js"></script>
+
+  <script>
+    const output = document.getElementById('output');
+
+    // Override console.log to also log to the page
+    function log(...args) {
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+      ).join(' ');
+      output.textContent += message + '\n';
+    }
+    console.log = log;
+
+    // Async IIFE so we can use await at the top level
+    (async function () {
+      try {
+        // log('aq:', Object.keys(aq));
+        // log('AirMonitorAlgorithms:', Object.keys(AirMonitorAlgorithms));
+        // log('typeof Monitor:', typeof Monitor);
+
+        const monitor = new Monitor();
+        await monitor.loadLatest("airnow");
+        log(`\nairnow has ${monitor.count()} monitors`);
+
+        const wa = monitor.filterByValue('stateCode', 'WA');
+        log(`\nwashington has ${wa.count()} monitors`);
+
+        const id = wa.filterByValue('locationName', 'Entiat').getIDs();
+        const pm25 = wa.getPM25(id);
+        const meta = wa.getMetaObject(id);
+
+        log('\ndeviceDeploymentID for Entiat, WA:', id[0]);
+        log('\nmeta:', meta);
+        log('\nfirst 24 PM2.5 values:', pm25.slice(0, 24));
+
+      } catch (err) {
+        log(`❌ Error: ${err.message}`);
+      }
+    })();
+  </script>
+</body>
+</html>
