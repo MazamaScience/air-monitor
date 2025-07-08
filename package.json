@@ -1,7 +1,23 @@
 {
   "name": "air-monitor",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Utilities for working with air quality monitoring data.",
+  "keywords": [
+    "air quality",
+    "monitoring",
+    "nowcast",
+    "arquero"
+  ],
+  "author": "Jonathan Callahan",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MazamaScience/air-monitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MazamaScience/air-monitor/issues"
+  },
+  "homepage": "https://mazamascience.github.io/air-monitor",
   "type": "module",
   "main": "./dist/air-monitor.umd.js",
   "module": "./dist/air-monitor.esm.js",
@@ -10,35 +26,20 @@
     "require": "./dist/air-monitor.umd.js"
   },
   "files": [
-    "dist/",
-    "src/",
+    "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "rollup -c",
-    "copy-algorithms": "cp ../air-monitor-algorithms/dist/air-monitor-algorithms.umd.js examples/vendor/",
     "docs": "jsdoc -c ./jsdoc.conf.json",
-    "test": "uvu tests"
+    "test": "uvu tests",
+    "copy-to-vendor": "cp node_modules/air-monitor-algorithms/dist/air-monitor-algorithms.umd.js  examples/vendor/",
+    "publish:public": "npm publish --access public"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MazamaScience/air-monitor.git"
-  },
-  "keywords": [
-    "air quality",
-    "nowcast",
-    "monitoring",
-    "arquero"
-  ],
-  "author": "Jonathan Callahan",
-  "license": "GPL-3.0-or-later",
-  "bugs": {
-    "url": "https://github.com/MazamaScience/air-monitor/issues"
-  },
-  "homepage": "https://mazamascience.github.io/air-monitor",
   "dependencies": {
-    "air-monitor-algorithms": "1.2.2",
+    "air-monitor-algorithms": "^1.2.2",
     "arquero": "7.2.1",
     "luxon": "3.6.1"
   },
@@ -49,7 +50,7 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "rollup": "^4.16.4",
+    "rollup": "^4.17.3",
     "uvu": "^0.5.6"
   }
 }

@@ -39,8 +39,8 @@
 
 // // -----------------------------------------------------------------------------
 
-import Monitor from "../src/index.js";
-const monitor = new Monitor();
+// import Monitor from "../src/index.js";
+// const monitor = new Monitor();
 
 // await monitor.loadLatest("airnow");
 // console.log(monitor.count());
@@ -97,27 +97,27 @@ const monitor = new Monitor();
 
 // ----- Methow Valley Monitors ------------------------------------------------
 
-await monitor.loadCustom(
-  "PM2.5",
-  "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor"
-);
+// await monitor.loadCustom(
+//   "PM2.5",
+//   "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/monitor"
+// );
 
-console.log(monitor.meta.array('locationName'));
+// console.log(monitor.meta.array('locationName'));
 
-// ----- Methow Valley Sensors ------------------------------------------------
+// // ----- Methow Valley Sensors ------------------------------------------------
 
-await monitor.loadCustom(
-  "PM2.5",
-  "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/sensor"
-);
+// await monitor.loadCustom(
+//   "PM2.5",
+//   "https://airfire-data-exports.s3.us-west-2.amazonaws.com/community-smoke/v1/methow-valley/data/sensor"
+// );
 
-let huc = monitor.filterByValue("HUC", "1702000805");
-huc.data.print();
+// let huc = monitor.filterByValue("HUC", "1702000805");
+// huc.data.print();
 
-let huc_max = huc.collapse("max", "max");
-huc_max.data.print();
+// let huc_max = huc.collapse("max", "max");
+// huc_max.data.print();
 
-let huc_quantile = huc.collapse("quantile_08", "quantile", 0.8);
-huc_quantile.data.print();
+// let huc_quantile = huc.collapse("quantile_08", "quantile", 0.8);
+// huc_quantile.data.print();
 
-let z = 1;
+// let z = 1;

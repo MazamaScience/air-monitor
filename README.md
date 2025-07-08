@@ -100,16 +100,12 @@ Converts metadata + status into a valid GeoJSON `FeatureCollection`.
 - Time-series columns match exactly with `meta.deviceDeploymentID`
 - `datetime` values are stored in UTC (not local time)
 
+## Related Packages
+
+- [air-monitor-algorithms](https://www.npmjs.com/package/air-monitor-algorithms)
+- [air-monitor-plots](https://www.npmjs.com/package/air-monitor-plots)
+
 ## License
 
-GPL-3.0-or-later © Jonathan Callahan
-
-## Support
-
-Development of this package has been supported with funding from the
-following institutions:
-
-- USFS [AirFire Research Team](https://www.airfire.org)
-
-Questions regarding further development of the package should be directed to
-<jonathan.callahan@dri.edu>.
+GPL-3.0-or-later
+© 2024–2025 Jonathan Callahan / USFS AirFire

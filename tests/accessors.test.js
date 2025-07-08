@@ -58,4 +58,35 @@ test('Accessors and Utilities work as expected', async () => {
   assert.is(metaObj.deviceDeploymentID, testID, 'getMetaObject returns the correct ID');
 });
 
+test('getMetadata() and getMetaObject() validate id parameter', async () => {
+  const monitor = new Monitor();
+  await monitor.loadLatest("airnow");
+
+  const id = monitor.getIDs()[0];
+
+  // Accept valid id as string
+  assert.type(monitor.getMetadata(id, 'locationName'), 'string');
+  assert.ok(monitor.getMetaObject(id));
+
+  // Accept valid id as [string]
+  assert.type(monitor.getMetadata([id], 'locationName'), 'string');
+  assert.ok(monitor.getMetaObject([id]));
+
+  // Reject [string, string]
+  assert.throws(() => monitor.getMetadata([id, id], 'locationName'), /string or a single-element string array/);
+  assert.throws(() => monitor.getMetaObject([id, id]), /string or a single-element string array/);
+
+  // Reject non-string values
+  assert.throws(() => monitor.getMetadata(null, 'locationName'), /string or a single-element string array/);
+  assert.throws(() => monitor.getMetadata(42, 'locationName'), /string or a single-element string array/);
+  assert.throws(() => monitor.getMetaObject({}), /string or a single-element string array/);
+  assert.throws(() => monitor.getMetaObject(undefined), /string or a single-element string array/);
+
+  // Reject invalid id
+  assert.throws(() => monitor.getMetadata('not-a-real-id', 'locationName'), /not found/);
+});
+
+export default test;
+
+
 test.run();

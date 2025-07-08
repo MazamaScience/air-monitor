@@ -37,7 +37,8 @@ import {
   internal_createGeoJSON
 } from './utils/geojson.js';
 import {
-  assertIsMonitor
+  assertIsMonitor,
+  validateDeviceID
 } from './utils/helpers.js';
 
 // ----- Monitor Class ---------------------------------------------------------
@@ -188,23 +189,28 @@ class Monitor {
 
   /**
    * Returns the named metadata field for the time series identified by id.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   *
+   * @param {string|string[]} id - The deviceDeploymentID.
    * @param {string} fieldName - Name of the metadata field to retrieve.
    * @returns {string|number} The value of the metadata field.
+   * @throws {Error} If id is not a valid single string or not found.
    */
   getMetadata(id, fieldName) {
-    const index = this.getIDs().indexOf(id);
+    const resolvedID = validateDeviceID(this, id);
+    const index = this.getIDs().indexOf(resolvedID);
     return this.meta.array(fieldName)[index];
   }
 
   /**
-   * Returns an object with all metadata properties for the time series
-   * identified by id.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * Returns all metadata properties for the time series identified by id.
+   *
+   * @param {string|string[]} id - The deviceDeploymentID.
    * @returns {Object} Object with all metadata properties.
+   * @throws {Error} If id is not a valid single string or not found.
    */
   getMetaObject(id) {
-    return this.select(id).meta.object();
+    const resolvedID = validateDeviceID(this, id);
+    return this.select(resolvedID).meta.object();
   }
 
   // ----- Data manipulation functions -----------------------------------------
