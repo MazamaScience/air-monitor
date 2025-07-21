@@ -1,3 +1,13 @@
+# air-monitor 1.2.3
+
+Export Monitor as default and named object so we can support:
+
+```
+import Monitor from 'air-monitor';
+// or
+import { Monitor } from 'air-monitor';
+```
+
 # air-monitor 1.2.2
 
 Harmonization with other `air-monitor~` packages.

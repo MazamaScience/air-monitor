@@ -388,4 +388,4 @@ class Monitor {
 
 }
 
-export default Monitor ;
+export default Monitor;
