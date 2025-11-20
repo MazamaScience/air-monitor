@@ -9,6 +9,10 @@ import Monitor from '../index.js';
  * - `arrayMean()`: Computes the arithmetic mean of valid numeric entries in an array.
  * - `round1()`: Rounds numeric measurement columns in an Arquero table to 1 decimal place.
  * - `validateDeviceID()`: Verifies that a single ID exists in the monitor object.
+ * - `assertIsMonitor()`: Asserts that the value is a Monitor instance.
+ * - `assert()`: Browser-safe assert function.
+ * - `validateDataTable()`: Validates a Monitor data table.
+ * - `parseDatetime()`: Parse a user-provided datetime into a Luxon DateTime.
  *
  * All functions in this file are pure and side-effect-free.
  * Intended for internal use within the package.
@@ -145,4 +149,104 @@ export function validateDataTable(table) {
       assert(isValid, `Row ${i}, column '${col}': value is not numeric or null`);
     }
   }
+}
+
+/**
+ * Parse a user-provided datetime into a Luxon DateTime.
+ *
+ * Accepted inputs:
+ *   - A Luxon DateTime object → returned unchanged.
+ *   - A native JS Date        → interpreted in the supplied `timezone`.
+ *   - A string                → parsed using ISO, SQL, or "yyyy-MM-dd" formats,
+ *                               interpreted in the supplied `timezone`.
+ *
+ * Requirements:
+ *   - If `value` is NOT a Luxon DateTime, then a valid `timezone`
+ *     (IANA string) MUST be provided.
+ *
+ * Behavior:
+ *   - If `isEnd === true` and the input is a date-only string (e.g. "2025-02-10"),
+ *     the returned DateTime is promoted to the *end of that day* in the
+ *     given timezone (23:59:59.999).
+ *
+ * Note:
+ *   - This function does NOT convert to UTC. Conversions should be performed
+ *     by the caller (e.g., via `.toUTC()`), since different utilities may
+ *     require local-time or UTC interpretations depending on context.
+ *
+ * @param {DateTime | string | Date} value
+ *        The datetime input to parse.
+ *
+ * @param {string} [timezone]
+ *        Required for string and native Date inputs.
+ *        Must be a valid IANA timezone (e.g., "America/Los_Angeles").
+ *
+ * @param {boolean} [isEnd=false]
+ *        If true and the input is a date-only string, expand to end-of-day.
+ *
+ * @returns {DateTime}
+ *        A Luxon DateTime in the interpreted timezone.
+ *
+ * @throws {Error}
+ *        If timezone is missing when required, or if parsing fails.
+ */
+export function parseDatetime(value, timezone, isEnd = false) {
+  // Case 1 — already a Luxon DateTime
+  if (DateTime.isDateTime(value)) {
+    return value;
+  }
+
+  // All other types require a timezone
+  if (!timezone) {
+    throw new Error(
+      'A timezone must be provided when parsing non-Luxon datetime inputs.'
+    );
+  }
+
+  // Validate timezone before parsing
+  const test = DateTime.now().setZone(timezone);
+  if (!test.isValid || test.zoneName !== timezone) {
+    throw new Error(`Invalid or unrecognized timezone: '${timezone}'`);
+  }
+
+  let dt;
+
+  // Case 2 — native JS Date
+  if (value instanceof Date) {
+    dt = DateTime.fromJSDate(value, { zone: timezone });
+  }
+
+  // Case 3 — strings
+  else if (typeof value === 'string') {
+    // Try ISO: "2024-01-01", "2024-01-01T12:30"
+    dt = DateTime.fromISO(value, { zone: timezone });
+
+    // Try SQL: "2024-01-01 12:30:00"
+    if (!dt.isValid) {
+      dt = DateTime.fromSQL(value, { zone: timezone });
+    }
+
+    // Try explicit date-only format: "yyyy-MM-dd"
+    if (!dt.isValid) {
+      dt = DateTime.fromFormat(value, 'yyyy-MM-dd', { zone: timezone });
+    }
+
+    if (!dt.isValid) {
+      throw new Error(`Could not parse datetime string '${value}'.`);
+    }
+
+    // Promote date-only strings to end-of-day when requested
+    const isDateOnly = !/[T\s]/.test(value);
+    if (isEnd && isDateOnly) {
+      dt = dt.endOf('day');
+    }
+  }
+
+  else {
+    throw new Error(
+      `Unsupported datetime input type: ${typeof value}. Expected DateTime, Date, or string.`
+    );
+  }
+
+  return dt;
 }

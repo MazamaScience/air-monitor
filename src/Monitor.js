@@ -29,6 +29,7 @@ import {
   internal_combine,
   internal_select,
   internal_filterByValue,
+  internal_filterDatetime,
   internal_dropEmpty,
   internal_trimDate
 } from './utils/transform.js';
@@ -338,6 +339,29 @@ class Monitor {
     const { meta, data } = internal_filterByValue(this, column, value);
     const result = new Monitor(meta, data);
     assertIsMonitor(result, 'filterByValue');
+    return result;
+  }
+
+  /**
+   * Filter time series to an explicit datetime range.
+   *
+   * The returned Monitor object will contain only those records whose
+   * `datetime` values fall within the requested range when interpreted in
+   * the specified `timezone`.
+   *
+   * Internally, `startdate` and `enddate` are interpreted in `timezone`
+   * and compared against the UTC `data.datetime` column.
+   *
+   * @param {string|Date} startdate - Inclusive start of the time range, interpreted in `timezone`.
+   * @param {string|Date} enddate   - Inclusive end of the time range, interpreted in `timezone`.
+   * @param {string} [timezone]     - IANA timezone (e.g. `"America/Los_Angeles"`). If omitted,
+   *                                  the timezone may be inferred from the monitor metadata.
+   * @returns {Monitor} New Monitor with `meta` unchanged and `data` restricted to the specified range.
+   */
+  filterDatetime(startdate, enddate, timezone) {
+    const { meta, data } = internal_filterDatetime(this, startdate, enddate, timezone);
+    const result = new Monitor(meta, data);
+    assertIsMonitor(result, 'filterDatetime');
     return result;
   }
 

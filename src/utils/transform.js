@@ -14,6 +14,7 @@
  * Helper functions:
  * - `arrayMean()` – Computes the mean of an array, skipping null/NaN/invalid values.
  * - `round1()` – Rounds all non-datetime columns in a data table to 1 decimal place.
+ * - `parseDatetime()` – Parse a user-provided datetime into a Luxon DateTime.
  */
 
 import * as aq from 'arquero';
@@ -21,7 +22,7 @@ const op = aq.op;
 
 import { DateTime } from 'luxon';
 
-import { arrayMean, round1 } from './helpers.js';
+import { arrayMean, round1, parseDatetime } from './helpers.js';
 
 /**
  * Collapse a Monitor object into a single time series.
@@ -321,3 +322,116 @@ export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
   return { meta: monitor.meta, data: round1(trimmed) };
 }
 
+/**
+ * Filter a Monitor's time-series data to an explicit datetime range.
+ *
+ * Assumptions:
+ * - `monitor.data.datetime` contains Luxon DateTime objects in UTC.
+ * - Rows in `monitor.data` are sorted in ascending datetime order.
+ *
+ * Inputs:
+ * - `startdate` and `enddate` may be:
+ *    * Luxon DateTime objects (any zone) – `timezone` is optional.
+ *    * Strings or native Date objects – a valid IANA `timezone` is required.
+ *
+ * Behavior:
+ * - For string/Date inputs, `parseDatetime()` interprets them in `timezone`.
+ * - For date-only strings (e.g. "2025-02-10"), `enddate` is promoted to
+ *   the *end of that local day* so that whole-day ranges are inclusive.
+ * - Both parsed datetimes are converted to UTC and used to find the
+ *   inclusive index range within `monitor.data`.
+ *
+ * Note:
+ * - This function does NOT construct a new Monitor instance. It returns
+ *   plain `{ meta, data }` tables; the public `Monitor#filterDatetime()`
+ *   method is responsible for wrapping the result into a Monitor and
+ *   validating it.
+ *
+ * @param {Monitor} monitor - The source monitor object.
+ * @param {DateTime|string|Date} startdate - Start of the range.
+ * @param {DateTime|string|Date} enddate   - End of the range.
+ * @param {string} [timezone] - IANA timezone when using string/Date inputs.
+ * @returns {{ meta: aq.Table, data: aq.Table }} Subset of the monitor.
+ *
+ * @throws {Error} If datetime column is missing/empty, inputs cannot be parsed,
+ *                 timezone is missing when required, or the range is inverted.
+ */
+export function internal_filterDatetime(monitor, startdate, enddate, timezone) {
+  const datetime = monitor.data.array('datetime');
+
+  if (!datetime || datetime.length === 0) {
+    throw new Error('No datetime values found in monitor.data');
+  }
+
+  // Use shared helper to normalize inputs to Luxon DateTime in the
+  // appropriate zone. `isEnd = true` promotes date-only strings to
+  // end-of-day so whole-day ranges are inclusive.
+  const startDT = parseDatetime(startdate, timezone, false);
+  const endDT   = parseDatetime(enddate, timezone, true);
+
+  // Convert to UTC for comparison with monitor.data.datetime (assumed UTC).
+  const startUtc = startDT.toUTC();
+  const endUtc   = endDT.toUTC();
+
+  if (endUtc < startUtc) {
+    throw new Error('enddate must be greater than or equal to startdate.');
+  }
+
+  const len = datetime.length;
+  const startMs = startUtc.toMillis();
+  const endMs   = endUtc.toMillis();
+
+  // Precompute millisecond values once
+  const times = new Array(len);
+  for (let i = 0; i < len; i++) {
+    times[i] = datetime[i].toMillis();
+  }
+
+  // Optimized binary search to find bounds in O(log n)
+
+  // First index i where times[i] >= startMs
+  const findFirstGE = (arr, target) => {
+    let lo = 0;
+    let hi = arr.length; // exclusive
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (arr[mid] < target) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo;
+  };
+
+  // Last index i where times[i] <= endMs
+  const findLastLE = (arr, target) => {
+    let lo = 0;
+    let hi = arr.length; // exclusive
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (arr[mid] <= target) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo - 1; // last <= target
+  };
+
+  const startIdx = findFirstGE(times, startMs);
+  const endIdx   = findLastLE(times, endMs);
+
+  // If no overlap, return an empty data table with the same schema.
+  if (startIdx >= len || endIdx < 0 || startIdx > endIdx) {
+    return {
+      meta: monitor.meta,
+      data: monitor.data.slice(0, 0)
+    };
+  }
+
+  // Final subsetting step: slice rows by index (Arquero's slice end is exclusive).
+  const subset = monitor.data.slice(startIdx, endIdx + 1);
+
+  return { meta: monitor.meta, data: subset };
+}

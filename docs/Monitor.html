@@ -174,7 +174,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line53">line 53</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line54">line 54</a>
     </li></ul></dd>
     
 
@@ -412,7 +412,7 @@ probability.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line295">line 295</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line296">line 296</a>
     </li></ul></dd>
     
 
@@ -572,7 +572,7 @@ from the second monitor to avoid collisions.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line309">line 309</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line310">line 310</a>
     </li></ul></dd>
     
 
@@ -682,7 +682,7 @@ from the second monitor to avoid collisions.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line178">line 178</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -792,7 +792,7 @@ from the second monitor to avoid collisions.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line385">line 385</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line409">line 409</a>
     </li></ul></dd>
     
 
@@ -904,7 +904,7 @@ The resulting monitor object includes only the deviceDeploymentIDs with at least
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line351">line 351</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line375">line 375</a>
     </li></ul></dd>
     
 
@@ -1091,7 +1091,7 @@ monitor.meta.columnName === &quot;value&quot;.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line337">line 337</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line338">line 338</a>
     </li></ul></dd>
     
 
@@ -1121,6 +1121,251 @@ monitor.meta.columnName === &quot;value&quot;.</p>
         
 <div class="param-desc">
     <p>New Monitor with filtered time series.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="filterDatetime"><span class="type-signature"></span>filterDatetime<span class="signature">(startdate, enddate, timezone<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="Monitor.html">Monitor</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Filter time series to an explicit datetime range.</p>
+<p>The returned Monitor object will contain only those records whose
+<code>datetime</code> values fall within the requested range when interpreted in
+the specified <code>timezone</code>.</p>
+<p>Internally, <code>startdate</code> and <code>enddate</code> are interpreted in <code>timezone</code>
+and compared against the UTC <code>data.datetime</code> column.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>startdate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Date</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Inclusive start of the time range, interpreted in <code>timezone</code>.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>enddate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Date</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Inclusive end of the time range, interpreted in <code>timezone</code>.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timezone</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>IANA timezone (e.g. <code>&quot;America/Los_Angeles&quot;</code>). If omitted,
+the timezone may be inferred from the monitor metadata.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line361">line 361</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>New Monitor with <code>meta</code> unchanged and <code>data</code> restricted to the specified range.</p>
 </div>
 
 
@@ -1201,7 +1446,7 @@ monitor.meta.columnName === &quot;value&quot;.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line377">line 377</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line401">line 401</a>
     </li></ul></dd>
     
 
@@ -1364,7 +1609,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line257">line 257</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line258">line 258</a>
     </li></ul></dd>
     
 
@@ -1474,7 +1719,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line186">line 186</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line187">line 187</a>
     </li></ul></dd>
     
 
@@ -1660,7 +1905,7 @@ properties.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line272">line 272</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line273">line 273</a>
     </li></ul></dd>
     
 
@@ -1771,7 +2016,7 @@ Monitor object.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line170">line 170</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line171">line 171</a>
     </li></ul></dd>
     
 
@@ -1933,7 +2178,7 @@ Monitor object.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line211">line 211</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line212">line 212</a>
     </li></ul></dd>
     
 
@@ -2147,7 +2392,7 @@ Monitor object.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line198">line 198</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line199">line 199</a>
     </li></ul></dd>
     
 
@@ -2338,7 +2583,7 @@ Monitor object.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line243">line 243</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line244">line 244</a>
     </li></ul></dd>
     
 
@@ -2497,7 +2742,7 @@ Monitor object.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line234">line 234</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line235">line 235</a>
     </li></ul></dd>
     
 
@@ -2685,7 +2930,7 @@ Monitor object.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line223">line 223</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line224">line 224</a>
     </li></ul></dd>
     
 
@@ -2871,7 +3116,7 @@ year-to-date. Current year data are updated daily.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line142">line 142</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line143">line 143</a>
     </li></ul></dd>
     
 
@@ -3126,7 +3371,7 @@ year-to-date. Current year data are updated daily.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line159">line 159</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line160">line 160</a>
     </li></ul></dd>
     
 
@@ -3341,7 +3586,7 @@ and are updated once per day around 10:00 UTC (2am US Pacific Time).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line124">line 124</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line125">line 125</a>
     </li></ul></dd>
     
 
@@ -3556,7 +3801,7 @@ and are updated every few minutes.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line106">line 106</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line107">line 107</a>
     </li></ul></dd>
     
 
@@ -3747,7 +3992,7 @@ and are updated every few minutes.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line322">line 322</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line323">line 323</a>
     </li></ul></dd>
     
 
@@ -3907,7 +4152,7 @@ local time days. Any partial days are discarded.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line364">line 364</a>
+        <a href="Monitor.js.html">Monitor.js</a>, <a href="Monitor.js.html#line388">line 388</a>
     </li></ul></dd>
     
 
@@ -3975,13 +4220,13 @@ local time days. Any partial days are discarded.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Mon Jul 21 2025 16:56:04 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Nov 19 2025 16:33:50 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

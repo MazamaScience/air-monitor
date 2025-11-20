@@ -205,7 +205,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line23">line 23</a>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line27">line 27</a>
     </li></ul></dd>
     
 
@@ -319,7 +319,7 @@ Throws an Error if the condition is false.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line100">line 100</a>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line104">line 104</a>
     </li></ul></dd>
     
 
@@ -480,7 +480,7 @@ Useful for verifying return types of public methods.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line90">line 90</a>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line94">line 94</a>
     </li></ul></dd>
     
 
@@ -693,7 +693,7 @@ https://uwdata.github.io/arquero/api/op#aggregate-functions</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line45">line 45</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -879,7 +879,7 @@ Monitor object will be retained.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line130">line 130</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line131">line 131</a>
     </li></ul></dd>
     
 
@@ -1199,7 +1199,7 @@ The resulting monitor object includes only the deviceDeploymentIDs with at least
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line245">line 245</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line246">line 246</a>
     </li></ul></dd>
     
 
@@ -1407,7 +1407,7 @@ The resulting monitor object includes only the deviceDeploymentIDs with at least
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line208">line 208</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line209">line 209</a>
     </li></ul></dd>
     
 
@@ -1466,6 +1466,341 @@ The resulting monitor object includes only the deviceDeploymentIDs with at least
         
 <div class="param-desc">
     <p>A filtered monitor object.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="internal_filterDatetime"><span class="type-signature"></span>internal_filterDatetime<span class="signature">(monitor, startdate, enddate, timezone<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Filter a Monitor's time-series data to an explicit datetime range.</p>
+<p>Assumptions:</p>
+<ul>
+<li><code>monitor.data.datetime</code> contains Luxon DateTime objects in UTC.</li>
+<li>Rows in <code>monitor.data</code> are sorted in ascending datetime order.</li>
+</ul>
+<p>Inputs:</p>
+<ul>
+<li><code>startdate</code> and <code>enddate</code> may be:
+<ul>
+<li>Luxon DateTime objects (any zone) – <code>timezone</code> is optional.</li>
+<li>Strings or native Date objects – a valid IANA <code>timezone</code> is required.</li>
+</ul>
+</li>
+</ul>
+<p>Behavior:</p>
+<ul>
+<li>For string/Date inputs, <code>parseDatetime()</code> interprets them in <code>timezone</code>.</li>
+<li>For date-only strings (e.g. &quot;2025-02-10&quot;), <code>enddate</code> is promoted to
+the <em>end of that local day</em> so that whole-day ranges are inclusive.</li>
+<li>Both parsed datetimes are converted to UTC and used to find the
+inclusive index range within <code>monitor.data</code>.</li>
+</ul>
+<p>Note:</p>
+<ul>
+<li>This function does NOT construct a new Monitor instance. It returns
+plain <code>{ meta, data }</code> tables; the public <code>Monitor#filterDatetime()</code>
+method is responsible for wrapping the result into a Monitor and
+validating it.</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>monitor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Monitor.html">Monitor</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The source monitor object.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>startdate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">DateTime</span>
+|
+
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Date</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Start of the range.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>enddate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">DateTime</span>
+|
+
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Date</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>End of the range.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timezone</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>IANA timezone when using string/Date inputs.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line359">line 359</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If datetime column is missing/empty, inputs cannot be parsed,
+timezone is missing when required, or the range is inverted.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Subset of the monitor.</p>
 </div>
 
 
@@ -3806,7 +4141,7 @@ and that all specified columns are included in the <code>data</code> table.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line168">line 168</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line169">line 169</a>
     </li></ul></dd>
     
 
@@ -4085,7 +4420,7 @@ and optionally removes full days with no data at the start or end.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line281">line 281</a>
+        <a href="utils_transform.js.html">utils/transform.js</a>, <a href="utils_transform.js.html#line282">line 282</a>
     </li></ul></dd>
     
 
@@ -4594,6 +4929,317 @@ and optionally removes full days with no data at the start or end.</p>
     <dd>
         
 <span class="param-type">aq.Table</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="parseDatetime"><span class="type-signature"></span>parseDatetime<span class="signature">(value, timezone<span class="signature-attributes">opt</span>, isEnd<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {DateTime}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Parse a user-provided datetime into a Luxon DateTime.</p>
+<p>Accepted inputs:</p>
+<ul>
+<li>A Luxon DateTime object → returned unchanged.</li>
+<li>A native JS Date        → interpreted in the supplied <code>timezone</code>.</li>
+<li>A string                → parsed using ISO, SQL, or &quot;yyyy-MM-dd&quot; formats,
+interpreted in the supplied <code>timezone</code>.</li>
+</ul>
+<p>Requirements:</p>
+<ul>
+<li>If <code>value</code> is NOT a Luxon DateTime, then a valid <code>timezone</code>
+(IANA string) MUST be provided.</li>
+</ul>
+<p>Behavior:</p>
+<ul>
+<li>If <code>isEnd === true</code> and the input is a date-only string (e.g. &quot;2025-02-10&quot;),
+the returned DateTime is promoted to the <em>end of that day</em> in the
+given timezone (23:59:59.999).</li>
+</ul>
+<p>Note:</p>
+<ul>
+<li>This function does NOT convert to UTC. Conversions should be performed
+by the caller (e.g., via <code>.toUTC()</code>), since different utilities may
+require local-time or UTC interpretations depending on context.</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">DateTime</span>
+|
+
+<span class="param-type">string</span>
+|
+
+<span class="param-type">Date</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The datetime input to parse.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timezone</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Required for string and native Date inputs.
+Must be a valid IANA timezone (e.g., &quot;America/Los_Angeles&quot;).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isEnd</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>If true and the input is a date-only string, expand to end-of-day.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line193">line 193</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If timezone is missing when required, or if parsing fails.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A Luxon DateTime in the interpreted timezone.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">DateTime</span>
 
 
     </dd>
@@ -5363,7 +6009,7 @@ Converts non-finite values (NaN, Infinity, undefined) to <code>null</code>.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line38">line 38</a>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line42">line 42</a>
     </li></ul></dd>
     
 
@@ -5529,7 +6175,7 @@ Converts non-finite values (NaN, Infinity, undefined) to <code>null</code>.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line115">line 115</a>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line119">line 119</a>
     </li></ul></dd>
     
 
@@ -5723,7 +6369,7 @@ Verifies that the resolved ID exists in monitor.data.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line63">line 63</a>
+        <a href="utils_helpers.js.html">utils/helpers.js</a>, <a href="utils_helpers.js.html#line67">line 67</a>
     </li></ul></dd>
     
 
@@ -5820,13 +6466,13 @@ Verifies that the resolved ID exists in monitor.data.</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Mon Jul 21 2025 16:56:04 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Nov 19 2025 16:33:50 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,3 +1,7 @@
+# air-monitor 1.2.4
+
+- Added `filterDatetime()` -- Subsets a Monitor object to an explicit time range.
+
 # air-monitor 1.2.3
 
 Export Monitor as default and named object so we can support:

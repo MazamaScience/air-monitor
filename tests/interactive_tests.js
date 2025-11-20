@@ -37,6 +37,18 @@
 //   JSON.stringify({ WA_meta, WA_data }, null, 2)
 // );
 
+// ----- test filterDatetime ---------------------------------------------------
+
+// import Monitor from "../src/index.js";
+// const monitor = new Monitor();
+// await monitor.loadLatest("airnow");
+
+// let hours = monitor.filterDatetime("2025-11-12", "2025-11-13", "America/Los_Angeles").data._nrows;
+// console.log(`2 days = %d hours`, hours)
+
+// hours = monitor.filterDatetime("2025-11-12", "2025-11-16", "America/Los_Angeles").data._nrows;
+// console.log(`5 days = %d hours`, hours)
+
 // // -----------------------------------------------------------------------------
 
 // import Monitor from "../src/index.js";

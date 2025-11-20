@@ -37,6 +37,10 @@ import Monitor from '../index.js';
  * - `arrayMean()`: Computes the arithmetic mean of valid numeric entries in an array.
  * - `round1()`: Rounds numeric measurement columns in an Arquero table to 1 decimal place.
  * - `validateDeviceID()`: Verifies that a single ID exists in the monitor object.
+ * - `assertIsMonitor()`: Asserts that the value is a Monitor instance.
+ * - `assert()`: Browser-safe assert function.
+ * - `validateDataTable()`: Validates a Monitor data table.
+ * - `parseDatetime()`: Parse a user-provided datetime into a Luxon DateTime.
  *
  * All functions in this file are pure and side-effect-free.
  * Intended for internal use within the package.
@@ -173,7 +177,108 @@ export function validateDataTable(table) {
       assert(isValid, `Row ${i}, column '${col}': value is not numeric or null`);
     }
   }
-}</code></pre>
+}
+
+/**
+ * Parse a user-provided datetime into a Luxon DateTime.
+ *
+ * Accepted inputs:
+ *   - A Luxon DateTime object → returned unchanged.
+ *   - A native JS Date        → interpreted in the supplied `timezone`.
+ *   - A string                → parsed using ISO, SQL, or "yyyy-MM-dd" formats,
+ *                               interpreted in the supplied `timezone`.
+ *
+ * Requirements:
+ *   - If `value` is NOT a Luxon DateTime, then a valid `timezone`
+ *     (IANA string) MUST be provided.
+ *
+ * Behavior:
+ *   - If `isEnd === true` and the input is a date-only string (e.g. "2025-02-10"),
+ *     the returned DateTime is promoted to the *end of that day* in the
+ *     given timezone (23:59:59.999).
+ *
+ * Note:
+ *   - This function does NOT convert to UTC. Conversions should be performed
+ *     by the caller (e.g., via `.toUTC()`), since different utilities may
+ *     require local-time or UTC interpretations depending on context.
+ *
+ * @param {DateTime | string | Date} value
+ *        The datetime input to parse.
+ *
+ * @param {string} [timezone]
+ *        Required for string and native Date inputs.
+ *        Must be a valid IANA timezone (e.g., "America/Los_Angeles").
+ *
+ * @param {boolean} [isEnd=false]
+ *        If true and the input is a date-only string, expand to end-of-day.
+ *
+ * @returns {DateTime}
+ *        A Luxon DateTime in the interpreted timezone.
+ *
+ * @throws {Error}
+ *        If timezone is missing when required, or if parsing fails.
+ */
+export function parseDatetime(value, timezone, isEnd = false) {
+  // Case 1 — already a Luxon DateTime
+  if (DateTime.isDateTime(value)) {
+    return value;
+  }
+
+  // All other types require a timezone
+  if (!timezone) {
+    throw new Error(
+      'A timezone must be provided when parsing non-Luxon datetime inputs.'
+    );
+  }
+
+  // Validate timezone before parsing
+  const test = DateTime.now().setZone(timezone);
+  if (!test.isValid || test.zoneName !== timezone) {
+    throw new Error(`Invalid or unrecognized timezone: '${timezone}'`);
+  }
+
+  let dt;
+
+  // Case 2 — native JS Date
+  if (value instanceof Date) {
+    dt = DateTime.fromJSDate(value, { zone: timezone });
+  }
+
+  // Case 3 — strings
+  else if (typeof value === 'string') {
+    // Try ISO: "2024-01-01", "2024-01-01T12:30"
+    dt = DateTime.fromISO(value, { zone: timezone });
+
+    // Try SQL: "2024-01-01 12:30:00"
+    if (!dt.isValid) {
+      dt = DateTime.fromSQL(value, { zone: timezone });
+    }
+
+    // Try explicit date-only format: "yyyy-MM-dd"
+    if (!dt.isValid) {
+      dt = DateTime.fromFormat(value, 'yyyy-MM-dd', { zone: timezone });
+    }
+
+    if (!dt.isValid) {
+      throw new Error(`Could not parse datetime string '${value}'.`);
+    }
+
+    // Promote date-only strings to end-of-day when requested
+    const isDateOnly = !/[T\s]/.test(value);
+    if (isEnd &amp;&amp; isDateOnly) {
+      dt = dt.endOf('day');
+    }
+  }
+
+  else {
+    throw new Error(
+      `Unsupported datetime input type: ${typeof value}. Expected DateTime, Date, or string.`
+    );
+  }
+
+  return dt;
+}
+</code></pre>
         </article>
     </section>
 
@@ -183,13 +288,13 @@ export function validateDataTable(table) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Mon Jul 21 2025 16:56:04 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Nov 19 2025 16:33:50 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

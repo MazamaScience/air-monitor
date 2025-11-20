@@ -42,6 +42,7 @@
  * Helper functions:
  * - `arrayMean()` – Computes the mean of an array, skipping null/NaN/invalid values.
  * - `round1()` – Rounds all non-datetime columns in a data table to 1 decimal place.
+ * - `parseDatetime()` – Parse a user-provided datetime into a Luxon DateTime.
  */
 
 import * as aq from 'arquero';
@@ -49,7 +50,7 @@ const op = aq.op;
 
 import { DateTime } from 'luxon';
 
-import { arrayMean, round1 } from './helpers.js';
+import { arrayMean, round1, parseDatetime } from './helpers.js';
 
 /**
  * Collapse a Monitor object into a single time series.
@@ -349,6 +350,119 @@ export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
   return { meta: monitor.meta, data: round1(trimmed) };
 }
 
+/**
+ * Filter a Monitor's time-series data to an explicit datetime range.
+ *
+ * Assumptions:
+ * - `monitor.data.datetime` contains Luxon DateTime objects in UTC.
+ * - Rows in `monitor.data` are sorted in ascending datetime order.
+ *
+ * Inputs:
+ * - `startdate` and `enddate` may be:
+ *    * Luxon DateTime objects (any zone) – `timezone` is optional.
+ *    * Strings or native Date objects – a valid IANA `timezone` is required.
+ *
+ * Behavior:
+ * - For string/Date inputs, `parseDatetime()` interprets them in `timezone`.
+ * - For date-only strings (e.g. "2025-02-10"), `enddate` is promoted to
+ *   the *end of that local day* so that whole-day ranges are inclusive.
+ * - Both parsed datetimes are converted to UTC and used to find the
+ *   inclusive index range within `monitor.data`.
+ *
+ * Note:
+ * - This function does NOT construct a new Monitor instance. It returns
+ *   plain `{ meta, data }` tables; the public `Monitor#filterDatetime()`
+ *   method is responsible for wrapping the result into a Monitor and
+ *   validating it.
+ *
+ * @param {Monitor} monitor - The source monitor object.
+ * @param {DateTime|string|Date} startdate - Start of the range.
+ * @param {DateTime|string|Date} enddate   - End of the range.
+ * @param {string} [timezone] - IANA timezone when using string/Date inputs.
+ * @returns {{ meta: aq.Table, data: aq.Table }} Subset of the monitor.
+ *
+ * @throws {Error} If datetime column is missing/empty, inputs cannot be parsed,
+ *                 timezone is missing when required, or the range is inverted.
+ */
+export function internal_filterDatetime(monitor, startdate, enddate, timezone) {
+  const datetime = monitor.data.array('datetime');
+
+  if (!datetime || datetime.length === 0) {
+    throw new Error('No datetime values found in monitor.data');
+  }
+
+  // Use shared helper to normalize inputs to Luxon DateTime in the
+  // appropriate zone. `isEnd = true` promotes date-only strings to
+  // end-of-day so whole-day ranges are inclusive.
+  const startDT = parseDatetime(startdate, timezone, false);
+  const endDT   = parseDatetime(enddate, timezone, true);
+
+  // Convert to UTC for comparison with monitor.data.datetime (assumed UTC).
+  const startUtc = startDT.toUTC();
+  const endUtc   = endDT.toUTC();
+
+  if (endUtc &lt; startUtc) {
+    throw new Error('enddate must be greater than or equal to startdate.');
+  }
+
+  const len = datetime.length;
+  const startMs = startUtc.toMillis();
+  const endMs   = endUtc.toMillis();
+
+  // Precompute millisecond values once
+  const times = new Array(len);
+  for (let i = 0; i &lt; len; i++) {
+    times[i] = datetime[i].toMillis();
+  }
+
+  // Optimized binary search to find bounds in O(log n)
+
+  // First index i where times[i] >= startMs
+  const findFirstGE = (arr, target) => {
+    let lo = 0;
+    let hi = arr.length; // exclusive
+    while (lo &lt; hi) {
+      const mid = (lo + hi) >> 1;
+      if (arr[mid] &lt; target) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo;
+  };
+
+  // Last index i where times[i] &lt;= endMs
+  const findLastLE = (arr, target) => {
+    let lo = 0;
+    let hi = arr.length; // exclusive
+    while (lo &lt; hi) {
+      const mid = (lo + hi) >> 1;
+      if (arr[mid] &lt;= target) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo - 1; // last &lt;= target
+  };
+
+  const startIdx = findFirstGE(times, startMs);
+  const endIdx   = findLastLE(times, endMs);
+
+  // If no overlap, return an empty data table with the same schema.
+  if (startIdx >= len || endIdx &lt; 0 || startIdx > endIdx) {
+    return {
+      meta: monitor.meta,
+      data: monitor.data.slice(0, 0)
+    };
+  }
+
+  // Final subsetting step: slice rows by index (Arquero's slice end is exclusive).
+  const subset = monitor.data.slice(startIdx, endIdx + 1);
+
+  return { meta: monitor.meta, data: subset };
+}
 </code></pre>
         </article>
     </section>
@@ -359,13 +473,13 @@ export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Mon Jul 21 2025 16:56:04 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Nov 19 2025 16:33:50 GMT-0800 (Pacific Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
