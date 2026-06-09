@@ -89,6 +89,30 @@ loop never runs and the function returns `undefined`, which then flows into
 `parseMeta`/`parseData` as a non-table. Defaults (`2`) avoid this today, but there
 is no guard.
 
+**H4. `collapse` produces a self-inconsistent Monitor whose own accessors cannot
+resolve its ID.** `internal_collapse` (`src/utils/transform.js:56,113`) sets
+`new_meta.deviceDeploymentID = "xxx_" + deviceID` but names the single `new_data`
+column just `deviceID` (via `.rename({ value: deviceID })`). The two tables are
+therefore misaligned on the join key: `getIDs()` returns `"xxx_<deviceID>"` (from
+`meta`), but `validateDeviceID` resolves IDs against `data.columnNames()`
+(`src/utils/helpers.js:80`), which only contains `"<deviceID>"`. As a result the
+idiomatic round-trip throws:
+
+```js
+const m = monitor.collapse("wa_mean", "mean");
+m.getPM25(m.getIDs()[0]);
+// Error: Device ID 'xxx_wa_mean' not found in monitor.data
+```
+
+`assertIsMonitor(result, 'collapse')` does **not** catch this, so the broken
+monitor is returned to the caller. Any downstream code that pairs `getIDs()` with
+an accessor (`getPM25`, `getNowcast`, `getMetaObject`, `getDailyStats`, …) — the
+normal usage pattern — fails on a collapsed monitor. Confirmed while building
+`examples/test.html`. This is the correctness consequence of the placeholder IDs
+noted in M4; the smallest fix is to use the **same** identifier for both
+`meta.deviceDeploymentID` and the `data` column (drop the `"xxx_"` prefix, or apply
+it to both), so the tables stay aligned.
+
 #### 🟠 Medium
 
 - **M1. Loader duplication.** `providerLoad`, `providerLoadAnnual`, and
@@ -103,7 +127,9 @@ is no guard.
   less consistent than the sibling `getDailyStats`.
 - **M4. `collapse` ships placeholder identifiers.** `locationID = "xxx"` and
   `deviceDeploymentID = "xxx_<id>"` (with a `TODO` for a geohash) mean collapsed
-  monitors carry non-meaningful IDs.
+  monitors carry non-meaningful IDs. Beyond cosmetics, the `"xxx_"` prefix on the
+  meta ID (but not the data column) is the direct cause of **H4** — fixing H4
+  resolves this.
 
 #### 🟡 Low / Documentation
 
@@ -132,6 +158,7 @@ Ten small, low-risk tasks, favoring reliability / clarity / docs / maintenance:
 | **2** DONE  | Add regression test for an all-null / null-first metadata column | Locks in the H1 fix; current fixtures never hit it | Small | Low |
 | **3** DONE  | Correct `getCurrentStatus` for fully-empty series (H2) | Prevents false "last valid" status leaking into GeoJSON/maps | Small | Low |
 | **4** DONE  | Guard `loadWithRetry` against returning `undefined` (H3) | Turns a silent bad-state into a clear error | Small | Low |
+| 4b | Align `collapse` meta ID with its data column name (H4 / M4) | Makes collapsed monitors usable via their own `getIDs()`/accessors | Small | Low |
 | 5  | Route `getDiurnalStats` through `validateDeviceID` (M3) | Consistent, clearer error messages across analysis fns | Small | Low |
 | 6  | Extract a shared loader helper (M1) | Removes ~3× duplicated allSettled/log/throw blocks | Medium | Low |
 | 7  | Document the negative→0 clamping in README + JSDoc (L2) | Surfaces a real scientific decision currently hidden in `parse.js` | Small | Low |
