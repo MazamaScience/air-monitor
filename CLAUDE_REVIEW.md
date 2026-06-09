@@ -113,6 +113,12 @@ noted in M4; the smallest fix is to use the **same** identifier for both
 `meta.deviceDeploymentID` and the `data` column (drop the `"xxx_"` prefix, or apply
 it to both), so the tables stay aligned.
 
+> **FIXED (2026-06-09).** `src/utils/transform.js` now sets
+> `deviceDeploymentID = deviceID`, matching the data column name. The collapsed
+> `getIDs() -> getPM25()/getNowcast()/getMetaObject()` round-trip works, and a
+> regression test in `tests/collapse.test.js` locks it in. The `locationID = "xxx"`
+> placeholder (the remaining half of M4) is unchanged.
+
 #### 🟠 Medium
 
 - **M1. Loader duplication.** `providerLoad`, `providerLoadAnnual`, and
@@ -158,7 +164,7 @@ Ten small, low-risk tasks, favoring reliability / clarity / docs / maintenance:
 | **2** DONE  | Add regression test for an all-null / null-first metadata column | Locks in the H1 fix; current fixtures never hit it | Small | Low |
 | **3** DONE  | Correct `getCurrentStatus` for fully-empty series (H2) | Prevents false "last valid" status leaking into GeoJSON/maps | Small | Low |
 | **4** DONE  | Guard `loadWithRetry` against returning `undefined` (H3) | Turns a silent bad-state into a clear error | Small | Low |
-| 4b | Align `collapse` meta ID with its data column name (H4 / M4) | Makes collapsed monitors usable via their own `getIDs()`/accessors | Small | Low |
+| **4b** DONE | Align `collapse` meta ID with its data column name (H4 / M4) | Makes collapsed monitors usable via their own `getIDs()`/accessors | Small | Low |
 | 5  | Route `getDiurnalStats` through `validateDeviceID` (M3) | Consistent, clearer error messages across analysis fns | Small | Low |
 | 6  | Extract a shared loader helper (M1) | Removes ~3× duplicated allSettled/log/throw blocks | Medium | Low |
 | 7  | Document the negative→0 clamping in README + JSDoc (L2) | Surfaces a real scientific decision currently hidden in `parse.js` | Small | Low |

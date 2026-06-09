@@ -356,13 +356,10 @@
         showTable($("diurnalOut"), diurnalRows);
 
         // --- Collapse the whole state to one regional-average series --
-        // collapse() names the new data column after the deviceID we pass
-        // here, so we reference that same name when reading the result back
-        // and pull the location straight from the single-row meta table.
-        const regionalID = "wa_mean";
-        const regional = state.collapse(regionalID, "mean");
+        const regional = state.collapse("wa_mean", "mean");
+        const regionalID = regional.getIDs()[0];
         const regionalPM25 = regional.getPM25(regionalID);
-        const regionalMeta = regional.meta.object(0);
+        const regionalMeta = regional.getMetaObject(regionalID);
         showHTML(
           $("collapseOut"),
           `<code>collapse("wa_mean", "mean")</code> reduces all ` +

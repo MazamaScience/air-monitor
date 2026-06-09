@@ -53,7 +53,12 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
   const latitude = arrayMean(meta.array("latitude"));
   // TODO:  Could create new locationID based on geohash
   const locationID = "xxx";
-  const deviceDeploymentID = `xxx_${deviceID}`;
+  // The deviceDeploymentID MUST match the name of the single collapsed data
+  // column (set to `deviceID` below). If they differ, the resulting Monitor is
+  // misaligned: getIDs() returns an identifier that validateDeviceID() (which
+  // resolves against data.columnNames()) cannot find, breaking every accessor
+  // such as getPM25()/getNowcast() on the collapsed result.
+  const deviceDeploymentID = deviceID;
 
   // Start with first row and override key fields
   let new_meta = meta.slice(0, 1).derive({
