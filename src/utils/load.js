@@ -88,6 +88,14 @@ const annual_coreMetadataNames = [
  * @throws {Error} If all attempts to load the CSV fail.
  */
 async function loadWithRetry(url, maxAttempts = 2) {
+  // Guard against a non-positive maxAttempts, which would otherwise skip the loop
+  // entirely and silently return undefined (a non-table) to the caller.
+  if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
+    throw new Error(
+      `loadWithRetry: maxAttempts must be a positive integer, got ${maxAttempts} (url: ${url})`
+    );
+  }
+
   let attempt = 0;
   while (attempt < maxAttempts) {
     try {
@@ -107,6 +115,11 @@ async function loadWithRetry(url, maxAttempts = 2) {
       console.warn(`Retrying (${attempt}/${maxAttempts}) for: ${url}`);
     }
   }
+
+  // Defensive: the loop above either returns a table or throws on the final
+  // attempt, so this should be unreachable. It guards the contract that this
+  // function never resolves to undefined.
+  throw new Error(`loadWithRetry: failed to load CSV without a thrown error (url: ${url})`);
 }
 
 /**

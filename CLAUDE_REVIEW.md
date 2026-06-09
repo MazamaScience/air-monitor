@@ -131,7 +131,7 @@ Ten small, low-risk tasks, favoring reliability / clarity / docs / maintenance:
 | **1** DONE  | Fix `filterByValue` null-first-row type inference (H1) | Eliminates a data-dependent crash in a core, frequently-chained method | Small | Low |
 | **2** DONE  | Add regression test for an all-null / null-first metadata column | Locks in the H1 fix; current fixtures never hit it | Small | Low |
 | **3** DONE  | Correct `getCurrentStatus` for fully-empty series (H2) | Prevents false "last valid" status leaking into GeoJSON/maps | Small | Low |
-| 4  | Guard `loadWithRetry` against returning `undefined` (H3) | Turns a silent bad-state into a clear error | Small | Low |
+| **4** DONE  | Guard `loadWithRetry` against returning `undefined` (H3) | Turns a silent bad-state into a clear error | Small | Low |
 | 5  | Route `getDiurnalStats` through `validateDeviceID` (M3) | Consistent, clearer error messages across analysis fns | Small | Low |
 | 6  | Extract a shared loader helper (M1) | Removes ~3× duplicated allSettled/log/throw blocks | Medium | Low |
 | 7  | Document the negative→0 clamping in README + JSDoc (L2) | Surfaces a real scientific decision currently hidden in `parse.js` | Small | Low |
