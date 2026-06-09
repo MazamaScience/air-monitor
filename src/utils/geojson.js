@@ -27,13 +27,16 @@ export function internal_getCurrentStatus(monitor) {
     .select(aq.not("datetime"))
     .derive({ index: d => op.row_number() - 1 });
 
-  // Replace valid values with their row index; else 0
+  // Replace valid values with their row index; invalid values get a -1 sentinel.
+  // Using -1 (rather than 0) lets us distinguish a series whose only valid value
+  // is at row 0 from a fully-empty series: the latter yields a max index of -1.
   const valueExprs = {};
   ids.forEach(id => {
-    valueExprs[id] = `d => op.is_finite(d['${id}']) ? d.index : 0`;
+    valueExprs[id] = `d => op.is_finite(d['${id}']) ? d.index : -1`;
   });
 
-  // Find max index per ID (i.e., most recent valid row)
+  // Find max index per ID (i.e., most recent valid row). A value of -1 means the
+  // series has no valid observations.
   const maxIndexExprs = {};
   ids.forEach(id => {
     maxIndexExprs[id] = `d => op.max(d['${id}'])`;
@@ -42,8 +45,13 @@ export function internal_getCurrentStatus(monitor) {
   const lastValidIndexObj = dataWithIndex.derive(valueExprs).rollup(maxIndexExprs).object(0);
   const lastValidIndices = Object.values(lastValidIndexObj);
 
-  const lastValidDatetime = lastValidIndices.map(i => data.array("datetime")[i]);
-  const lastValidValues = ids.map((id, i) => data.get(id, lastValidIndices[i]));
+  // For series with no valid observations (index === -1), report null rather than
+  // falsely reporting row 0 as the most recent valid status.
+  const datetimeColumn = data.array("datetime");
+  const lastValidDatetime = lastValidIndices.map(i => (i < 0 ? null : datetimeColumn[i]));
+  const lastValidValues = ids.map((id, i) =>
+    lastValidIndices[i] < 0 ? null : data.get(id, lastValidIndices[i])
+  );
 
   const statusTable = aq.table({
     lastValidDatetime,

@@ -128,9 +128,9 @@ Ten small, low-risk tasks, favoring reliability / clarity / docs / maintenance:
 
 | #  | Title | Why valuable | Effort | Risk |
 |----|-------|--------------|--------|------|
-| 1  | Fix `filterByValue` null-first-row type inference (H1) | Eliminates a data-dependent crash in a core, frequently-chained method | Small | Low |
-| 2  | Add regression test for an all-null / null-first metadata column | Locks in the H1 fix; current fixtures never hit it | Small | Low |
-| 3  | Correct `getCurrentStatus` for fully-empty series (H2) | Prevents false "last valid" status leaking into GeoJSON/maps | Small | Low |
+| **1** DONE  | Fix `filterByValue` null-first-row type inference (H1) | Eliminates a data-dependent crash in a core, frequently-chained method | Small | Low |
+| **2** DONE  | Add regression test for an all-null / null-first metadata column | Locks in the H1 fix; current fixtures never hit it | Small | Low |
+| **3** DONE  | Correct `getCurrentStatus` for fully-empty series (H2) | Prevents false "last valid" status leaking into GeoJSON/maps | Small | Low |
 | 4  | Guard `loadWithRetry` against returning `undefined` (H3) | Turns a silent bad-state into a clear error | Small | Low |
 | 5  | Route `getDiurnalStats` through `validateDeviceID` (M3) | Consistent, clearer error messages across analysis fns | Small | Low |
 | 6  | Extract a shared loader helper (M1) | Removes ~3× duplicated allSettled/log/throw blocks | Medium | Low |

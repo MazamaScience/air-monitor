@@ -74,4 +74,47 @@ test('deviceDeploymentIDs in status match original meta', () => {
   );
 });
 
+test('getCurrentStatus reports null for a fully-empty series', () => {
+  // Regression test for H2: a series with no valid observations previously
+  // reported row 0's datetime/value as the most recent valid status. It should
+  // report null instead.
+  const targetID = monitor.getIDs()[0];
+
+  const emptyMonitor = new Monitor();
+  emptyMonitor.meta = monitor.meta;
+  // Replace every value in the target series with null.
+  emptyMonitor.data = monitor.data.derive({ [targetID]: () => null });
+
+  const status = emptyMonitor.getCurrentStatus();
+  const row = status.objects().find(r => r.deviceDeploymentID === targetID);
+
+  assert.is(row.lastValidDatetime, null, 'lastValidDatetime is null for an empty series');
+  assert.is(row.lastValidPM_25, null, 'lastValidPM_25 is null for an empty series');
+});
+
+test('getCurrentStatus reports row 0 when it is the only valid observation', () => {
+  // The -1 sentinel must still correctly identify a valid value at row 0
+  // (the old 0 sentinel could not distinguish this from an empty series).
+  const targetID = monitor.getIDs()[0];
+
+  const firstRowMonitor = new Monitor();
+  firstRowMonitor.meta = monitor.meta;
+  // Keep row 0's value, null out everything else for the target series.
+  firstRowMonitor.data = monitor.data.derive({
+    [targetID]: `d => op.row_number() === 1 ? d['${targetID}'] : null`,
+  });
+
+  const expected = monitor.data.get(targetID, 0);
+  const status = firstRowMonitor.getCurrentStatus();
+  const row = status.objects().find(r => r.deviceDeploymentID === targetID);
+
+  if (expected === null || !Number.isFinite(expected)) {
+    // Fixture's row 0 happens to be empty; then this behaves like the empty case.
+    assert.is(row.lastValidPM_25, null);
+  } else {
+    assert.is(row.lastValidPM_25, expected, 'Reports row 0 value when it is the only valid one');
+    assert.is(row.lastValidDatetime, monitor.data.array('datetime')[0], 'Reports row 0 datetime');
+  }
+});
+
 test.run();
