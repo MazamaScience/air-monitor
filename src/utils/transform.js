@@ -211,7 +211,10 @@ export function internal_filterByValue(monitor, columnName, value) {
     throw new Error(`Column '${columnName}' not found in metadata`);
   }
 
-  const colType = typeof monitor.meta.get(columnName);
+
+  const colArray = monitor.meta.array(columnName);
+  const sample = colArray.find(v => v !== null && v !== undefined);
+  const colType = typeof sample;
   let filterExpression;
 
   if (colType === 'number') {

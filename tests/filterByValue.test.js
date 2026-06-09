@@ -71,6 +71,36 @@ test('filterByValue throws if column type is unsupported', () => {
   }, /Unsupported column type/);
 });
 
+test('filterByValue works when the first row of the column is null', () => {
+  const target = 'sentinel';
+  const nullFirstMonitor = new Monitor();
+  // Build a string column whose first row is null and remaining rows are valid.
+  // op.row_number() is 1-based, so row 1 is the first row.
+  nullFirstMonitor.meta = monitor.meta.derive({
+    nullableCol: `d => op.row_number() === 1 ? null : '${target}'`,
+  });
+  nullFirstMonitor.data = monitor.data;
+
+  const filtered = nullFirstMonitor.filterByValue('nullableCol', target);
+
+  assert.ok(filtered.meta.numRows() > 0, 'Meta table is not empty');
+  assert.ok(
+    filtered.meta.array('nullableCol').every(v => v === target),
+    'All meta rows match the target value'
+  );
+  // The null first row should have been excluded.
+  assert.is(filtered.meta.numRows(), monitor.meta.numRows() - 1, 'Null first row excluded');
+});
+
+test('filterByValue throws if the column is entirely null', () => {
+  const allNullMonitor = new Monitor();
+  allNullMonitor.meta = monitor.meta.derive({ allNull: () => null });
+
+  assert.throws(() => {
+    allNullMonitor.filterByValue('allNull', 'anything');
+  }, /Unsupported column type/);
+});
+
 test('filterByValue supports chaining on the returned Monitor', () => {
   const deploymentType = monitor.meta.get('deploymentType', 0);
   const instrumentDescription = monitor.meta.get('instrumentDescription', 0);
