@@ -1,6 +1,7 @@
 # air-monitor 1.2.4
 
 - Added `filterDatetime()` -- Subsets a Monitor object to an explicit time range.
+- Addressed several small bugs and edge cases.
 
 # air-monitor 1.2.3
 
