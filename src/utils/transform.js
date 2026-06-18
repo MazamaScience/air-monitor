@@ -354,17 +354,22 @@ export function internal_trimDate(monitor, timezone, trimEmptyDays = true) {
   if (trimEmptyDays) {
     const dataCols = monitor.data.columnNames().filter(c => c !== 'datetime');
 
-    const firstDay = monitor.data.slice(start, start + 24);
-    const allInvalidStart = dataCols.every(col =>
-      firstDay.array(col).every(v => v == null)
-    );
-    if (allInvalidStart) start += 24;
+    // A day is empty if every data column is null across all 24 of its hours.
+    const dayIsEmpty = (from, to) =>
+      dataCols.every(col =>
+        monitor.data.slice(from, to).array(col).every(v => v == null)
+      );
 
-    const lastDay = monitor.data.slice(end - 24, end);
-    const allInvalidEnd = dataCols.every(col =>
-      lastDay.array(col).every(v => v == null)
-    );
-    if (allInvalidEnd) end -= 24;
+    // Drop ALL fully-empty days from the start, then from the end. The span
+    // [start, end) is aligned to whole local-time days, so we step a day (24h)
+    // at a time. The `end - start >= 24` guard keeps the bounds from crossing
+    // when every day is empty (which collapses to an empty result).
+    while (end - start >= 24 && dayIsEmpty(start, start + 24)) {
+      start += 24;
+    }
+    while (end - start >= 24 && dayIsEmpty(end - 24, end)) {
+      end -= 24;
+    }
   }
 
   const trimmed = monitor.data.slice(start, end);
