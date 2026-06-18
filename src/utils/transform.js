@@ -122,12 +122,49 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
 }
 
 /**
+ * Reindex a data table onto a complete, gap-free hourly UTC axis spanning its
+ * own min..max datetime. Hours that have no row are inserted with null values.
+ *
+ * This restores the load-bearing invariant that `data.datetime` is strictly
+ * increasing and spaced exactly 1 hour apart with no gaps. It is needed after
+ * operations (e.g. `join_full`) that union two independent time axes: such a
+ * union only contains hours present in one input or the other, so a hole
+ * appears whenever the inputs don't cover a contiguous span.
+ *
+ * @param {aq.Table} data - Table with a UTC Luxon `datetime` column (any order).
+ * @returns {aq.Table} Table on a complete hourly axis, ordered by datetime.
+ */
+function reindexHourly(data) {
+  const datetime = data.orderby('datetime').array('datetime');
+  if (datetime.length === 0) return data;
+
+  const start = datetime[0];
+  const end = datetime[datetime.length - 1];
+  const nHours = Math.round(end.diff(start, 'hours').hours);
+
+  const spineTimes = new Array(nHours + 1);
+  for (let i = 0; i <= nHours; i++) {
+    spineTimes[i] = start.plus({ hours: i });
+  }
+
+  // The spine is the LEFT table so every hour appears exactly once. Arquero
+  // matches equal Luxon DateTime instants by value, so the freshly built spine
+  // joins correctly against the existing DateTime objects. join_left does not
+  // guarantee row order, so re-sort afterward.
+  return aq.table({ datetime: spineTimes })
+    .join_left(data, 'datetime')
+    .orderby('datetime');
+}
+
+/**
  * Combines two Monitor objects by merging their metadata and time series data.
  * If any deviceDeploymentIDs in `monitorB` are already present in `monitorA`,
  * they will be dropped from `monitorB` before merging.
  *
  * Data are combined with 'join_full' to guarantee that all times from either
- * Monitor object will be retained.
+ * Monitor object will be retained, then reindexed onto a complete hourly axis
+ * so that any interior hours present in neither input are null-filled. This
+ * preserves the strictly-increasing, gap-free hourly datetime invariant.
  *
  * @param {Monitor} monitorA - The base Monitor instance.
  * @param {Monitor} monitorB - The Monitor instance to merge in.
@@ -148,11 +185,15 @@ export function internal_combine(monitorA, monitorB) {
 
   const dataB = monitorB.data.select(['datetime', ...uniqueIDs]);
 
-  // Combine everything
+  // Combine everything. join_full unions the columns (all series from both
+  // monitors) and whatever times each has; reindexHourly then fills any
+  // interior hours that neither input had. round1 converts the undefined cells
+  // left by the spine join to null, satisfying the "finite number or null"
+  // invariant.
   const combinedMeta = monitorA.meta.concat(metaB);
-  const combinedData = monitorA.data
-    .join_full(dataB, "datetime")
-    .orderby("datetime");
+  const combinedData = reindexHourly(
+    monitorA.data.join_full(dataB, "datetime")
+  );
 
   return { meta: combinedMeta, data: round1(combinedData) };
 }

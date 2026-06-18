@@ -39,6 +39,7 @@ import {
 } from './utils/geojson.js';
 import {
   assertIsMonitor,
+  validateDataTable,
   validateDeviceID
 } from './utils/helpers.js';
 
@@ -311,6 +312,9 @@ class Monitor {
     const { meta, data } = internal_combine(this, monitor);
     const result = new Monitor(meta, data);
     assertIsMonitor(result, 'combine');
+    // Backstop: combine unions two independent time axes, so re-validate that
+    // the result still satisfies the UTC/hourly/gap-free datetime invariant.
+    validateDataTable(result.data);
     return result;
   }
 

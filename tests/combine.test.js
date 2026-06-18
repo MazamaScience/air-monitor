@@ -80,6 +80,42 @@ test('combine() with disjoint monitors merges all series', () => {
   assert.is(combined.meta.numRows(), expectedIDs.size);
 });
 
+test('combine() of time-disjoint monitors yields a gap-free hourly axis', () => {
+  const allIDs = fullMonitor.getIDs();
+
+  // Two monitors covering non-overlapping time ranges. Without reindexing, the
+  // join_full union would leave a multi-day hole in the datetime axis.
+  const a = fullMonitor.select(allIDs.slice(0, 2)).filterDatetime('2025-06-21', '2025-06-22', 'UTC');
+  const b = fullMonitor.select(allIDs.slice(2, 4)).filterDatetime('2025-06-25', '2025-06-26', 'UTC');
+
+  const combined = a.combine(b);
+  const dt = combined.data.array('datetime');
+
+  // Datetime axis must be strictly increasing and spaced exactly 1 hour apart.
+  for (let i = 1; i < dt.length; i++) {
+    const diff = Math.round(dt[i].diff(dt[i - 1], 'hours').hours);
+    assert.is(diff, 1, `gap before row ${i}: ${dt[i - 1].toISO()} -> ${dt[i].toISO()}`);
+  }
+
+  // The interior hours present in neither input must have been filled in, so the
+  // combined axis is longer than the simple sum of the two input row counts.
+  assert.ok(
+    dt.length > a.data.numRows() + b.data.numRows(),
+    'interior hours should be null-filled, not dropped'
+  );
+
+  // Filled cells must be null (not undefined/NaN), preserving the data invariant.
+  const numericCols = combined.data.columnNames().filter(c => c !== 'datetime');
+  for (const col of numericCols) {
+    for (const val of combined.data.array(col)) {
+      assert.ok(
+        Number.isFinite(val) || val === null,
+        `Value in ${col} must be finite or null, got ${val}`
+      );
+    }
+  }
+});
+
 test('combine() with fully overlapping monitor does not duplicate data', () => {
   const copy = fullMonitor.select(fullMonitor.getIDs()); // clone
   const combined = fullMonitor.combine(copy);
