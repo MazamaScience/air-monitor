@@ -1,3 +1,18 @@
+# air-monitor 1.2.6
+
+- Fixed `combine()` to fill gaps in the datetime axis when monitors cover non-overlapping time ranges.
+- Fixed `trimDate()` to remove all fully-empty days at each edge, not just one.
+- `getCurrentStatus()` now rounds `lastValidPM_25` to 1 decimal place.
+- `parseData()` now handles deviceDeploymentIDs containing quotes or backslashes.
+- Internal cleanup of duplicated CSV load/error handling.
+
+# air-monitor 1.2.5
+
+- Fixed `collapse()` so the collapsed series' `deviceDeploymentID` matches its data column name.
+- Fixed `getCurrentStatus()` to report `null` for empty series instead of falsely reporting row 0.
+- Fixed `filterByValue()` type inference to sample the first non-null value instead of row 0.
+- Guarded `loadWithRetry()` against silently returning `undefined`.
+
 # air-monitor 1.2.4
 
 - Added `filterDatetime()` -- Subsets a Monitor object to an explicit time range.
