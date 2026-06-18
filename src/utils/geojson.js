@@ -49,9 +49,14 @@ export function internal_getCurrentStatus(monitor) {
   // falsely reporting row 0 as the most recent valid status.
   const datetimeColumn = data.array("datetime");
   const lastValidDatetime = lastValidIndices.map(i => (i < 0 ? null : datetimeColumn[i]));
-  const lastValidValues = ids.map((id, i) =>
-    lastValidIndices[i] < 0 ? null : data.get(id, lastValidIndices[i])
-  );
+  // Round to 1 decimal place to match getPM25()/daily stats. Load-time data is
+  // not rounded, so reading it raw here would otherwise report more decimals
+  // than the rest of the API.
+  const lastValidValues = ids.map((id, i) => {
+    if (lastValidIndices[i] < 0) return null;
+    const value = data.get(id, lastValidIndices[i]);
+    return value == null ? null : Math.round(value * 10) / 10;
+  });
 
   const statusTable = aq.table({
     lastValidDatetime,

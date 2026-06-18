@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Monitor from '../src/index.js';
 import { DateTime } from 'luxon';
+import * as aq from 'arquero';
 
 // test.before.each(async () => {
 test.before(async () => {
@@ -115,6 +116,21 @@ test('getCurrentStatus reports row 0 when it is the only valid observation', () 
     assert.is(row.lastValidPM_25, expected, 'Reports row 0 value when it is the only valid one');
     assert.is(row.lastValidDatetime, monitor.data.array('datetime')[0], 'Reports row 0 datetime');
   }
+});
+
+test('getCurrentStatus rounds lastValidPM_25 to 1 decimal place', () => {
+  // Load-time data is not rounded, so getCurrentStatus must round the raw last
+  // value to match getPM25()/daily stats.
+  const start = DateTime.fromISO('2025-01-01T00:00:00Z', { zone: 'utc' });
+  const datetime = [start, start.plus({ hours: 1 }), start.plus({ hours: 2 })];
+  const id = 'dev_round_001';
+  const data = aq.table({ datetime, [id]: [1.0, 2.0, 3.14159] });
+  const meta = aq.table({ deviceDeploymentID: [id] });
+
+  const m = new Monitor(meta, data);
+  const row = m.getCurrentStatus().objects().find(r => r.deviceDeploymentID === id);
+
+  assert.is(row.lastValidPM_25, 3.1, 'last valid value rounded to 1 decimal');
 });
 
 test.run();
