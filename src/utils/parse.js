@@ -65,29 +65,31 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
 export function parseData(dt) {
   const ids = dt.columnNames().slice(1); // skip 'datetime'
 
-  // Use aq.escape(d => ...) rather than string-interpolated expressions so that
-  // deviceDeploymentIDs containing quotes/backslashes can't break the generated
-  // code (matches the safe pattern already used in parseMeta).
-
-  // Replace 'NA' with null, then parse as float
-  const values1 = {};
+  // Clean each measurement column by walking its raw values directly rather
+  // than via dt.derive(aq.escape(...)). The escape path hands each per-column
+  // expression a full row proxy, which makes derive() scale ~O(columns^2) and
+  // turns a real provider load (~1,500 columns) into a ~90s operation; the
+  // array walk below is the same work in a few milliseconds. Referencing
+  // columns by name through dt.array(id) also keeps the original safety
+  // property — deviceDeploymentIDs containing quotes/backslashes are never
+  // interpolated into generated code.
+  const columns = { datetime: dt.array('datetime') };
   ids.forEach(id => {
-    values1[id] = aq.escape(d => d[id] === 'NA' ? null : parseFloat(d[id]));
+    const src = dt.array(id);
+    const out = new Array(src.length);
+    for (let i = 0; i < src.length; i++) {
+      // Step 1: 'NA' -> null, otherwise parse as float.
+      let value = src[i] === 'NA' ? null : parseFloat(src[i]);
+      // Step 2: negative values -> 0 (also folds -Infinity to 0).
+      if (value < 0) value = 0;
+      // Step 3: remaining non-finite values (NaN, +Infinity) -> null.
+      if (value != null && !Number.isFinite(value)) value = null;
+      out[i] = value;
+    }
+    columns[id] = out;
   });
 
-  // Replace negative values with zero
-  const values2 = {};
-  ids.forEach(id => {
-    values2[id] = aq.escape(d => d[id] < 0 ? 0 : d[id]);
-  });
-
-  // Replace non-finite values (e.g. NaN, Infinity) with null
-  const values3 = {};
-  ids.forEach(id => {
-    values3[id] = aq.escape(d => d[id] != null && !Number.isFinite(d[id]) ? null : d[id]);
-  });
-
-  const cleaned = dt.derive(values1).derive(values2).derive(values3);
+  const cleaned = aq.table(columns);
 
   // Final check: ensure datetime is valid + hourly, and all data are numeric or null
   validateDataTable(cleaned);
