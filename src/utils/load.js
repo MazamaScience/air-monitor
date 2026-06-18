@@ -123,6 +123,43 @@ async function loadWithRetry(url, maxAttempts = 2) {
 }
 
 /**
+ * Fetches the paired metadata and data CSVs in parallel, each with retry.
+ *
+ * Centralizes the load + error-handling logic shared by the provider, annual,
+ * and custom loaders.
+ *
+ * @async
+ * @param {string} metaURL - URL of the metadata CSV.
+ * @param {string} dataURL - URL of the data CSV.
+ * @returns {Promise<{metaCSV: aq.Table, dataCSV: aq.Table}>} The loaded raw tables.
+ * @throws {Error} If either CSV fails to load after retries.
+ */
+async function loadMetaAndData(metaURL, dataURL) {
+  // Parallel download with retries
+  const results = await Promise.allSettled([
+    loadWithRetry(metaURL),
+    loadWithRetry(dataURL),
+  ]);
+
+  // Destructure the individual result objects
+  const [metaResult, dataResult] = results;
+
+  // Check if both loads succeeded
+  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
+    return { metaCSV: metaResult.value, dataCSV: dataResult.value };
+  }
+
+  // Something failed
+  if (metaResult.status === 'rejected') {
+    console.error('Failed to load meta CSV after retry:', metaResult.reason);
+  }
+  if (dataResult.status === 'rejected') {
+    console.error('Failed to load data CSV after retry:', dataResult.reason);
+  }
+  throw new Error('Failed to load data from URL.');
+}
+
+/**
  * Loads metadata and data CSVs for the specified provider and timespan,
  * and updates the given Monitor object in place.
  *
@@ -137,32 +174,9 @@ async function providerLoad(monitor, provider, timespan, archiveBaseUrl) {
   const metaURL = `${archiveBaseUrl}/${timespan}/data/${provider}_PM2.5_${timespan}_meta.csv`;
   const dataURL = `${archiveBaseUrl}/${timespan}/data/${provider}_PM2.5_${timespan}_data.csv`;
 
-  // Parallel download with retries
-  const results = await Promise.allSettled([
-    loadWithRetry(metaURL),
-    loadWithRetry(dataURL),
-  ]);
-
-  // Destructure the individual result objects
-  const [metaResult, dataResult] = results;
-
-  // Check if both loads succeeded
-  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
-    const metaCSV = metaResult.value;
-    const dataCSV = dataResult.value;
-    // Proceed with processing
-    monitor.meta = parseMeta(metaCSV, false, coreMetadataNames);
-    monitor.data = parseData(dataCSV);
-  } else {
-    // Something failed
-    if (metaResult.status === 'rejected') {
-      console.error('Failed to load meta CSV after retry:', metaResult.reason);
-    }
-    if (dataResult.status === 'rejected') {
-      console.error('Failed to load data CSV after retry:', dataResult.reason);
-    }
-    throw new Error('Failed to load data from URL.');
-  }
+  const { metaCSV, dataCSV } = await loadMetaAndData(metaURL, dataURL);
+  monitor.meta = parseMeta(metaCSV, false, coreMetadataNames);
+  monitor.data = parseData(dataCSV);
 }
 
 /**
@@ -179,32 +193,9 @@ async function providerLoadAnnual(monitor, year, archiveBaseUrl) {
   const metaURL = `${archiveBaseUrl}/airnow/${year}/data/airnow_PM2.5_${year}_meta.csv`;
   const dataURL = `${archiveBaseUrl}/airnow/${year}/data/airnow_PM2.5_${year}_data.csv`;
 
-  // Parallel download with retries
-  const results = await Promise.allSettled([
-    loadWithRetry(metaURL),
-    loadWithRetry(dataURL),
-  ]);
-
-  // Destructure the individual result objects
-  const [metaResult, dataResult] = results;
-
-  // Check if both loads succeeded
-  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
-    const metaCSV = metaResult.value;
-    const dataCSV = dataResult.value;
-    // Proceed with processing
-    monitor.meta = parseMeta(metaCSV, false, annual_coreMetadataNames);
-    monitor.data = parseData(dataCSV);
-  } else {
-    // Something failed
-    if (metaResult.status === 'rejected') {
-      console.error('Failed to load meta CSV after retry:', metaResult.reason);
-    }
-    if (dataResult.status === 'rejected') {
-      console.error('Failed to load data CSV after retry:', dataResult.reason);
-    }
-    throw new Error('Failed to load data from URL.');
-  }
+  const { metaCSV, dataCSV } = await loadMetaAndData(metaURL, dataURL);
+  monitor.meta = parseMeta(metaCSV, false, annual_coreMetadataNames);
+  monitor.data = parseData(dataCSV);
 }
 
 // ----- Public API ------------------------------------------------------------
@@ -287,31 +278,8 @@ export async function internal_loadCustom(monitor, baseName = '', baseUrl = '', 
   const metaURL = `${baseUrl}/${baseName}_meta.csv`;
   const dataURL = `${baseUrl}/${baseName}_data.csv`;
 
-  // Parallel download with retries
-  const results = await Promise.allSettled([
-    loadWithRetry(metaURL),
-    loadWithRetry(dataURL),
-  ]);
-
-  // Destructure the individual result objects
-  const [metaResult, dataResult] = results;
-
-  // Check if both loads succeeded
-  if (metaResult.status === 'fulfilled' && dataResult.status === 'fulfilled') {
-    const metaCSV = metaResult.value;
-    const dataCSV = dataResult.value;
-    // Proceed with processing
-    monitor.meta = parseMeta(metaCSV, useAllColumns);
-    monitor.data = parseData(dataCSV);
-  } else {
-    // Something failed
-    if (metaResult.status === 'rejected') {
-      console.error('Failed to load meta CSV after retry:', metaResult.reason);
-    }
-    if (dataResult.status === 'rejected') {
-      console.error('Failed to load data CSV after retry:', dataResult.reason);
-    }
-    throw new Error('Failed to load data from URL.');
-  }
+  const { metaCSV, dataCSV } = await loadMetaAndData(metaURL, dataURL);
+  monitor.meta = parseMeta(metaCSV, useAllColumns);
+  monitor.data = parseData(dataCSV);
 }
 
