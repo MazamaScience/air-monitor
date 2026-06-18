@@ -12,7 +12,6 @@
  */
 
 import * as aq from 'arquero';
-const op = aq.op;
 
 import { validateDataTable } from './helpers.js';
 
@@ -66,22 +65,26 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
 export function parseData(dt) {
   const ids = dt.columnNames().slice(1); // skip 'datetime'
 
+  // Use aq.escape(d => ...) rather than string-interpolated expressions so that
+  // deviceDeploymentIDs containing quotes/backslashes can't break the generated
+  // code (matches the safe pattern already used in parseMeta).
+
   // Replace 'NA' with null, then parse as float
   const values1 = {};
   ids.forEach(id => {
-    values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`;
+    values1[id] = aq.escape(d => d[id] === 'NA' ? null : parseFloat(d[id]));
   });
 
   // Replace negative values with zero
   const values2 = {};
   ids.forEach(id => {
-    values2[id] = `d => d['${id}'] < 0 ? 0 : d['${id}']`;
+    values2[id] = aq.escape(d => d[id] < 0 ? 0 : d[id]);
   });
 
   // Replace non-finite values (e.g. NaN, Infinity) with null
   const values3 = {};
   ids.forEach(id => {
-    values3[id] = `d => d['${id}'] != null && !op.is_finite(d['${id}']) ? null : d['${id}']`;
+    values3[id] = aq.escape(d => d[id] != null && !Number.isFinite(d[id]) ? null : d[id]);
   });
 
   const cleaned = dt.derive(values1).derive(values2).derive(values3);
