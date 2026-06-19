@@ -75,9 +75,13 @@ conventions, and public API contract.
 - All non-`datetime` values are finite numbers or `null`. `'NA'`, `NaN`, and
   non-finite values are normalized to `null` during parsing.
 - Negative PM2.5 measurements are clamped to `0` (a domain rule in `parseData`).
-- `deviceDeploymentID` is unique within `meta`. When `collapse()` creates a new
-  series, its `deviceDeploymentID` MUST equal the single data column name, or
-  every accessor breaks (see the regression note in `internal_collapse`).
+- `deviceDeploymentID` is unique within `meta` and follows the convention
+  `{deviceID}_{locationID}` (e.g., `"my-sensor_9x0sf0yqxw"` where the suffix
+  is a 10-character geohash of the deployment location). When `collapse()`
+  creates a new series, its `deviceDeploymentID` MUST equal the single data
+  column name, or every accessor breaks (see the regression note in
+  `internal_collapse`). Never construct a `deviceDeploymentID` without a
+  `_{locationID}` suffix.
 
 ### Public API and Compatibility
 
@@ -94,6 +98,7 @@ methods mutate `this` in place.
   on it.
 - `luxon` (pinned `3.6.1`) — all datetime handling; the UTC/timezone contract
   depends on it.
+- `latlon-geohash` — geohash encoding for `locationID` in collapsed monitors.
 - `air-monitor-algorithms` — NowCast and daily/diurnal statistics. Keep the
   scientific algorithms there, not here.
 

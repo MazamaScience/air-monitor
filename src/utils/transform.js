@@ -8,19 +8,16 @@
  * - `internal_combine()` – Merges two monitor objects, dropping duplicated IDs in the second.
  * - `internal_select()` – Subsets a monitor by selected deviceDeploymentIDs.
  * - `internal_filterByValue()` – Filters by a metadata field and matching value.
+ * - `internal_filterDatetime()` – Filters data rows to an explicit datetime range.
  * - `internal_dropEmpty()` – Removes time series columns with no valid data.
  * - `internal_trimDate()` – Trims time series to full local-time days.
- *
- * Helper functions:
- * - `arrayMean()` – Computes the mean of an array, skipping null/NaN/invalid values.
- * - `round1()` – Rounds all non-datetime columns in a data table to 1 decimal place.
- * - `parseDatetime()` – Parse a user-provided datetime into a Luxon DateTime.
  */
 
 import * as aq from 'arquero';
 const op = aq.op;
 
 import { DateTime } from 'luxon';
+import Geohash from 'latlon-geohash';
 
 import { arrayMean, round1, parseDatetime } from './helpers.js';
 
@@ -31,16 +28,16 @@ import { arrayMean, round1, parseDatetime } from './helpers.js';
  * function provided in the `FUN` argument (typically 'mean'). The single time
  * series result will be located at the mean longitude and latitude.
  *
- * When `FUN === "quantile"`, the `FUN_arg` argument specifies the quantile
- * probability.
- *
- * Available function names are those defined at:
- * https://uwdata.github.io/arquero/api/op#aggregate-functions
+ * Accepted values for `FUN`: "count", "valid", "invalid", "sum", "product",
+ * "mean", "average", "mode", "median", "min", "max", "quantile",
+ * "stdev", "stdevp", "variance", "variancep", "array_agg", "array_agg_distinct".
  *
  * @param {Monitor} monitor - The Monitor instance to collapse.
- * @param {string} deviceID - The name of the resulting time series column.
+ * @param {string} deviceID - Base name for the collapsed series. The resulting
+ *   deviceDeploymentID will be `{deviceID}_{geohash}` where the geohash encodes
+ *   the mean location of the input monitors.
  * @param {string} FUN - The aggregate function name (e.g. "mean", "sum", "quantile").
- * @param {number} FUN_arg - An optional argument for the aggregator (e.g. quantile prob).
+ * @param {number} [FUN_arg=0.8] - Quantile probability (0–1); only used when FUN is "quantile".
  * @returns {{ meta: aq.Table, data: aq.Table }} A Monitor object with a single time series.
  */
 // Arquero aggregate functions accepted by internal_collapse.
@@ -66,17 +63,18 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
 
   const longitude = arrayMean(meta.array("longitude"));
   const latitude = arrayMean(meta.array("latitude"));
-  // Use the caller-supplied deviceID as the locationID so that two collapsed
-  // monitors combined later don't share the same locationID (which "xxx" would
-  // cause). A geohash of the mean lat/lon would be more principled but requires
-  // an additional dependency; this is a safe interim measure.
-  const locationID = deviceID;
+  // Encode the mean location as a 10-character geohash (~1 m resolution).
+  // Fine precision is needed to differentiate co-located low-cost sensors.
+  // Falls back to deviceID if lat/lon are unavailable (all-null meta).
+  const locationID = (latitude !== null && longitude !== null)
+    ? Geohash.encode(latitude, longitude, 10)
+    : deviceID;
   // The deviceDeploymentID MUST match the name of the single collapsed data
-  // column (set to `deviceID` below). If they differ, the resulting Monitor is
-  // misaligned: getIDs() returns an identifier that validateDeviceID() (which
-  // resolves against data.columnNames()) cannot find, breaking every accessor
-  // such as getPM25()/getNowcast() on the collapsed result.
-  const deviceDeploymentID = deviceID;
+  // column (set to `deviceDeploymentID` below). If they differ, the resulting
+  // Monitor is misaligned: getIDs() returns an identifier that validateDeviceID()
+  // (which resolves against data.columnNames()) cannot find, breaking every
+  // accessor such as getPM25()/getNowcast() on the collapsed result.
+  const deviceDeploymentID = `${deviceID}_${locationID}`;
 
   // Start with first row and override key fields
   let new_meta = meta.slice(0, 1).derive({
@@ -133,8 +131,8 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
     .derive({
       datetime: aq.escape(d => DateTime.fromISO(d.key, { zone: 'utc' }))
     })
-    .rename({ value: deviceID })
-    .select(['datetime', deviceID]);
+    .rename({ value: deviceDeploymentID })
+    .select(['datetime', deviceDeploymentID]);
 
   return { meta: new_meta, data: round1(new_data) };
 }

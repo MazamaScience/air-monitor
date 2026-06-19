@@ -27,20 +27,21 @@ test('collapse() reduces all time series into one with correct values and struct
   const collapsed = monitor.collapse('collapsedID', 'mean');
 
   // 1. Result should have only one time series in meta, and its
-  //    deviceDeploymentID must equal the deviceID we passed in (which is also
-  //    the name of the single data column) so the two tables stay aligned.
+  //    deviceDeploymentID must be '{deviceID}_{geohash}' and must match the
+  //    name of the single data column so the two tables stay aligned.
   assert.is(collapsed.meta.numRows(), 1);
   assert.ok(collapsed.meta.columnNames().includes('deviceDeploymentID'));
-  assert.is(collapsed.meta.get('deviceDeploymentID', 0), 'collapsedID');
+  const ddID = collapsed.meta.get('deviceDeploymentID', 0);
+  assert.ok(ddID.startsWith('collapsedID_'), `deviceDeploymentID starts with 'collapsedID_', got '${ddID}'`);
 
   // 2. Result data should have same number of rows as input
   assert.is(collapsed.data.numRows(), monitor.data.numRows());
 
-  // 3. Result data should have exactly ['datetime', 'collapsedID'] columns
-  assert.equal(collapsed.data.columnNames(), ['datetime', 'collapsedID']);
+  // 3. Result data should have exactly ['datetime', deviceDeploymentID] columns
+  assert.equal(collapsed.data.columnNames(), ['datetime', ddID]);
 
-  // 4. All values in collapsedID should be numeric or null
-  const values = collapsed.data.array('collapsedID');
+  // 4. All values in the collapsed series should be numeric or null
+  const values = collapsed.data.array(ddID);
   for (const v of values) {
     assert.ok(
       Number.isFinite(v) || v === null,
@@ -71,16 +72,14 @@ test('collapsed Monitor is self-consistent: getIDs() resolves through accessors 
 
   // The id reported by meta must match the single data column...
   const ids = collapsed.getIDs();
-  assert.equal(ids, ['collapsedID'], 'getIDs() returns the collapsed deviceID');
+  assert.ok(ids.length === 1 && ids[0].startsWith('collapsedID_'), `getIDs() returns '{deviceID}_{geohash}', got ${JSON.stringify(ids)}`);
   assert.equal(
     collapsed.data.columnNames(),
-    ['datetime', 'collapsedID'],
+    ['datetime', ids[0]],
     'data column name matches the meta deviceDeploymentID'
   );
 
   // ...so the idiomatic getIDs() -> accessor round-trip must not throw.
-  // Before the H4 fix this raised:
-  //   Error: Device ID 'xxx_collapsedID' not found in monitor.data
   const id = ids[0];
   assert.not.throws(
     () => collapsed.getPM25(id),

@@ -182,8 +182,8 @@ class Monitor {
   }
 
   /**
-   * Returns the array of date objects that define this Monitor object's time axis.
-   * @returns {Array.<Date>} Array of Date objects.
+   * Returns the array of Luxon DateTime objects that define this Monitor object's time axis.
+   * @returns {DateTime[]} Array of Luxon DateTime objects in UTC.
    */
   getDatetime() {
     return this.data.array('datetime');
@@ -219,7 +219,7 @@ class Monitor {
 
   /**
    * Returns the timezone for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
    * @returns {string} Olson timezone.
    */
   getTimezone(id) {
@@ -228,9 +228,8 @@ class Monitor {
 
   /**
    * Returns the PM2.5 time series for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {number[]} PM2.5 values.
-   *
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
+   * @returns {Array<number|null>} PM2.5 values, with null for missing observations.
    * @throws {Error} If the device ID is not found.
    */
   getPM25(id) {
@@ -239,8 +238,8 @@ class Monitor {
 
   /**
    * Returns the NowCast PM2.5 value for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {number} NowCast value.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
+   * @returns {number|null} NowCast value, or null if there are insufficient recent observations.
    */
   getNowcast(id) {
     return internal_getNowcast(this, id);
@@ -253,7 +252,7 @@ class Monitor {
    * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
    * properties.
    *
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
    * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max` properties.
    */
   getDailyStats(id) {
@@ -267,7 +266,7 @@ class Monitor {
    * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
    * properties.
    *
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
    * @param {number} dayCount - Number of most recent days to use.
    * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
    */
@@ -282,16 +281,15 @@ class Monitor {
  * function provided in the `FUN` argument (typically 'mean'). The single time
  * series result will be located at the mean longitude and latitude.
    *
-   * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
-   * probability.
+   * Accepted values for `FUN`: "count", "valid", "invalid", "sum", "product",
+   * "mean", "average", "mode", "median", "min", "max", "quantile",
+   * "stdev", "stdevp", "variance", "variancep", "array_agg", "array_agg_distinct".
    *
-   * Available function names are those defined at:
-   * <https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
-   * `"op."` removed.
-   *
-   * @param {string} deviceID - New deviceDeploymentID for the collapsed series.
+   * @param {string} deviceID - Base name for the collapsed series. The resulting
+   *   deviceDeploymentID will be `{deviceID}_{geohash}` where the geohash encodes
+   *   the mean location of the input monitors.
    * @param {string} FUN - Name of an aggregation function (e.g., "mean", "max").
-   * @param {any} [FUN_arg] - Optional argument to pass to FUN.
+   * @param {number} [FUN_arg=0.8] - Quantile probability (0–1); only used when FUN is "quantile".
    * @returns {Monitor} New Monitor with a single time series.
    */
   collapse(deviceID, FUN, FUN_arg) {
@@ -356,10 +354,11 @@ class Monitor {
    * Internally, `startdate` and `enddate` are interpreted in `timezone`
    * and compared against the UTC `data.datetime` column.
    *
-   * @param {string|Date} startdate - Inclusive start of the time range, interpreted in `timezone`.
-   * @param {string|Date} enddate   - Inclusive end of the time range, interpreted in `timezone`.
-   * @param {string} [timezone]     - IANA timezone (e.g. `"America/Los_Angeles"`). If omitted,
-   *                                  the timezone may be inferred from the monitor metadata.
+   * @param {DateTime|string|Date} startdate - Inclusive start of the time range, interpreted in `timezone`.
+   * @param {DateTime|string|Date} enddate   - Inclusive end of the time range, interpreted in `timezone`.
+   * @param {string} [timezone]              - IANA timezone (e.g. `"America/Los_Angeles"`). Required
+   *                                           when inputs are strings or Date objects; not needed for
+   *                                           Luxon DateTime inputs (which already carry timezone info).
    * @returns {Monitor} New Monitor with `meta` unchanged and `data` restricted to the specified range.
    */
   filterDatetime(startdate, enddate, timezone) {
@@ -372,8 +371,9 @@ class Monitor {
   /**
    * Drops time series from the monitor that contain only missing values.
    *
-   * A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
-   * The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.
+   * A value is considered missing if it is null; all other values are finite numbers (guaranteed by
+   * `parseData` at load time). The resulting monitor object includes only the deviceDeploymentIDs
+   * with at least one valid observation.
    * @returns {Monitor} New Monitor with empty time series removed.
    */
   dropEmpty() {

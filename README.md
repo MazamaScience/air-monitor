@@ -62,7 +62,7 @@ Both tables are linked by a shared identifier:
 - ✅ Accurate trimming to full local-time days with DST support
 - ✅ Chaining API for filtering, summarizing, and reshaping
 - ✅ GeoJSON export with per-site metadata and recent status
-- ✅ UVU-based test suite with 100% transformation coverage
+- ✅ UVU-based test suite covering all public methods and key edge cases
 
 ## API Highlights
 
@@ -70,13 +70,17 @@ Both tables are linked by a shared identifier:
 Creates a new monitor instance from parsed tables.
 
 ### `loadCustom(baseName, baseUrl)`
-Loads `{baseName}.meta.csv` and `{baseName}.data.csv` from a file URL.
+Loads `{baseName}_meta.csv` and `{baseName}_data.csv` from a file URL.
 
 ### `filterByValue(column, value)`
 Returns a new `Monitor` filtered by a metadata column.
 
-### `collapse(granularity, method)`
-Aggregates time series by day or hour using `mean`, `max`, etc.
+### `collapse(deviceID, FUN, FUN_arg)`
+Collapses all time series into one, placed at the mean lat/lon. `deviceID`
+becomes the prefix of the resulting `deviceDeploymentID` (e.g.
+`"myID_9x0sf0yqxw"`). `FUN` is an Arquero aggregate function name such as
+`"mean"`, `"max"`, or `"quantile"`. `FUN_arg` is the quantile probability
+(0–1) and only applies when `FUN = "quantile"` (default `0.8`).
 
 ### `combine(otherMonitor)`
 Merges another monitor instance into the current one.
@@ -84,7 +88,7 @@ Merges another monitor instance into the current one.
 ### `dropEmpty()`
 Removes device series that contain no valid observations.
 
-### `trimDate(timezone, trimEmptyDays = true)`
+### `trimDate(timezone)`
 Trims incomplete or fully missing days from the edges of the time range.
 
 ### `getCurrentStatus()`

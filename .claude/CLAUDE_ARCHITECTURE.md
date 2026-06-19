@@ -108,7 +108,7 @@ index.js → Monitor.js
     load.js      → parse.js (parseMeta/parseData) → helpers.js (validateDataTable)
     analysis.js  → air-monitor-algorithms (pm_nowcast, dailyStats, diurnalStats)
                  → helpers.js (validateDeviceID)
-    transform.js → helpers.js (arrayMean, round1, parseDatetime)
+    transform.js → helpers.js (arrayMean, round1, parseDatetime), latlon-geohash (Geohash.encode)
     geojson.js   → (uses monitor.getIDs / Arquero directly)
   helpers.js → Monitor.js (only for the `instanceof Monitor` check in assertIsMonitor)
 ```
@@ -181,7 +181,7 @@ The house style is **fail loudly with context**, never silently. Follow it.
 
 ### Testing
 
-- Framework: **UVU** (`npm test` runs `uvu tests`). 81 tests currently pass.
+- Framework: **UVU** (`npm test` runs `uvu tests`). 91 tests currently pass.
 - Tests live in `tests/`, one file per area, with CSV fixtures `test_meta.csv` /
   `test_data.csv`. `interactive_tests.js` is a manual harness (no assertions).
 - There is **no CI workflow** yet; tests run manually. New/changed behavior
@@ -198,22 +198,7 @@ The house style is **fail loudly with context**, never silently. Follow it.
 
 ### Known Limitations and Future Work
 
-- The four `load*()` methods are JSDoc'd as `@returns {Promise<Monitor>}` but
-  actually mutate in place and resolve to `void`. The doc is misleading; treat
-  the in-place mutation as the real contract until this is reconciled.
-- `README.md` has a few stale API descriptions (e.g. `loadCustom` file naming,
-  `collapse` signature, `trimDate`'s `trimEmptyDays` arg which the public method
-  does not expose). Prefer the source over the README when they disagree.
 - `internal_collapse` derives address-style metadata columns (`houseNumber`,
   `street`, `city`, `zip`) that may not exist in the input schema, so a collapsed
   monitor can have a wider `meta` schema than its inputs — relevant if later
   `combine`d.
-- Arquero expressions are built by **string interpolation of column names** in
-  several modules; an ID containing a quote/backslash would break them. The
-  `aq.escape(callback)` form is the safer pattern.
-- `loadWithRetry` retries immediately with no backoff.
-- The load/error-handling block is triplicated across `providerLoad`,
-  `providerLoadAnnual`, and `internal_loadCustom`.
-
-These are documented so they are not "fixed" accidentally; address them
-deliberately with tests.

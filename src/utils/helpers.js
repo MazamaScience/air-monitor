@@ -14,7 +14,6 @@ import Monitor from '../index.js';
  * - `validateDataTable()`: Validates a Monitor data table.
  * - `parseDatetime()`: Parse a user-provided datetime into a Luxon DateTime.
  *
- * All functions in this file are pure and side-effect-free.
  * Intended for internal use within the package.
  */
 

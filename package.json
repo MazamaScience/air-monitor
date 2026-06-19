@@ -41,6 +41,7 @@
   "dependencies": {
     "air-monitor-algorithms": "^1.2.2",
     "arquero": "7.2.1",
+    "latlon-geohash": "^2.0.0",
     "luxon": "3.6.1"
   },
   "devDependencies": {
