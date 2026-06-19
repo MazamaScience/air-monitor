@@ -9,7 +9,6 @@
  */
 
 import * as aq from "arquero";
-const op = aq.op;
 
 /**
  * Compute the most recent valid timestamp and value for each deviceDeploymentID,
@@ -22,28 +21,20 @@ export function internal_getCurrentStatus(monitor) {
   const { data, meta } = monitor;
   const ids = monitor.getIDs();
 
-  // Add a zero-based index to non-datetime columns
-  const dataWithIndex = data
-    .select(aq.not("datetime"))
-    .derive({ index: d => op.row_number() - 1 });
-
-  // Replace valid values with their row index; invalid values get a -1 sentinel.
-  // Using -1 (rather than 0) lets us distinguish a series whose only valid value
-  // is at row 0 from a fully-empty series: the latter yields a max index of -1.
-  const valueExprs = {};
-  ids.forEach(id => {
-    valueExprs[id] = `d => op.is_finite(d['${id}']) ? d.index : -1`;
+  // For each series, find the index of the most recent finite (valid) value.
+  // Using -1 as the sentinel so a series whose only valid value is at row 0
+  // is distinguishable from a fully-empty series (which stays at -1).
+  // Plain JS array walk avoids string-interpolated Arquero expressions, which
+  // break for deviceDeploymentIDs containing quotes or backslashes.
+  const n = data.numRows();
+  const lastValidIndices = ids.map(id => {
+    const arr = data.array(id);
+    let lastIdx = -1;
+    for (let i = 0; i < n; i++) {
+      if (Number.isFinite(arr[i])) lastIdx = i;
+    }
+    return lastIdx;
   });
-
-  // Find max index per ID (i.e., most recent valid row). A value of -1 means the
-  // series has no valid observations.
-  const maxIndexExprs = {};
-  ids.forEach(id => {
-    maxIndexExprs[id] = `d => op.max(d['${id}'])`;
-  });
-
-  const lastValidIndexObj = dataWithIndex.derive(valueExprs).rollup(maxIndexExprs).object(0);
-  const lastValidIndices = Object.values(lastValidIndexObj);
 
   // For series with no valid observations (index === -1), report null rather than
   // falsely reporting row 0 as the most recent valid status.

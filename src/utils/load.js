@@ -84,6 +84,7 @@ const annual_coreMetadataNames = [
  * @function loadWithRetry
  * @param {string} url - The URL of the CSV file to load.
  * @param {number} [maxAttempts=2] - The maximum number of attempts to try loading the file.
+ *   A 1-second delay is inserted before each retry.
  * @returns {Promise<aq.Table>} A promise that resolves to an Arquero Table if loading succeeds.
  * @throws {Error} If all attempts to load the CSV fail.
  */
@@ -113,6 +114,7 @@ async function loadWithRetry(url, maxAttempts = 2) {
         throw err;
       }
       console.warn(`Retrying (${attempt}/${maxAttempts}) for: ${url}`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
@@ -214,8 +216,6 @@ async function providerLoadAnnual(monitor, year, archiveBaseUrl) {
  * @param {string} baseUrl - Base URL for monitoring v2 data files.
  * @returns {Promise<void>} Resolves when the monitor's .meta and .data fields have been populated.
  * @throws {Error} If there's an issue loading the data.
- * @example
- * await internal_loadLatest(monitor, 'airnow'); * @async
  */
 export async function internal_loadLatest(monitor, provider = 'airnow', baseUrl = DEFAULT_URL) {
   return providerLoad(monitor, provider, 'latest', baseUrl);

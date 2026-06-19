@@ -40,7 +40,7 @@ test('returns the correct timezone when deviceDeploymentID is passed as [string]
 test('throws an error for unknown deviceDeploymentID', () => {
   assert.throws(() => {
     monitor.getTimezone('nonexistent-device');
-  }, /not found in metadata/, 'Throws error for unknown ID');
+  }, /not found/, 'Throws error for unknown ID');
 });
 
 test('throws error for null deviceDeploymentID', () => {
@@ -58,7 +58,7 @@ test('throws error for undefined deviceDeploymentID', () => {
 test('throws error for empty string deviceDeploymentID', () => {
   assert.throws(() => {
     monitor.getTimezone('');
-  }, /not found in metadata/, 'Rejects empty string as unknown ID');
+  }, /not found/, 'Rejects empty string as unknown ID');
 });
 
 test('throws error for number as deviceDeploymentID', () => {

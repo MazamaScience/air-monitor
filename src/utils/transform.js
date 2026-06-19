@@ -43,7 +43,22 @@ import { arrayMean, round1, parseDatetime } from './helpers.js';
  * @param {number} FUN_arg - An optional argument for the aggregator (e.g. quantile prob).
  * @returns {{ meta: aq.Table, data: aq.Table }} A Monitor object with a single time series.
  */
+// Arquero aggregate functions accepted by internal_collapse.
+const COLLAPSE_FUNS = new Set([
+  'count', 'valid', 'invalid', 'sum', 'product',
+  'mean', 'average', 'mode', 'median',
+  'min', 'max', 'quantile',
+  'stdev', 'stdevp', 'variance', 'variancep',
+  'array_agg', 'array_agg_distinct',
+]);
+
 export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean", FUN_arg = 0.8) {
+  if (!COLLAPSE_FUNS.has(FUN)) {
+    throw new Error(
+      `Unsupported aggregation function: '${FUN}'. Must be one of: ${[...COLLAPSE_FUNS].join(', ')}`
+    );
+  }
+
   const meta = monitor.meta;
   const data = monitor.data;
 
@@ -51,8 +66,11 @@ export function internal_collapse(monitor, deviceID = "generatedID", FUN = "mean
 
   const longitude = arrayMean(meta.array("longitude"));
   const latitude = arrayMean(meta.array("latitude"));
-  // TODO:  Could create new locationID based on geohash
-  const locationID = "xxx";
+  // Use the caller-supplied deviceID as the locationID so that two collapsed
+  // monitors combined later don't share the same locationID (which "xxx" would
+  // cause). A geohash of the mean lat/lon would be more principled but requires
+  // an additional dependency; this is a safe interim measure.
+  const locationID = deviceID;
   // The deviceDeploymentID MUST match the name of the single collapsed data
   // column (set to `deviceID` below). If they differ, the resulting Monitor is
   // misaligned: getIDs() returns an identifier that validateDeviceID() (which
@@ -261,22 +279,23 @@ export function internal_filterByValue(monitor, columnName, value) {
   const colArray = monitor.meta.array(columnName);
   const sample = colArray.find(v => v !== null && v !== undefined);
   const colType = typeof sample;
-  let filterExpression;
 
+  let matchValue;
   if (colType === 'number') {
     const parsedValue = parseFloat(value);
     if (isNaN(parsedValue)) {
       throw new Error(`Value '${value}' could not be parsed as a number`);
     }
-    filterExpression = `d => op.equal(d.${columnName}, ${parsedValue})`;
+    matchValue = parsedValue;
   } else if (colType === 'string') {
-    const escaped = value.toString().replace(/'/g, "\\'");
-    filterExpression = `d => op.equal(d.${columnName}, '${escaped}')`;
+    matchValue = value.toString();
   } else {
     throw new Error(`Unsupported column type for filtering: ${colType}`);
   }
 
-  const meta = monitor.meta.filter(filterExpression);
+  const meta = monitor.meta.filter(
+    aq.escape(d => d[columnName] === matchValue)
+  );
   const ids = meta.array('deviceDeploymentID');
   const data = monitor.data.select(['datetime', ...ids]);
 
@@ -296,17 +315,12 @@ export function internal_dropEmpty(monitor) {
   const data = monitor.data;
   const ids = data.columnNames().filter(c => c !== 'datetime');
 
-  // Count valid (non-null, non-NaN, non-'NA') values for each time series column
-  const countRow = data
-    // arquero pattern to compute column-wise aggregations
-    .rollup(Object.fromEntries(ids.map(id => [id, "d => op.valid(d['" + id + "'])"])))
-    .object(0); // Get the single row as an object
-
-
-  // Keep only the IDs with at least one valid value
-  const validIDs = Object.entries(countRow)
-    .filter(([_, count]) => count > 0)
-    .map(([id]) => id);
+  // Count finite values per series using a plain JS array walk to avoid
+  // string-interpolated Arquero expressions (which break for IDs containing
+  // quotes or backslashes).
+  const validIDs = ids.filter(id =>
+    data.array(id).some(v => Number.isFinite(v))
+  );
 
   const filteredData = data.select(['datetime', ...validIDs]);
 

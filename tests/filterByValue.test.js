@@ -7,6 +7,7 @@ import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as aq from 'arquero';
 import Monitor from '../src/index.js';
 
 // test.before.each(async () => {
@@ -119,6 +120,41 @@ test('filterByValue returns a Monitor instance', () => {
   const value = monitor.meta.get('timezone', 0);
   const result = monitor.filterByValue('timezone', value);
   assert.instance(result, Monitor, 'Result is an instance of Monitor');
+});
+
+test('filterByValue handles a column name containing a dot', () => {
+  // Regression: the old string-interpolated expression `d.${columnName}` broke
+  // for names with dots (d.foo.bar is a nested lookup, not a column access).
+  const colName = 'meta.source';
+  const target = 'test-value';
+  const dotColMonitor = new Monitor();
+  dotColMonitor.meta = monitor.meta.derive({ [colName]: aq.escape(() => target) });
+  dotColMonitor.data = monitor.data;
+
+  const filtered = dotColMonitor.filterByValue(colName, target);
+
+  assert.ok(filtered.meta.numRows() > 0, 'Returns non-empty result');
+  assert.ok(
+    filtered.meta.array(colName).every(v => v === target),
+    'All rows match the target value'
+  );
+});
+
+test('filterByValue handles a string value containing a backslash', () => {
+  // Regression: the old escaping only handled single quotes, not backslashes,
+  // so a value like "path\\to\\file" produced an invalid generated expression.
+  const target = 'path\\to\\file';
+  const backslashMonitor = new Monitor();
+  backslashMonitor.meta = monitor.meta.derive({ pathCol: aq.escape(() => target) });
+  backslashMonitor.data = monitor.data;
+
+  const filtered = backslashMonitor.filterByValue('pathCol', target);
+
+  assert.ok(filtered.meta.numRows() > 0, 'Returns non-empty result');
+  assert.ok(
+    filtered.meta.array('pathCol').every(v => v === target),
+    'All rows match the backslash value'
+  );
 });
 
 test.run();

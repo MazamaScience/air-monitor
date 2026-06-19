@@ -102,7 +102,7 @@ class Monitor {
    * @async
    * @param {string} provider - One of "airnow|airsis|wrcc"
    * @param {string} baseUrl - Base URL for monitoring v2 data files.
-   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @returns {Promise<void>} Resolves when this monitor's .meta and .data have been populated.
    * @throws {Error} If there's an issue loading the data.
    */
   async loadLatest(provider, baseUrl) {
@@ -120,7 +120,7 @@ class Monitor {
     * @async
     * @param {string} provider - One of "airnow|airsis|wrcc".
     * @param {string} baseUrl - Base URL for monitoring v2 data files.
-    * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+    * @returns {Promise<void>} Resolves when this monitor's .meta and .data have been populated.
     * @throws {Error} If there's an issue loading the data.
     */
   async loadDaily(provider, baseUrl) {
@@ -138,7 +138,7 @@ class Monitor {
    * @async
    * @param {string} year - Year of interest.
    * @param {string} baseUrl - Base URL for monitoring v2 data files.
-   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @returns {Promise<void>} Resolves when this monitor's .meta and .data have been populated.
    * @throws {Error} If there's an issue loading the data.
    */
   async loadAnnual(year, baseUrl) {
@@ -155,7 +155,7 @@ class Monitor {
    * @param {string} baseName - File name base.
    * @param {string} baseUrl - URL path under which data files are found.
    * @param {boolean} useAllColumns - Whether to retain all available columns in the metadata.
-   * @returns {Promise<Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @returns {Promise<void>} Resolves when this monitor's .meta and .data have been populated.
    * @throws {Error} If there's an issue loading the data.
    */
   async loadCustom(baseName, baseUrl, useAllColumns = true) {
@@ -393,6 +393,10 @@ class Monitor {
     const { meta, data } = internal_trimDate(this, timezone);
     const result = new Monitor(meta, data);
     assertIsMonitor(result, 'trimDate');
+    // No validateDataTable() backstop needed: trimDate only slices an already-
+    // valid datetime axis at whole-day boundaries, so the UTC/hourly/gap-free
+    // invariant is preserved. (contrast with combine(), which unions two
+    // independent axes and must re-validate.)
     return result;
   }
 

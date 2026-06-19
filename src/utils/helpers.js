@@ -1,3 +1,4 @@
+import * as aq from 'arquero';
 import { DateTime } from 'luxon';
 
 import Monitor from '../index.js';
@@ -10,7 +11,6 @@ import Monitor from '../index.js';
  * - `round1()`: Rounds numeric measurement columns in an Arquero table to 1 decimal place.
  * - `validateDeviceID()`: Verifies that a single ID exists in the monitor object.
  * - `assertIsMonitor()`: Asserts that the value is a Monitor instance.
- * - `assert()`: Browser-safe assert function.
  * - `validateDataTable()`: Validates a Monitor data table.
  * - `parseDatetime()`: Parse a user-provided datetime into a Luxon DateTime.
  *
@@ -42,15 +42,20 @@ export function arrayMean(arr) {
 export function round1(table) {
   const columns = table.columnNames().filter(name => name !== 'datetime');
 
-  const expressions = Object.fromEntries(
-    columns.map(col => [
-      col,
-      // Wrap in finite check — if not finite, return null
-      `d => op.is_finite(d['${col}']) ? op.round(d['${col}'] * 10) / 10 : null`
-    ])
-  );
+  // Walk each column as a plain array to avoid string-interpolated Arquero
+  // expressions, which break for column names containing quotes or backslashes.
+  const result = { datetime: table.array('datetime') };
+  for (const col of columns) {
+    const src = table.array(col);
+    const out = new Array(src.length);
+    for (let i = 0; i < src.length; i++) {
+      const v = src[i];
+      out[i] = Number.isFinite(v) ? Math.round(v * 10) / 10 : null;
+    }
+    result[col] = out;
+  }
 
-  return table.derive(expressions);
+  return aq.table(result);
 }
 
 /**

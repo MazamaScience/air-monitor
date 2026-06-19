@@ -26,18 +26,7 @@ import { validateDeviceID } from './helpers.js';
  * @throws {Error} If ID is not found or is invalid.
  */
 export function internal_getTimezone(monitor, id) {
-  // Accept either a single string or an array of length 1
-  let deviceID;
-
-  if (typeof id === 'string') {
-    deviceID = id;
-  } else if (Array.isArray(id) && id.length === 1 && typeof id[0] === 'string') {
-    deviceID = id[0];
-  } else {
-    throw new Error(
-      `Expected deviceDeploymentID to be a string or a single-element string array. Received: ${JSON.stringify(id)}`
-    );
-  }
+  const deviceID = validateDeviceID(monitor, id);
 
   const ids = monitor.meta.array('deviceDeploymentID');
   const timezones = monitor.meta.array('timezone');
