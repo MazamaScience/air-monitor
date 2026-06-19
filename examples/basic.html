@@ -12,14 +12,10 @@
   <h1>Air Monitor (UMD) Example</h1>
   <pre id="output">Loading...</pre>
 
-  <!-- External dependency -->
+  <!-- All dependencies loaded from jsDelivr — no build step required -->
   <script src="https://cdn.jsdelivr.net/npm/arquero@7.2.1/dist/arquero.min.js"></script>
-
-  <!-- UMD build of air-monitor-algorithms -->
-  <script src="./vendor/air-monitor-algorithms.umd.js"></script>
-
-  <!-- UMD build of air-monitor -->
-  <script src="../dist/air-monitor.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/air-monitor-algorithms@1.4.2/dist/air-monitor-algorithms.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/air-monitor@1.2.6/dist/air-monitor.umd.js"></script>
 
   <script>
     const output = document.getElementById('output');
