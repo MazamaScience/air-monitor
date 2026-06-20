@@ -3,517 +3,261 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introducing air-monitor</title>
-
-  <!-- Pico CSS — classless semantic styling, no extra markup needed -->
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
-
-  <!-- Highlight.js — syntax coloring for the code blocks -->
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/styles/github.min.css" />
-
+  <title>air-monitor – Basic Example</title>
   <style>
-    main.container { max-width: 860px; }
-    hgroup          { margin-bottom: 1.5rem; }
-
-    /* Notebook-style cell = code block + output block */
-    .cell           { margin: 1.5rem 0; }
-    .cell pre       { margin: 0; border-left: 4px solid var(--pico-primary-background);
-                      border-radius: 0 0.25rem 0.25rem 0; }
-    .cell pre code.hljs { padding: 1rem; font-size: 0.875rem; }
-
-    .output {
-      border-left: 4px solid #d0d0d0;
-      border-radius: 0 0.25rem 0.25rem 0;
-      padding: 0.75rem 1rem;
-      background: #f8f8f8;
-      font-size: 0.875rem;
-      min-height: 1.5rem;
+    body {
+      font-family: sans-serif;
+      max-width: 860px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #222;
     }
-    .output-scroll  { max-height: 18rem; overflow-y: auto; }
-    .output table   { margin: 0; font-size: 0.875rem; }
-    .output p       { margin: 0 0 0.5rem; }
-
-    .muted { color: var(--pico-muted-color); font-size: 0.9rem; }
-    h2     { margin-top: 2.5rem; }
-    article { margin-bottom: 0.5rem; }
+    h1 { font-size: 1.4rem; }
+    h2 {
+      font-size: 1.05rem;
+      margin-top: 2rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.2rem;
+    }
+    p  { font-size: 0.95rem; margin: 0.5rem 0 0.8rem; line-height: 1.5; }
+    ul { font-size: 0.95rem; margin: 0.3rem 0 0.8rem; line-height: 1.7; padding-left: 1.4rem; }
+    pre {
+      background: #f5f5f5;
+      border-left: 3px solid #ccc;
+      padding: 0.6rem 1rem;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.88rem;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.25rem 0.6rem;
+      text-align: right;
+    }
+    th { background: #f5f5f5; text-align: center; }
+    td:first-child, th:first-child { text-align: left; }
   </style>
 </head>
 <body>
-<main class="container">
 
-  <hgroup>
-    <h1>Introducing <code>air-monitor</code></h1>
-    <p>A guided walk-through of the <code>Monitor</code> chaining API</p>
-  </hgroup>
 
+  <!-- ============================================================
+       Title
+  ============================================================ -->
+  <h1>air-monitor – Basic Example</h1>
+
+
+  <!-- ============================================================
+       Purpose
+  ============================================================ -->
+  <h2>Purpose</h2>
   <p>
-    <a href="https://www.npmjs.com/package/air-monitor">air-monitor</a>
-    serves hourly air quality monitoring data through a small, chainable
-    <code>Monitor</code> class backed by two aligned
-    <a href="https://uwdata.github.io/arquero/">Arquero</a> tables —
+    The <a href="https://mazamascience.github.io/air-monitor/">air-monitor</a>
+    package provides a compact data model and transformation utilities for
+    working with hourly air quality monitoring data. It is built on the
+    <a href="https://uwdata.github.io/arquero/">Arquero</a> table library and
+    uses <a href="https://moment.github.io/luxon/">Luxon</a> for UTC-anchored
+    datetime handling.
+  </p>
+  <p>
+    A <code>Monitor</code> object holds two aligned Arquero tables —
     <code>meta</code> (one row per device deployment) and <code>data</code>
-    (a UTC hourly time series). This page walks through two real examples.
-  </p>
-  <ol>
-    <li><strong>Right now in Washington</strong> — pull the latest data and examine the statewide daily average.</li>
-    <li><strong>The 2025 Garnet Fire</strong> — find a wildfire's smoke in a full year of California data.</li>
-  </ol>
-  <p>
-    Every transform returns a <em>new</em> <code>Monitor</code>, so you can chain
-    steps together safely. Section 1 loads automatically; Section 2 requires a
-    button click because the annual archive is a larger download (~10–20 MB).
-  </p>
-
-  <p id="status-banner" aria-busy="true">Loading AirNow latest data…</p>
-
-
-  <!-- ==================================================================
-       Setup
-  ================================================================== -->
-  <h2>Setup</h2>
-
-  <p>
-    Load <code>air-monitor</code> and its two runtime dependencies directly from
-    <a href="https://www.jsdelivr.com/">jsDelivr</a> — no build step, no bundler.
-    Script load order matters: Arquero and the algorithms package must be present
-    before <code>air-monitor</code> is evaluated.
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-html">&lt;!-- 1. Arquero — the table engine used internally by air-monitor --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/arquero@7.2.1/dist/arquero.min.js"&gt;&lt;/script&gt;
-
-&lt;!-- 2. NowCast and daily / diurnal statistics --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/air-monitor-algorithms@1.4.2/dist/air-monitor-algorithms.umd.js"&gt;&lt;/script&gt;
-
-&lt;!-- 3. air-monitor itself --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/air-monitor@1.2.6/dist/air-monitor.umd.js"&gt;&lt;/script&gt;</code></pre>
-  </div>
-
-  <p>
-    The UMD build wraps exports in a namespace object. Unwrap it once before
-    calling <code>new Monitor()</code>:
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">const Monitor = window.Monitor.Monitor ?? window.Monitor.default ?? window.Monitor;</code></pre>
-  </div>
-
-
-  <!-- ==================================================================
-       Section 1 — Washington state
-  ================================================================== -->
-  <h2>1. What's in the air right now? (Washington)</h2>
-
-  <p>
-    <code>loadLatest()</code> fetches roughly the last ten days from the AirNow
-    archive — thousands of monitors across the country, updated every few minutes.
-    <code>new Monitor()</code> creates an empty monitor; the <code>await</code>
-    call populates it in place.
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">const m = new Monitor();
-await m.loadLatest("airnow");
-
-console.log(`Loaded ${m.count()} device deployments`);
-console.log(`Time range: ${firstHour(m)} → ${lastHour(m)}`);</code></pre>
-    <div class="output" id="s1-load">Loading…</div>
-  </div>
-
-  <p>
-    Narrow to Washington with <code>filterByValue()</code>, then drop monitors that
-    reported nothing with <code>dropEmpty()</code>. Any metadata column can be used
-    as a filter key — string or numeric.
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">const wa = m.filterByValue("stateCode", "WA").dropEmpty();
-
-console.log(`${wa.count()} Washington monitors reporting`);</code></pre>
-    <div class="output" id="s1-filter">Waiting…</div>
-  </div>
-
-  <p>
-    <code>collapse()</code> averages all those monitors into a single synthetic
-    series placed at the mean lat/lon of the inputs. <code>getDailyStats()</code>
-    then returns daily min/mean/max in local calendar time — DST-aware, no extra
-    configuration needed.
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">// All WA monitors → one state-average series
-const waAvg = wa.collapse("wa_mean", "mean");
-const waID  = waAvg.getIDs()[0];
-
-// Daily statistics in local calendar time (DST-aware)
-const daily = waAvg.getDailyStats(waID);
-// Returns { datetime, count, min, mean, max } — one entry per local day</code></pre>
-    <div class="output" id="s1-daily">Waiting…</div>
-  </div>
-
-  <p class="muted">
-    Because this is live data your numbers will differ from any shown here. On a
-    calm summer day Washington often reads in the 1–5 µg/m³ range; a sustained
-    climb into the tens or higher usually means wildfire smoke.
-  </p>
-
-
-  <!-- ==================================================================
-       Section 2 — Garnet Fire
-  ================================================================== -->
-  <h2>2. Finding a wildfire's smoke (the 2025 Garnet Fire)</h2>
-
-  <p>
-    The <strong>Garnet Fire</strong> was started by lightning on August 24, 2025
-    in the Sierra National Forest, south of Yosemite. On September 7 it grew by
-    roughly 10,000 acres in a single day — threatening the giant sequoias of
-    McKinley Grove — and pushed dense smoke northeast into Yosemite's high country
-    and the Mono Lake basin.
+    (a regular hourly time series in UTC, one column per device) — linked by a
+    shared <code>deviceDeploymentID</code>. The package supports loading data
+    directly from the
+    <a href="https://www.airfire.org/">USFS AirFire</a> monitoring archive.
   </p>
   <p>
-    <code>loadAnnual()</code> gives us a whole year of data so we can look back
-    and watch that smoke arrive. The archive for a full year is larger than the
-    latest or daily files — click below when ready.
-  </p>
-
-  <div class="cell">
-    <button id="btn-s2">Load 2025 annual archive (~10–20 MB)</button>
-    <pre><code class="language-javascript">const year = new Monitor();
-await year.loadAnnual(2025);
-
-console.log(`${year.count()} device deployments in the 2025 archive`);</code></pre>
-    <div class="output" id="s2-load">Click the button above to start.</div>
-  </div>
-
-  <p>
-    There is no built-in geographic filter, but the raw Arquero metadata table is
-    always one attribute away as <code>m.meta</code>. Convert it to plain objects
-    with <code>.objects()</code>, apply a lat/lon bounding box in plain JavaScript,
-    then pass the matching IDs to <code>select()</code>:
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">// Filter to California first
-const ca = year.filterByValue("stateCode", "CA");
-
-// m.meta is an Arquero table — .objects() converts it to a plain JS array
-const areaIDs = ca.meta.objects()
-  .filter(r =>
-    r.latitude  >= 37.6  && r.latitude  <= 38.3 &&
-    r.longitude >= -119.6 && r.longitude <= -118.9
-  )
-  .map(r => r.deviceDeploymentID);
-
-const area = ca.select(areaIDs).dropEmpty();
-console.log(`${area.count()} monitors in the Yosemite / Mono Lake area`);</code></pre>
-    <div class="output" id="s2-region">Waiting…</div>
-  </div>
-
-  <p>
-    Zoom into the first half of September with <code>filterDatetime()</code>,
-    collapse the area into one signal, and look at the daily average.
-    The smoke arrives on <strong>September 8</strong>, the day after the fire's
-    big run:
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">const earlySep = area.filterDatetime("2025-09-01", "2025-09-15", "UTC");
-
-// Collapse all area monitors into one mean series and get daily stats
-const areaAvg   = earlySep.collapse("area_mean", "mean");
-const areaID    = areaAvg.getIDs()[0];
-const areaDaily = areaAvg.getDailyStats(areaID);</code></pre>
-    <div class="output" id="s2-daily">Waiting…</div>
-  </div>
-
-  <p>
-    The area <em>average</em> already jumps well above 200 µg/m³, but averaging
-    hides how extreme it got at individual sites. Which monitor was worst, and
-    when? <code>getPM25()</code> on each monitor lets us find out directly:
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">const ids = earlySep.getIDs();
-let worstID = ids[0], worstMax = -Infinity;
-for (const id of ids) {
-  const arr = earlySep.getPM25(id);
-  const max = arr.reduce((m, v) => (v != null && v > m ? v : m), -Infinity);
-  if (max > worstMax) { worstMax = max; worstID = id; }
-}
-
-const worstMeta = earlySep.getMetaObject(worstID);
-
-// Locate the datetime of the peak value
-const pm25     = earlySep.getPM25(worstID);
-const dtimes   = earlySep.getDatetime();
-const peakIdx  = pm25.reduce((best, v, i) =>
-  v != null && v > (pm25[best] ?? -Infinity) ? i : best, 0);
-const peakTime = dtimes[peakIdx];</code></pre>
-    <div class="output" id="s2-worst">Waiting…</div>
-  </div>
-
-  <p>
-    Pull that monitor's hourly series with <code>getPM25()</code> and watch the
-    smoke front pass through over a few days:
-  </p>
-
-  <div class="cell">
-    <pre><code class="language-javascript">// Zoom further to just the critical 5-day window
-const fiveDays = earlySep.filterDatetime("2025-09-06", "2025-09-10", "UTC");
-const hourly   = fiveDays.getPM25(worstID);
-const hours    = fiveDays.getDatetime();</code></pre>
-    <div class="output output-scroll" id="s2-hourly">Waiting…</div>
-  </div>
-
-  <p class="muted">
-    For context, the U.S. air-quality index calls a PM2.5 level above 250 µg/m³
-    "Hazardous" — the maroon, <em>everyone-stays-indoors</em> category. Lee
-    Vining's hourly reading hit roughly 1,100 µg/m³ on September 8, more than four
-    times that threshold, as the Garnet Fire's smoke poured over the Sierra crest.
-    A day or two later the air had cleared again — a vivid reminder of how sudden
-    and localized wildfire smoke can be, and why per-monitor hourly data matters.
+    This page loads live AirNow data, filters to Washington state, and computes
+    a statewide daily average using the package's chaining API.
   </p>
 
 
-  <!-- ==================================================================
-       Where to go next
-  ================================================================== -->
-  <h2>Where to go next</h2>
-  <p>A few methods not used here:</p>
+  <!-- ============================================================
+       Libraries used
+  ============================================================ -->
+  <h2>Libraries Used in This Example</h2>
   <ul>
-    <li><code>getCurrentStatus()</code> — each monitor's latest valid timestamp and value</li>
-    <li><code>createGeoJSON()</code> — export deployments as a GeoJSON <code>FeatureCollection</code></li>
-    <li><code>combine(other)</code> — merge two <code>Monitor</code> instances into one</li>
-    <li><code>loadDaily("airnow")</code> — rolling 45-day archive, updated daily</li>
+    <li>
+      <a href="https://mazamascience.github.io/air-monitor/">air-monitor</a>
+      — provides the <code>Monitor</code> class used throughout this example.
+    </li>
+    <li>
+      <a href="https://uwdata.github.io/arquero/">Arquero</a>
+      — the table engine used internally by <em>air-monitor</em> for metadata
+      and time-series operations.
+    </li>
+    <li>
+      <a href="https://mazamascience.github.io/air-monitor-algorithms/">air-monitor-algorithms</a>
+      — provides the NowCast and daily / diurnal statistics algorithms used
+      internally by <em>air-monitor</em>.
+    </li>
   </ul>
   <p>
-    The raw tables are always one attribute away: <code>m.meta</code> (one row per
-    monitor, an Arquero table) and <code>m.data</code> (an hourly UTC time series,
-    one column per monitor). See the
-    <a href="https://github.com/MazamaScience/air-monitor">README</a> for the full
-    public API.
+    All three packages are loaded from
+    <a href="https://www.jsdelivr.com/">jsDelivr</a> using an
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap">import map</a>,
+    which lets the script use standard ES6 <code>import</code> syntax with no
+    build step or bundler.
+    The import map is required because <code>air-monitor</code>'s ES module build
+    references <code>arquero</code> and <code>air-monitor-algorithms</code> by
+    their bare package names; the map tells the browser where to fetch them.
   </p>
+  <pre>
 
-  <footer>
-    <p class="muted">View page source for the complete, copy-pasteable example code.</p>
-  </footer>
+&lt;script src="https://cdn.jsdelivr.net/npm/arquero@8.0.3/dist/arquero.min.js">&lt;/script>
+&lt;script src="https://cdn.jsdelivr.net/npm/air-monitor-algorithms@1.4.2/dist/air-monitor-algorithms.umd.js">&lt;/script>
+&lt;script src="https://cdn.jsdelivr.net/npm/air-monitor@1.2.5/dist/air-monitor.umd.js">&lt;/script>
 
-</main>
-
-
-<!-- ====================================================================
-     Libraries — all from jsDelivr, no build step required
-     Load order: arquero → air-monitor-algorithms → air-monitor
-==================================================================== -->
-<script src="https://cdn.jsdelivr.net/npm/arquero@7.2.1/dist/arquero.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/air-monitor-algorithms@1.4.2/dist/air-monitor-algorithms.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/air-monitor@1.2.6/dist/air-monitor.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
-
-<script>
-  // Apply syntax highlighting to all code blocks
-  document.querySelectorAll("pre code").forEach(el => hljs.highlightElement(el));
-
-  // Unwrap the UMD namespace to get the Monitor class directly
-  const Monitor = window.Monitor.Monitor ?? window.Monitor.default ?? window.Monitor;
-
-  // ---- DOM helpers ----------------------------------------------------------
-
-  const $ = id => document.getElementById(id);
-
-  /** Replace an output div's content with plain text. */
-  function setText(id, text) {
-    $(id).textContent = text;
-  }
-
-  /** Replace an output div's content with a plain HTML table of row objects. */
-  function showTable(id, rows, opts = {}) {
-    const el = $(id);
-    if (!rows || !rows.length) { el.textContent = "(no data)"; return; }
-    const cols = Object.keys(rows[0]);
-    const head = `<tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr>`;
-    const body = rows.map(r =>
-      `<tr>${cols.map(c => `<td>${r[c] ?? "—"}</td>`).join("")}</tr>`
-    ).join("");
-    el.innerHTML = `<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
-  }
-
-  /** Prepend a line of text above an existing table in an output div. */
-  function prependText(id, text) {
-    const el = $(id);
-    const p = document.createElement("p");
-    p.textContent = text;
-    el.prepend(p);
-  }
-
-  // ---- Formatting helpers ---------------------------------------------------
-
-  // Luxon DateTime objects are returned by getDatetime() and getDailyStats().
-  // They expose .toISO(), .toISODate(), and .toFormat() natively.
-
-  const r1 = v => v == null ? null : Math.round(v * 10) / 10;
-
-  /** "2025-09-08 14Z" — compact UTC hour label from a Luxon DateTime. */
-  const fmtHour = dt => dt.toFormat("yyyy-MM-dd HH") + "Z";
-
-  /** "2025-09-08" — local calendar date from a Luxon DateTime. */
-  const fmtDate = dt => dt.toISODate();
-
-  /** First UTC hour of a Monitor's time axis. */
-  const firstHour = m => fmtHour(m.getDatetime()[0]);
-
-  /** Last UTC hour of a Monitor's time axis. */
-  const lastHour  = m => { const dt = m.getDatetime(); return fmtHour(dt[dt.length - 1]); };
+&lt;script type="module"&gt;
+  import { Monitor } from 'air-monitor';
+  ...
+&lt;/script&gt;</pre>
 
 
-  // ---- Section 1 — loads automatically -------------------------------------
+  <!-- ============================================================
+       Loading AirNow data
+  ============================================================ -->
+  <h2>Loading AirNow Data</h2>
+  <pre>
+  import { Monitor } from 'air-monitor';
 
-  (async function section1() {
-    const banner = $("status-banner");
-    try {
-      // Load latest AirNow data
-      const m = new Monitor();
-      await m.loadLatest("airnow");
-      setText("s1-load",
-        `Loaded ${m.count()} device deployments\n` +
-        `Time range: ${firstHour(m)} → ${lastHour(m)}`
-      );
+  const m = new Monitor();
+  await m.loadLatest("airnow");</pre>
+  <p>
+    <code>loadLatest("airnow")</code> fetches the most recent ten days of AirNow
+    data from the USFS AirFire archive, updated every few minutes.
+    <code>new Monitor()</code> creates an empty instance; the awaited call
+    populates its <code>meta</code> and <code>data</code> tables in place.
+    All timestamps are stored as Luxon <code>DateTime</code> objects in UTC.
+  </p>
+  <div id="load-out"><em>Loading live data…</em></div>
 
-      // Filter to Washington
-      const wa = m.filterByValue("stateCode", "WA").dropEmpty();
-      showTable("s1-filter",
-        wa.meta.objects().slice(0, 10).map(r => ({
-          locationName: r.locationName,
-          countyName:   r.countyName,
-          timezone:     r.timezone,
-        }))
-      );
-      prependText("s1-filter", `${wa.count()} Washington monitors reporting (first 10 shown):`);
 
-      // Collapse to state average + daily statistics
-      const waAvg = wa.collapse("wa_mean", "mean");
-      const waID  = waAvg.getIDs()[0];
-      const daily = waAvg.getDailyStats(waID);
-      showTable("s1-daily",
-        daily.datetime.map((dt, i) => ({
-          "local day":    fmtDate(dt),
-          "count":        daily.count[i],
-          "min (µg/m³)":  r1(daily.min[i]),
-          "mean (µg/m³)": r1(daily.mean[i]),
-          "max (µg/m³)":  r1(daily.max[i]),
-        }))
-      );
+  <!-- ============================================================
+       Filtering to Washington
+  ============================================================ -->
+  <h2>Filtering to Washington</h2>
+  <pre>
+  const wa = m.filterByValue("stateCode", "WA").dropEmpty();</pre>
+  <p>
+    <code>filterByValue()</code> returns a new <code>Monitor</code> restricted
+    to metadata rows where the named column equals the supplied value.
+    <code>dropEmpty()</code> removes any device series that contain only
+    <code>null</code> observations over the loaded window.
+    Every transform returns a new <code>Monitor</code>, so calls chain naturally.
+  </p>
+  <div id="filter-out"><em>Waiting…</em></div>
 
-      banner.removeAttribute("aria-busy");
-      banner.textContent = "✓ Section 1 complete. Click the button in Section 2 to load the 2025 annual archive.";
 
-    } catch (err) {
-      $("status-banner").removeAttribute("aria-busy");
-      $("status-banner").innerHTML =
-        `<strong>❌ Error:</strong> ${err.message} ` +
-        `<span class="muted">(Network access to the USFS AirFire archive is required.)</span>`;
-      console.error(err);
+  <!-- ============================================================
+       Daily statistics for Washington
+  ============================================================ -->
+  <h2>Daily Statistics for Washington</h2>
+  <pre>
+  const waAvg = wa.collapse("wa_mean", "mean");
+  const waID  = waAvg.getIDs()[0];
+  const daily = waAvg.getDailyStats(waID);</pre>
+  <p>
+    <code>collapse()</code> aggregates every Washington monitor into a single
+    synthetic series placed at the mean lat/lon of the inputs.
+    The first argument is a base name for the resulting
+    <code>deviceDeploymentID</code>; the second is an Arquero aggregate function
+    name. <code>getDailyStats()</code> returns daily min/mean/max in local
+    calendar time, correctly accounting for daylight saving time.
+  </p>
+  <div id="daily-out"><em>Waiting…</em></div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/arquero@8.0.3/dist/arquero.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/air-monitor-algorithms@1.4.2/dist/air-monitor-algorithms.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/air-monitor@1.2.5/dist/air-monitor.umd.js"></script>
+
+  <!--
+    The import map resolves bare module specifiers used inside the ES module
+    script below. 'air-monitor' maps to its ESM build; 'arquero' and
+    'air-monitor-algorithms' are listed because air-monitor.esm.js references
+    them as bare specifiers internally and the browser must resolve them too.
+    arquero is pinned to 7.2.1 here (the version air-monitor@1.2.5 was built
+    against) even though the UMD global above loads 8.0.3 — the two instances
+    are independent and do not interfere with each other.
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "air-monitor":            "https://cdn.jsdelivr.net/npm/air-monitor@1.2.5/dist/air-monitor.esm.js",
+      "arquero":                "https://cdn.jsdelivr.net/npm/arquero@7.2.1/+esm",
+      "air-monitor-algorithms": "https://cdn.jsdelivr.net/npm/air-monitor-algorithms@1.4.2/+esm"
     }
-  })();
+  }
+  </script>
 
+  <script type="module">
+    import { Monitor } from 'air-monitor';
 
-  // ---- Section 2 — triggered by button -------------------------------------
+    // ---- helpers ----------------------------------------------------------------
 
-  $("btn-s2").addEventListener("click", async function () {
-    this.disabled = true;
-    this.textContent = "Loading…";
-    const banner = $("status-banner");
-    banner.setAttribute("aria-busy", "true");
-    banner.textContent = "Loading 2025 annual archive…";
-
-    try {
-      // Load full 2025 annual archive
-      const year = new Monitor();
-      await year.loadAnnual(2025);
-      setText("s2-load", `${year.count()} device deployments in the 2025 archive`);
-
-      // Filter to California
-      const ca = year.filterByValue("stateCode", "CA");
-
-      // Geographic bounding box: Yosemite high country + Mono Lake basin
-      const areaIDs = ca.meta.objects()
-        .filter(r =>
-          r.latitude  >= 37.6  && r.latitude  <= 38.3 &&
-          r.longitude >= -119.6 && r.longitude <= -118.9
-        )
-        .map(r => r.deviceDeploymentID);
-
-      const area = ca.select(areaIDs).dropEmpty();
-      showTable("s2-region",
-        area.meta.objects().map(r => ({
-          locationName: r.locationName,
-          longitude:    r.longitude,
-          latitude:     r.latitude,
-        }))
-      );
-      prependText("s2-region", `${area.count()} monitors in the Yosemite / Mono Lake area:`);
-
-      // Zoom to early September, collapse, daily stats
-      const earlySep  = area.filterDatetime("2025-09-01", "2025-09-15", "UTC");
-      const areaAvg   = earlySep.collapse("area_mean", "mean");
-      const areaID    = areaAvg.getIDs()[0];
-      const areaDaily = areaAvg.getDailyStats(areaID);
-      showTable("s2-daily",
-        areaDaily.datetime.map((dt, i) => ({
-          "local day":          fmtDate(dt),
-          "count":              areaDaily.count[i],
-          "mean PM2.5 (µg/m³)": r1(areaDaily.mean[i]),
-          "max PM2.5 (µg/m³)":  r1(areaDaily.max[i]),
-        }))
-      );
-
-      // Find the single worst monitor by peak hourly value
-      const ids = earlySep.getIDs();
-      let worstID = ids[0], worstMax = -Infinity;
-      for (const id of ids) {
-        const arr = earlySep.getPM25(id);
-        const max = arr.reduce((m, v) => (v != null && v > m ? v : m), -Infinity);
-        if (max > worstMax) { worstMax = max; worstID = id; }
-      }
-      const worstMeta = earlySep.getMetaObject(worstID);
-      const pm25      = earlySep.getPM25(worstID);
-      const dtimes    = earlySep.getDatetime();
-      const peakIdx   = pm25.reduce((best, v, i) =>
-        v != null && v > (pm25[best] ?? -Infinity) ? i : best, 0);
-
-      setText("s2-worst",
-        `Worst monitor: ${worstMeta.locationName} — ` +
-        `${r1(worstMax)} µg/m³ at ${fmtHour(dtimes[peakIdx])}`
-      );
-
-      // Hourly series for the worst monitor over the critical 5-day window
-      const fiveDays = earlySep.filterDatetime("2025-09-06", "2025-09-10", "UTC");
-      const hourly   = fiveDays.getPM25(worstID);
-      const hours    = fiveDays.getDatetime();
-      showTable("s2-hourly",
-        hours.map((dt, i) => ({
-          "UTC hour":      fmtHour(dt),
-          "PM2.5 (µg/m³)": r1(hourly[i]),
-        }))
-      );
-
-      banner.removeAttribute("aria-busy");
-      banner.textContent = "✓ All done.";
-      this.textContent = "Loaded";
-
-    } catch (err) {
-      banner.removeAttribute("aria-busy");
-      banner.innerHTML =
-        `<strong>❌ Error:</strong> ${err.message} ` +
-        `<span class="muted">(Network access to the USFS AirFire archive is required.)</span>`;
-      this.textContent = "Error — see console";
-      console.error(err);
+    function buildTable(headers, rows) {
+      const head = headers.map(h => `<th>${h}</th>`).join("");
+      const body = rows
+        .map(r => `<tr>${r.map(c => `<td>${c ?? "—"}</td>`).join("")}</tr>`)
+        .join("");
+      return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
     }
-  });
-</script>
+
+    function fmt(v) {
+      return (v != null) ? Number(v).toFixed(1) : "—";
+    }
+
+    // ---- load -------------------------------------------------------------------
+
+    const m = new Monitor();
+    await m.loadLatest("airnow");
+
+    const dtimes = m.getDatetime();
+    document.getElementById("load-out").innerHTML = buildTable(
+      ["", ""],
+      [
+        ["Device deployments", m.count()],
+        ["First hour (UTC)", dtimes[0].toFormat("yyyy-MM-dd HH:mm")],
+        ["Last hour (UTC)",  dtimes[dtimes.length - 1].toFormat("yyyy-MM-dd HH:mm")],
+      ]
+    );
+
+    // ---- filter -----------------------------------------------------------------
+
+    const wa = m.filterByValue("stateCode", "WA").dropEmpty();
+
+    document.getElementById("filter-out").innerHTML =
+      `<p>${wa.count()} Washington monitors with valid data:</p>` +
+      buildTable(
+        ["Location", "County", "Timezone"],
+        wa.meta.objects().map(r => [r.locationName, r.countyName, r.timezone])
+      );
+
+    // ---- daily statistics -------------------------------------------------------
+
+    const waAvg = wa.collapse("wa_mean", "mean");
+    const waID  = waAvg.getIDs()[0];
+    const daily = waAvg.getDailyStats(waID);
+
+    document.getElementById("daily-out").innerHTML = buildTable(
+      ["Date", "Count", "Min (µg/m³)", "Mean (µg/m³)", "Max (µg/m³)"],
+      daily.datetime.map((dt, i) => [
+        dt.toISODate(),
+        daily.count[i],
+        fmt(daily.min[i]),
+        fmt(daily.mean[i]),
+        fmt(daily.max[i]),
+      ])
+    );
+
+  </script>
 
 </body>
 </html>
