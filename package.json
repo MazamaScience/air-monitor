@@ -1,6 +1,6 @@
 {
   "name": "air-monitor",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Utilities for working with air quality monitoring data.",
   "keywords": [
     "air quality",

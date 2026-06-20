@@ -1,3 +1,9 @@
+# air-monitor 1.2.7
+
+- Fixed expression-injection risk in internal Arquero table operations.
+- Improved JSDoc accuracy across all public `Monitor` methods and utility functions.
+- Added `examples/intro.html`: a self-contained, browser-loadable walkthrough that loads live AirNow data, filters to Washington state, and computes daily statistics using ES6 imports via an import map.
+
 # air-monitor 1.2.6
 
 - Fixed `combine()` to fill gaps in the datetime axis when monitors cover non-overlapping time ranges.
