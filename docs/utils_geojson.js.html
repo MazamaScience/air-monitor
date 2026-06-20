@@ -37,7 +37,6 @@
  */
 
 import * as aq from "arquero";
-const op = aq.op;
 
 /**
  * Compute the most recent valid timestamp and value for each deviceDeploymentID,
@@ -50,36 +49,33 @@ export function internal_getCurrentStatus(monitor) {
   const { data, meta } = monitor;
   const ids = monitor.getIDs();
 
-  // Add a zero-based index to non-datetime columns
-  const dataWithIndex = data
-    .select(aq.not("datetime"))
-    .derive({ index: d => op.row_number() - 1 });
-
-  // Replace valid values with their row index; invalid values get a -1 sentinel.
-  // Using -1 (rather than 0) lets us distinguish a series whose only valid value
-  // is at row 0 from a fully-empty series: the latter yields a max index of -1.
-  const valueExprs = {};
-  ids.forEach(id => {
-    valueExprs[id] = `d => op.is_finite(d['${id}']) ? d.index : -1`;
+  // For each series, find the index of the most recent finite (valid) value.
+  // Using -1 as the sentinel so a series whose only valid value is at row 0
+  // is distinguishable from a fully-empty series (which stays at -1).
+  // Plain JS array walk avoids string-interpolated Arquero expressions, which
+  // break for deviceDeploymentIDs containing quotes or backslashes.
+  const n = data.numRows();
+  const lastValidIndices = ids.map(id => {
+    const arr = data.array(id);
+    let lastIdx = -1;
+    for (let i = 0; i &lt; n; i++) {
+      if (Number.isFinite(arr[i])) lastIdx = i;
+    }
+    return lastIdx;
   });
-
-  // Find max index per ID (i.e., most recent valid row). A value of -1 means the
-  // series has no valid observations.
-  const maxIndexExprs = {};
-  ids.forEach(id => {
-    maxIndexExprs[id] = `d => op.max(d['${id}'])`;
-  });
-
-  const lastValidIndexObj = dataWithIndex.derive(valueExprs).rollup(maxIndexExprs).object(0);
-  const lastValidIndices = Object.values(lastValidIndexObj);
 
   // For series with no valid observations (index === -1), report null rather than
   // falsely reporting row 0 as the most recent valid status.
   const datetimeColumn = data.array("datetime");
   const lastValidDatetime = lastValidIndices.map(i => (i &lt; 0 ? null : datetimeColumn[i]));
-  const lastValidValues = ids.map((id, i) =>
-    lastValidIndices[i] &lt; 0 ? null : data.get(id, lastValidIndices[i])
-  );
+  // Round to 1 decimal place to match getPM25()/daily stats. Load-time data is
+  // not rounded, so reading it raw here would otherwise report more decimals
+  // than the rest of the API.
+  const lastValidValues = ids.map((id, i) => {
+    if (lastValidIndices[i] &lt; 0) return null;
+    const value = data.get(id, lastValidIndices[i]);
+    return value == null ? null : Math.round(value * 10) / 10;
+  });
 
   const statusTable = aq.table({
     lastValidDatetime,
@@ -177,13 +173,13 @@ export function internal_createGeoJSON(monitor) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#COLLAPSE_FUNS">COLLAPSE_FUNS</a></li><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadMetaAndData">loadMetaAndData</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#reindexHourly">reindexHourly</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Jun 16 2026 09:49:23 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Fri Jun 19 2026 17:45:44 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

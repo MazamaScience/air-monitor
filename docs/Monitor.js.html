@@ -67,6 +67,7 @@ import {
 } from './utils/geojson.js';
 import {
   assertIsMonitor,
+  validateDataTable,
   validateDeviceID
 } from './utils/helpers.js';
 
@@ -129,7 +130,7 @@ class Monitor {
    * @async
    * @param {string} provider - One of "airnow|airsis|wrcc"
    * @param {string} baseUrl - Base URL for monitoring v2 data files.
-   * @returns {Promise&lt;Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @returns {Promise&lt;void>} Resolves when this monitor's .meta and .data have been populated.
    * @throws {Error} If there's an issue loading the data.
    */
   async loadLatest(provider, baseUrl) {
@@ -147,7 +148,7 @@ class Monitor {
     * @async
     * @param {string} provider - One of "airnow|airsis|wrcc".
     * @param {string} baseUrl - Base URL for monitoring v2 data files.
-    * @returns {Promise&lt;Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+    * @returns {Promise&lt;void>} Resolves when this monitor's .meta and .data have been populated.
     * @throws {Error} If there's an issue loading the data.
     */
   async loadDaily(provider, baseUrl) {
@@ -165,7 +166,7 @@ class Monitor {
    * @async
    * @param {string} year - Year of interest.
    * @param {string} baseUrl - Base URL for monitoring v2 data files.
-   * @returns {Promise&lt;Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @returns {Promise&lt;void>} Resolves when this monitor's .meta and .data have been populated.
    * @throws {Error} If there's an issue loading the data.
    */
   async loadAnnual(year, baseUrl) {
@@ -182,7 +183,7 @@ class Monitor {
    * @param {string} baseName - File name base.
    * @param {string} baseUrl - URL path under which data files are found.
    * @param {boolean} useAllColumns - Whether to retain all available columns in the metadata.
-   * @returns {Promise&lt;Monitor>} A promise that resolves to a new Monitor instance with the loaded data.
+   * @returns {Promise&lt;void>} Resolves when this monitor's .meta and .data have been populated.
    * @throws {Error} If there's an issue loading the data.
    */
   async loadCustom(baseName, baseUrl, useAllColumns = true) {
@@ -209,8 +210,8 @@ class Monitor {
   }
 
   /**
-   * Returns the array of date objects that define this Monitor object's time axis.
-   * @returns {Array.&lt;Date>} Array of Date objects.
+   * Returns the array of Luxon DateTime objects that define this Monitor object's time axis.
+   * @returns {DateTime[]} Array of Luxon DateTime objects in UTC.
    */
   getDatetime() {
     return this.data.array('datetime');
@@ -246,7 +247,7 @@ class Monitor {
 
   /**
    * Returns the timezone for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
    * @returns {string} Olson timezone.
    */
   getTimezone(id) {
@@ -255,9 +256,8 @@ class Monitor {
 
   /**
    * Returns the PM2.5 time series for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {number[]} PM2.5 values.
-   *
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
+   * @returns {Array&lt;number|null>} PM2.5 values, with null for missing observations.
    * @throws {Error} If the device ID is not found.
    */
   getPM25(id) {
@@ -266,8 +266,8 @@ class Monitor {
 
   /**
    * Returns the NowCast PM2.5 value for the specified device.
-   * @param {string} id - The deviceDeploymentID of the time series to select.
-   * @returns {number} NowCast value.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
+   * @returns {number|null} NowCast value, or null if there are insufficient recent observations.
    */
   getNowcast(id) {
     return internal_getNowcast(this, id);
@@ -280,7 +280,7 @@ class Monitor {
    * are returned in an object with `datetime`, `count`, `min`, `mean` and `max`
    * properties.
    *
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
    * @returns {Object} Object with `datetime`, `count`, `min`, `mean` and `max` properties.
    */
   getDailyStats(id) {
@@ -294,7 +294,7 @@ class Monitor {
    * are returned in an object with `hour`, `count`, `min`, `mean` and `max`
    * properties.
    *
-   * @param {string} id - The deviceDeploymentID of the time series to select.
+   * @param {string|string[]} id - The deviceDeploymentID (or single-element array) of the time series to select.
    * @param {number} dayCount - Number of most recent days to use.
    * @returns {Object} Object with `hour`, `count`, `min`, `mean` and `max` properties.
    */
@@ -309,16 +309,15 @@ class Monitor {
  * function provided in the `FUN` argument (typically 'mean'). The single time
  * series result will be located at the mean longitude and latitude.
    *
-   * When `FUN = "quantile"`, the `FUN_arg` argument specifies the quantile
-   * probability.
+   * Accepted values for `FUN`: "count", "valid", "invalid", "sum", "product",
+   * "mean", "average", "mode", "median", "min", "max", "quantile",
+   * "stdev", "stdevp", "variance", "variancep", "array_agg", "array_agg_distinct".
    *
-   * Available function names are those defined at:
-   * &lt;https://uwdata.github.io/arquero/api/op#aggregate-functions> with the
-   * `"op."` removed.
-   *
-   * @param {string} deviceID - New deviceDeploymentID for the collapsed series.
+   * @param {string} deviceID - Base name for the collapsed series. The resulting
+   *   deviceDeploymentID will be `{deviceID}_{geohash}` where the geohash encodes
+   *   the mean location of the input monitors.
    * @param {string} FUN - Name of an aggregation function (e.g., "mean", "max").
-   * @param {any} [FUN_arg] - Optional argument to pass to FUN.
+   * @param {number} [FUN_arg=0.8] - Quantile probability (0–1); only used when FUN is "quantile".
    * @returns {Monitor} New Monitor with a single time series.
    */
   collapse(deviceID, FUN, FUN_arg) {
@@ -339,6 +338,9 @@ class Monitor {
     const { meta, data } = internal_combine(this, monitor);
     const result = new Monitor(meta, data);
     assertIsMonitor(result, 'combine');
+    // Backstop: combine unions two independent time axes, so re-validate that
+    // the result still satisfies the UTC/hourly/gap-free datetime invariant.
+    validateDataTable(result.data);
     return result;
   }
 
@@ -380,10 +382,11 @@ class Monitor {
    * Internally, `startdate` and `enddate` are interpreted in `timezone`
    * and compared against the UTC `data.datetime` column.
    *
-   * @param {string|Date} startdate - Inclusive start of the time range, interpreted in `timezone`.
-   * @param {string|Date} enddate   - Inclusive end of the time range, interpreted in `timezone`.
-   * @param {string} [timezone]     - IANA timezone (e.g. `"America/Los_Angeles"`). If omitted,
-   *                                  the timezone may be inferred from the monitor metadata.
+   * @param {DateTime|string|Date} startdate - Inclusive start of the time range, interpreted in `timezone`.
+   * @param {DateTime|string|Date} enddate   - Inclusive end of the time range, interpreted in `timezone`.
+   * @param {string} [timezone]              - IANA timezone (e.g. `"America/Los_Angeles"`). Required
+   *                                           when inputs are strings or Date objects; not needed for
+   *                                           Luxon DateTime inputs (which already carry timezone info).
    * @returns {Monitor} New Monitor with `meta` unchanged and `data` restricted to the specified range.
    */
   filterDatetime(startdate, enddate, timezone) {
@@ -396,8 +399,9 @@ class Monitor {
   /**
    * Drops time series from the monitor that contain only missing values.
    *
-   * A value is considered missing if it is null, undefined, NaN, or an invalid string (e.g. 'NA').
-   * The resulting monitor object includes only the deviceDeploymentIDs with at least one valid observation.
+   * A value is considered missing if it is null; all other values are finite numbers (guaranteed by
+   * `parseData` at load time). The resulting monitor object includes only the deviceDeploymentIDs
+   * with at least one valid observation.
    * @returns {Monitor} New Monitor with empty time series removed.
    */
   dropEmpty() {
@@ -417,6 +421,10 @@ class Monitor {
     const { meta, data } = internal_trimDate(this, timezone);
     const result = new Monitor(meta, data);
     assertIsMonitor(result, 'trimDate');
+    // No validateDataTable() backstop needed: trimDate only slices an already-
+    // valid datetime axis at whole-day boundaries, so the UTC/hourly/gap-free
+    // invariant is preserved. (contrast with combine(), which unions two
+    // independent axes and must re-validate.)
     return result;
   }
 
@@ -450,13 +458,13 @@ export default Monitor;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#COLLAPSE_FUNS">COLLAPSE_FUNS</a></li><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadMetaAndData">loadMetaAndData</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#reindexHourly">reindexHourly</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Jun 16 2026 09:49:23 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Fri Jun 19 2026 17:45:44 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

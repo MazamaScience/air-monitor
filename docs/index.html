@@ -99,22 +99,26 @@ console.log(JSON.stringify(meta, null, 2));
 <li>✅ Accurate trimming to full local-time days with DST support</li>
 <li>✅ Chaining API for filtering, summarizing, and reshaping</li>
 <li>✅ GeoJSON export with per-site metadata and recent status</li>
-<li>✅ UVU-based test suite with 100% transformation coverage</li>
+<li>✅ UVU-based test suite covering all public methods and key edge cases</li>
 </ul>
 <h2>API Highlights</h2>
 <h3><code>new Monitor(metaTable, dataTable)</code></h3>
 <p>Creates a new monitor instance from parsed tables.</p>
 <h3><code>loadCustom(baseName, baseUrl)</code></h3>
-<p>Loads <code>{baseName}.meta.csv</code> and <code>{baseName}.data.csv</code> from a file URL.</p>
+<p>Loads <code>{baseName}_meta.csv</code> and <code>{baseName}_data.csv</code> from a file URL.</p>
 <h3><code>filterByValue(column, value)</code></h3>
 <p>Returns a new <code>Monitor</code> filtered by a metadata column.</p>
-<h3><code>collapse(granularity, method)</code></h3>
-<p>Aggregates time series by day or hour using <code>mean</code>, <code>max</code>, etc.</p>
+<h3><code>collapse(deviceID, FUN, FUN_arg)</code></h3>
+<p>Collapses all time series into one, placed at the mean lat/lon. <code>deviceID</code>
+becomes the prefix of the resulting <code>deviceDeploymentID</code> (e.g.
+<code>&quot;myID_9x0sf0yqxw&quot;</code>). <code>FUN</code> is an Arquero aggregate function name such as
+<code>&quot;mean&quot;</code>, <code>&quot;max&quot;</code>, or <code>&quot;quantile&quot;</code>. <code>FUN_arg</code> is the quantile probability
+(0–1) and only applies when <code>FUN = &quot;quantile&quot;</code> (default <code>0.8</code>).</p>
 <h3><code>combine(otherMonitor)</code></h3>
 <p>Merges another monitor instance into the current one.</p>
 <h3><code>dropEmpty()</code></h3>
 <p>Removes device series that contain no valid observations.</p>
-<h3><code>trimDate(timezone, trimEmptyDays = true)</code></h3>
+<h3><code>trimDate(timezone)</code></h3>
 <p>Trims incomplete or fully missing days from the edges of the time range.</p>
 <h3><code>getCurrentStatus()</code></h3>
 <p>Appends most recent valid timestamp and value to each metadata row.</p>
@@ -145,13 +149,13 @@ console.log(JSON.stringify(meta, null, 2));
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#COLLAPSE_FUNS">COLLAPSE_FUNS</a></li><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadMetaAndData">loadMetaAndData</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#reindexHourly">reindexHourly</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Jun 16 2026 09:49:23 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Fri Jun 19 2026 17:45:44 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

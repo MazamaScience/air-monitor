@@ -40,7 +40,6 @@
  */
 
 import * as aq from 'arquero';
-const op = aq.op;
 
 import { validateDataTable } from './helpers.js';
 
@@ -94,25 +93,31 @@ export function parseMeta(dt, useAllColumns = false, metadataNames = []) {
 export function parseData(dt) {
   const ids = dt.columnNames().slice(1); // skip 'datetime'
 
-  // Replace 'NA' with null, then parse as float
-  const values1 = {};
+  // Clean each measurement column by walking its raw values directly rather
+  // than via dt.derive(aq.escape(...)). The escape path hands each per-column
+  // expression a full row proxy, which makes derive() scale ~O(columns^2) and
+  // turns a real provider load (~1,500 columns) into a ~90s operation; the
+  // array walk below is the same work in a few milliseconds. Referencing
+  // columns by name through dt.array(id) also keeps the original safety
+  // property — deviceDeploymentIDs containing quotes/backslashes are never
+  // interpolated into generated code.
+  const columns = { datetime: dt.array('datetime') };
   ids.forEach(id => {
-    values1[id] = `d => d['${id}'] === 'NA' ? null : op.parse_float(d['${id}'])`;
+    const src = dt.array(id);
+    const out = new Array(src.length);
+    for (let i = 0; i &lt; src.length; i++) {
+      // Step 1: 'NA' -> null, otherwise parse as float.
+      let value = src[i] === 'NA' ? null : parseFloat(src[i]);
+      // Step 2: negative values -> 0 (also folds -Infinity to 0).
+      if (value &lt; 0) value = 0;
+      // Step 3: remaining non-finite values (NaN, +Infinity) -> null.
+      if (value != null &amp;&amp; !Number.isFinite(value)) value = null;
+      out[i] = value;
+    }
+    columns[id] = out;
   });
 
-  // Replace negative values with zero
-  const values2 = {};
-  ids.forEach(id => {
-    values2[id] = `d => d['${id}'] &lt; 0 ? 0 : d['${id}']`;
-  });
-
-  // Replace non-finite values (e.g. NaN, Infinity) with null
-  const values3 = {};
-  ids.forEach(id => {
-    values3[id] = `d => d['${id}'] != null &amp;&amp; !op.is_finite(d['${id}']) ? null : d['${id}']`;
-  });
-
-  const cleaned = dt.derive(values1).derive(values2).derive(values3);
+  const cleaned = aq.table(columns);
 
   // Final check: ensure datetime is valid + hourly, and all data are numeric or null
   validateDataTable(cleaned);
@@ -129,13 +134,13 @@ export function parseData(dt) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_collapse">internal_collapse</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Monitor.html">Monitor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#COLLAPSE_FUNS">COLLAPSE_FUNS</a></li><li><a href="global.html#arrayMean">arrayMean</a></li><li><a href="global.html#assert">assert</a></li><li><a href="global.html#assertIsMonitor">assertIsMonitor</a></li><li><a href="global.html#internal_combine">internal_combine</a></li><li><a href="global.html#internal_createGeoJSON">internal_createGeoJSON</a></li><li><a href="global.html#internal_dropEmpty">internal_dropEmpty</a></li><li><a href="global.html#internal_filterByValue">internal_filterByValue</a></li><li><a href="global.html#internal_filterDatetime">internal_filterDatetime</a></li><li><a href="global.html#internal_getCurrentStatus">internal_getCurrentStatus</a></li><li><a href="global.html#internal_getDailyStats">internal_getDailyStats</a></li><li><a href="global.html#internal_getDiurnalStats">internal_getDiurnalStats</a></li><li><a href="global.html#internal_getNowcast">internal_getNowcast</a></li><li><a href="global.html#internal_getPM25">internal_getPM25</a></li><li><a href="global.html#internal_getTimezone">internal_getTimezone</a></li><li><a href="global.html#internal_loadAnnual">internal_loadAnnual</a></li><li><a href="global.html#internal_loadCustom">internal_loadCustom</a></li><li><a href="global.html#internal_loadDaily">internal_loadDaily</a></li><li><a href="global.html#internal_loadLatest">internal_loadLatest</a></li><li><a href="global.html#internal_select">internal_select</a></li><li><a href="global.html#internal_trimDate">internal_trimDate</a></li><li><a href="global.html#loadMetaAndData">loadMetaAndData</a></li><li><a href="global.html#loadWithRetry">loadWithRetry</a></li><li><a href="global.html#parseData">parseData</a></li><li><a href="global.html#parseDatetime">parseDatetime</a></li><li><a href="global.html#parseMeta">parseMeta</a></li><li><a href="global.html#providerLoad">providerLoad</a></li><li><a href="global.html#providerLoadAnnual">providerLoadAnnual</a></li><li><a href="global.html#reindexHourly">reindexHourly</a></li><li><a href="global.html#round1">round1</a></li><li><a href="global.html#validateDataTable">validateDataTable</a></li><li><a href="global.html#validateDeviceID">validateDeviceID</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Jun 16 2026 09:49:23 GMT-0700 (Pacific Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Fri Jun 19 2026 17:45:44 GMT-0700 (Pacific Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
